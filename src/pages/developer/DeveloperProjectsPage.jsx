@@ -15,10 +15,10 @@ export function DeveloperProjectsPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 font-display">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">
             My Projects
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Active projects assigned to Team 1
           </p>
         </div>
@@ -41,16 +41,16 @@ export function DeveloperProjectsPage() {
             }
           >
             <div className="space-y-4 text-xs">
-              <p className="text-slate-600 leading-relaxed">
+              <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
                 {project.description}
               </p>
 
               <div>
                 <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="text-slate-500">Progress</span>
-                  <span className="font-semibold text-slate-900">{project.progress}%</span>
+                  <span className="text-slate-500 dark:text-slate-400">Progress</span>
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">{project.progress}%</span>
                 </div>
-                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
                   <div
                     className="bg-sky-500 h-2 rounded-full"
                     style={{ width: `${project.progress}%` }}
@@ -58,32 +58,32 @@ export function DeveloperProjectsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-xs">
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
                 <div>
-                  <span className="text-slate-400 block text-[11px]">Status</span>
+                  <span className="text-slate-400 dark:text-slate-500 block text-[11px]">Status</span>
                   <StatusPill status={project.status} size="sm" className="mt-1" />
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[11px]">Budget</span>
-                  <span className="font-semibold text-slate-800 mt-1 block">
+                  <span className="text-slate-400 dark:text-slate-500 block text-[11px]">Budget</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200 mt-1 block">
                     {formatCurrency(project.budget)}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[11px]">Due</span>
-                  <span className="font-medium text-slate-800 mt-1 block">
+                  <span className="text-slate-400 dark:text-slate-500 block text-[11px]">Due</span>
+                  <span className="font-medium text-slate-800 dark:text-slate-200 mt-1 block">
                     {formatDate(project.deadline, 'short')}
                   </span>
                 </div>
               </div>
 
               {project.repo && (
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-slate-600 font-mono text-[11px]">
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex items-center justify-between text-slate-600 dark:text-slate-300 font-mono text-[11px]">
                   <div className="flex items-center gap-1.5 truncate">
-                    <GitBranch className="w-3.5 h-3.5 text-emerald-600" />
+                    <GitBranch className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                     <span className="truncate">{project.repo.activeBranch}</span>
                   </div>
-                  <span>{project.repo.openPRsCount} PRs</span>
+                  <span className="text-slate-400">{project.repo.openPRsCount} PRs</span>
                 </div>
               )}
             </div>

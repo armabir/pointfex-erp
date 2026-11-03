@@ -37,7 +37,7 @@ export function DeveloperDashboard() {
       <StatsSection stats={stats} />
 
       {/* 3. Main Dashboard Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Tasks, Projects & Activity */}
         <div className="lg:col-span-7 xl:col-span-8 space-y-6">
           <MyTasksOverview tasks={urgentTasksOverview} />
@@ -45,14 +45,17 @@ export function DeveloperDashboard() {
           <RecentActivityFeed activities={recentActivities} />
         </div>
 
-        {/* Right Column: Deadlines, Performance & Announcements */}
+        {/* Right Column: Announcements (Moved UP), Deadlines & Performance */}
         <div className="lg:col-span-5 xl:col-span-4 space-y-6">
+          {/* Announcements placed upward for immediate visibility */}
+          <AnnouncementsWidget announcements={announcements} />
+          
           <UpcomingDeadlines
             deadlines={upcomingDeadlines}
             overdueTasks={overdueTasks}
           />
+          
           <PerformanceSummary performance={performance} />
-          <AnnouncementsWidget announcements={announcements} />
         </div>
       </div>
 

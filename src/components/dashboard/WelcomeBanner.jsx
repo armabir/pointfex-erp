@@ -7,13 +7,13 @@ export function WelcomeBanner({ dev, onOpenQuickTask }) {
   const { setRoute } = useApp()
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-2">
-      {/* Greeting - Clean and uncluttered, matching reference image */}
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-1">
+      {/* Greeting - Clean and uncluttered, matching relaxing reference UI */}
       <div>
-        <h2 className="text-2xl font-bold text-slate-900 font-display tracking-tight flex items-center gap-2">
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white font-display tracking-tight flex items-center gap-2">
           Welcome, {dev?.name?.split(' ')[0] || 'Alex'} <span className="inline-block animate-wiggle">👋</span>
         </h2>
-        <p className="text-xs text-slate-500 mt-1">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
           Here's what's happening with your projects and deliverables today.
         </p>
       </div>
@@ -26,7 +26,7 @@ export function WelcomeBanner({ dev, onOpenQuickTask }) {
           icon={Send}
           onClick={() => setRoute('report')}
         >
-          Daily Standup
+          Submit Deliverable
         </Button>
 
         <Button

@@ -22,12 +22,12 @@ export const ROLE_NAVIGATION = {
     roleLabel: 'Developer Workspace',
     items: [
       { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, isImplemented: true },
-      { id: 'tasks', label: 'My Tasks', icon: CheckSquare, isImplemented: false, badge: 'Kanban Next' },
-      { id: 'projects', label: 'My Projects', icon: FolderGit2, isImplemented: false, countKey: 'assignedProjects' },
-      { id: 'team', label: 'My Team', icon: Users, isImplemented: false },
-      { id: 'earnings', label: 'Earnings & Performance', icon: Wallet, isImplemented: false },
-      { id: 'report', label: 'Report to PM', icon: Send, isImplemented: false },
-      { id: 'settings', label: 'Profile & Settings', icon: Settings, isImplemented: false },
+      { id: 'tasks', label: 'My Tasks', icon: CheckSquare, isImplemented: true },
+      { id: 'projects', label: 'My Projects', icon: FolderGit2, isImplemented: true },
+      { id: 'team', label: 'My Team', icon: Users, isImplemented: true },
+      { id: 'earnings', label: 'Earnings', icon: Wallet, isImplemented: true },
+      { id: 'report', label: 'Submissions & Complaints', icon: Send, isImplemented: true },
+      { id: 'settings', label: 'Profile & Settings', icon: Settings, isImplemented: true },
     ],
   },
   pm: {

@@ -45,16 +45,16 @@ export function RolePlaceholderPage() {
 
   return (
     <div className="max-w-xl mx-auto py-12 space-y-4 text-xs">
-      <div className="bg-white border border-slate-100 rounded-3xl p-8 text-center space-y-4 shadow-sm">
-        <div className="inline-flex p-3 rounded-2xl bg-slate-100 text-slate-800 mb-1">
+      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-8 text-center space-y-4 shadow-sm">
+        <div className="inline-flex p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 mb-1">
           <Icon className="w-8 h-8" />
         </div>
 
         <div>
-          <h2 className="text-xl font-bold font-display text-slate-900 tracking-tight">
+          <h2 className="text-xl font-bold font-display text-slate-900 dark:text-white tracking-tight">
             {roleConfig.title}
           </h2>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1.5 leading-relaxed">
+          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto mt-1.5 leading-relaxed">
             {roleConfig.description} This role dashboard will be implemented in an upcoming phase.
           </p>
         </div>

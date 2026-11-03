@@ -12,28 +12,28 @@ export function Card({
 }) {
   return (
     <div
-      className={`bg-white border border-slate-100 rounded-2xl shadow-xs transition-colors ${className}`}
+      className={`bg-white dark:bg-[#0f1422] border border-slate-100 dark:border-slate-800 rounded-3xl shadow-xs transition-colors ${className}`}
     >
       {(title || subtitle || action || Icon) && (
         <div
           className={`flex items-center justify-between px-5 py-4 ${
-            headerBorder ? 'border-b border-slate-100' : ''
+            headerBorder ? 'border-b border-slate-100 dark:border-slate-800' : ''
           }`}
         >
           <div className="flex items-center gap-2.5 min-w-0">
             {Icon && (
-              <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 text-slate-700 shrink-0">
+              <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700/60 text-slate-700 dark:text-slate-300 shrink-0">
                 <Icon className="w-4 h-4" />
               </div>
             )}
             <div className="min-w-0">
               {title && (
-                <h3 className="text-sm font-semibold text-slate-900 tracking-tight truncate">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-white tracking-tight truncate">
                   {title}
                 </h3>
               )}
               {subtitle && (
-                <p className="text-xs text-slate-500 truncate mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
                   {subtitle}
                 </p>
               )}

@@ -3,125 +3,342 @@ import { Badge } from '../../components/common/Badge.jsx'
 import { useDeveloperData } from '../../hooks/useDeveloperData.js'
 import { useApp } from '../../context/AppContext.jsx'
 import { getRelativeDeadline } from '../../utils/formatters.js'
-import { Clock } from 'lucide-react'
+import {
+  Clock,
+  FolderGit2,
+  Lock,
+  Layers,
+  CheckCircle2,
+  GripVertical,
+} from 'lucide-react'
 
 export function DeveloperTasksPage() {
-  const { allDevTasks } = useDeveloperData()
-  const { setSelectedTaskModal } = useApp()
-  const [filterProject, setFilterProject] = useState('all')
+  const { allDevTasks, devProjects } = useDeveloperData()
+  const {
+    currentRole,
+    setSelectedTaskModal,
+    updateTaskStatus,
+    showToast,
+  } = useApp()
+
+  const [selectedProjectId, setSelectedProjectId] = useState('all')
+  const [draggedTaskId, setDraggedTaskId] = useState(null)
+  const [dragOverColId, setDragOverColId] = useState(null)
 
   const columns = [
-    { id: 'todo', label: 'To Do', color: 'slate', dot: 'bg-slate-400' },
-    { id: 'in_progress', label: 'In Progress', color: 'sky', dot: 'bg-sky-500' },
-    { id: 'in_review', label: 'In Review', color: 'purple', dot: 'bg-purple-500' },
-    { id: 'completed', label: 'Completed', color: 'emerald', dot: 'bg-emerald-500' },
-    { id: 'blocked', label: 'Blocked', color: 'rose', dot: 'bg-rose-500' },
+    { id: 'todo', label: 'To Do', dot: 'bg-slate-400 dark:bg-slate-500' },
+    { id: 'in_progress', label: 'In Progress', dot: 'bg-sky-500' },
+    { id: 'in_review', label: 'In Review', dot: 'bg-purple-500' },
+    {
+      id: 'completed',
+      label: 'Completed',
+      dot: 'bg-emerald-500',
+      pmOnly: true,
+    },
+    { id: 'blocked', label: 'Blocked', dot: 'bg-rose-500' },
   ]
 
+  // Filter tasks by selected project
   const filteredTasks = allDevTasks.filter((task) => {
-    if (filterProject !== 'all' && task.projectId !== filterProject) return false
+    if (selectedProjectId !== 'all' && task.projectId !== selectedProjectId) {
+      return false
+    }
     return true
   })
 
+  // Calculate project summary stats for the sidebar
+  const totalTasksCount = allDevTasks.length
+  const totalCompletedCount = allDevTasks.filter((t) => t.status === 'completed').length
+  const totalActiveCount = totalTasksCount - totalCompletedCount
+  const overallProgress = totalTasksCount > 0 ? Math.round((totalCompletedCount / totalTasksCount) * 100) : 0
+
+  // Drag and drop handlers
+  const handleDragStart = (e, taskId) => {
+    setDraggedTaskId(taskId)
+    e.dataTransfer.setData('text/plain', taskId)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragEnd = () => {
+    setDraggedTaskId(null)
+    setDragOverColId(null)
+  }
+
+  const handleDragOver = (e, colId) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    if (dragOverColId !== colId) {
+      setDragOverColId(colId)
+    }
+  }
+
+  const handleDragLeave = (e, colId) => {
+    if (dragOverColId === colId) {
+      setDragOverColId(null)
+    }
+  }
+
+  const handleDrop = (e, targetColId) => {
+    e.preventDefault()
+    setDragOverColId(null)
+    const taskId = e.dataTransfer.getData('text/plain') || draggedTaskId
+    if (!taskId) return
+
+    const task = allDevTasks.find((t) => t.id === taskId)
+    if (!task) return
+
+    if (task.status === targetColId) return
+
+    // Permission enforcement: Developers cannot drag into completed
+    if (currentRole === 'developer' && targetColId === 'completed') {
+      showToast(
+        'Permission denied: Only Project Managers (PM) can verify and mark tasks as Completed',
+        'error'
+      )
+      return
+    }
+
+    updateTaskStatus(taskId, targetColId)
+  }
+
   return (
     <div className="space-y-5">
-      {/* Header Bar */}
-      <div className="flex items-center justify-between">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 font-display">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">
             My Tasks
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Manage your sprint deliverables
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Interactive Kanban board · Drag and drop to update status
           </p>
         </div>
 
-        <select
-          value={filterProject}
-          onChange={(e) => setFilterProject(e.target.value)}
-          className="bg-white text-xs text-slate-700 border border-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:border-slate-400 cursor-pointer shadow-2xs"
-        >
-          <option value="all">All Projects</option>
-          <option value="proj_01">PulseFlow Analytics</option>
-          <option value="proj_02">CloudMesh Gateway</option>
-        </select>
+        {currentRole === 'developer' ? (
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/40 text-amber-800 dark:text-amber-300 text-xs font-medium self-start sm:self-auto">
+            <Lock className="w-3.5 h-3.5" />
+            <span>Developer Mode: "Completed" status requires PM review</span>
+          </div>
+        ) : (
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 text-xs font-medium self-start sm:self-auto">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>Management Mode ({currentRole.toUpperCase()}): Full task verification access</span>
+          </div>
+        )}
       </div>
 
-      {/* 5-Column Soft Kanban Board */}
-      <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4">
-        {columns.map((col) => {
-          const colTasks = filteredTasks.filter((t) => t.status === col.id)
+      {/* Main Grid: Projects Sidebar (Left) + 5-Column Kanban (Right) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Side: Project Cards Filter Sidebar */}
+        <div className="lg:col-span-3 space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+              <FolderGit2 className="w-3.5 h-3.5 text-slate-400" />
+              Project Filter
+            </span>
+            <span className="text-[11px] text-slate-400">
+              {devProjects.length + 1} views
+            </span>
+          </div>
 
-          return (
-            <div
-              key={col.id}
-              className="bg-slate-100/60 rounded-3xl p-3.5 flex flex-col min-h-[460px] border border-slate-200/40"
-            >
-              {/* Column Header */}
-              <div className="flex items-center justify-between pb-3 mb-2 px-1">
-                <div className="flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${col.dot}`} />
-                  <span className="text-xs font-semibold text-slate-800">
-                    {col.label}
+          {/* All Projects Card */}
+          <div
+            onClick={() => setSelectedProjectId('all')}
+            className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
+              selectedProjectId === 'all'
+                ? 'bg-slate-900 text-white dark:bg-lime-400 dark:text-slate-950 border-transparent shadow-xs'
+                : 'bg-white dark:bg-slate-900/90 text-slate-800 dark:text-slate-200 border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-2xs'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Layers className={`w-4 h-4 ${selectedProjectId === 'all' ? 'text-lime-400 dark:text-slate-950' : 'text-slate-400'}`} />
+                <span className="text-xs font-bold">All Projects</span>
+              </div>
+              <span
+                className={`text-[11px] px-2 py-0.5 rounded-lg font-medium ${
+                  selectedProjectId === 'all'
+                    ? 'bg-white/20 text-white dark:bg-black/10 dark:text-slate-950'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                }`}
+              >
+                {totalTasksCount} tasks
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between text-[11px] opacity-80 mb-1.5">
+              <span>{totalActiveCount} active · {totalCompletedCount} done</span>
+              <span>{overallProgress}%</span>
+            </div>
+
+            <div className="w-full bg-black/10 dark:bg-white/20 rounded-full h-1.5 overflow-hidden">
+              <div
+                className={`h-1.5 rounded-full ${selectedProjectId === 'all' ? 'bg-lime-400 dark:bg-slate-950' : 'bg-slate-800 dark:bg-slate-300'}`}
+                style={{ width: `${overallProgress}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Individual Project Cards */}
+          {devProjects.map((proj) => {
+            const isSelected = selectedProjectId === proj.id
+            const projDevTasks = allDevTasks.filter((t) => t.projectId === proj.id)
+            const projCompleted = projDevTasks.filter((t) => t.status === 'completed').length
+            const projActive = projDevTasks.length - projCompleted
+            const projProgress = projDevTasks.length > 0
+              ? Math.round((projCompleted / projDevTasks.length) * 100)
+              : 0
+
+            return (
+              <div
+                key={proj.id}
+                onClick={() => setSelectedProjectId(proj.id)}
+                className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                  isSelected
+                    ? 'bg-slate-900 text-white dark:bg-lime-400 dark:text-slate-950 border-transparent shadow-xs'
+                    : 'bg-white dark:bg-slate-900/90 text-slate-800 dark:text-slate-200 border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-2xs'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold truncate pr-1">
+                    {proj.name}
+                  </span>
+                  <span
+                    className={`text-[10px] font-mono px-1.5 py-0.5 rounded font-semibold shrink-0 ${
+                      isSelected
+                        ? 'bg-white/20 text-white dark:bg-black/10 dark:text-slate-950'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                    }`}
+                  >
+                    {proj.code}
                   </span>
                 </div>
-                <span className="text-xs font-semibold text-slate-400">
-                  {colTasks.length}
-                </span>
-              </div>
 
-              {/* Task Cards in this Column */}
-              <div className="flex-1 space-y-3 overflow-y-auto">
-                {colTasks.length === 0 ? (
-                  <div className="h-28 rounded-2xl flex items-center justify-center text-xs text-slate-400 italic">
-                    Empty
+                <div className="flex items-center justify-between text-[11px] opacity-80 mb-1.5">
+                  <span>{projActive} active · {projCompleted} done</span>
+                  <span>{projProgress}%</span>
+                </div>
+
+                <div className="w-full bg-black/10 dark:bg-white/20 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className={`h-1.5 rounded-full ${isSelected ? 'bg-lime-400 dark:bg-slate-950' : 'bg-sky-500'}`}
+                    style={{ width: `${projProgress}%` }}
+                  />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Right Side: 5-Column Kanban Board */}
+        <div className="lg:col-span-9">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3.5">
+            {columns.map((col) => {
+              const colTasks = filteredTasks.filter((t) => t.status === col.id)
+              const isDragOver = dragOverColId === col.id
+
+              return (
+                <div
+                  key={col.id}
+                  onDragOver={(e) => handleDragOver(e, col.id)}
+                  onDragLeave={(e) => handleDragLeave(e, col.id)}
+                  onDrop={(e) => handleDrop(e, col.id)}
+                  className={`rounded-3xl p-3 flex flex-col min-h-[500px] border transition-all ${
+                    isDragOver
+                      ? 'bg-lime-50/60 dark:bg-lime-950/30 border-lime-400 dark:border-lime-500 ring-2 ring-lime-300 dark:ring-lime-700'
+                      : 'bg-slate-100/70 dark:bg-slate-850/80 border-slate-200/50 dark:border-slate-800'
+                  }`}
+                >
+                  {/* Column Header */}
+                  <div className="flex items-center justify-between pb-2.5 mb-2 px-1 border-b border-slate-200/50 dark:border-slate-800">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className={`w-2 h-2 rounded-full shrink-0 ${col.dot}`} />
+                      <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
+                        {col.label}
+                      </span>
+                      {col.pmOnly && currentRole === 'developer' && (
+                        <Lock className="w-3 h-3 text-slate-400 shrink-0" title="PM approval required" />
+                      )}
+                    </div>
+                    <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 px-1.5 py-0.5 rounded-full bg-white/70 dark:bg-slate-800">
+                      {colTasks.length}
+                    </span>
                   </div>
-                ) : (
-                  colTasks.map((task) => {
-                    const deadline = getRelativeDeadline(task.dueDate)
-                    return (
-                      <div
-                        key={task.id}
-                        onClick={() => setSelectedTaskModal(task)}
-                        className="p-3.5 bg-white border border-slate-100/80 hover:border-slate-200/80 rounded-2xl cursor-pointer transition-all duration-150 shadow-2xs hover:shadow-xs group"
-                      >
-                        <div className="flex items-center justify-between gap-1.5 mb-2">
-                          <Badge
-                            variant={
-                              task.priority === 'urgent'
-                                ? 'rose'
-                                : task.priority === 'high'
-                                ? 'amber'
-                                : 'slate'
-                            }
-                            size="xs"
-                          >
-                            {task.priority}
-                          </Badge>
 
-                          <div className="flex items-center gap-1 text-[11px] text-slate-400">
-                            <Clock className="w-3 h-3" />
-                            <span>{task.loggedHours}h</span>
-                          </div>
-                        </div>
-
-                        <h4 className="text-xs font-medium text-slate-900 group-hover:text-sky-700 transition-colors line-clamp-2 leading-snug">
-                          {task.title}
-                        </h4>
-
-                        <div className="mt-3 pt-2 border-t border-slate-50 flex items-center justify-end">
-                          <span className="text-[11px] text-slate-400">
-                            {deadline.label}
+                  {/* Task Cards in this Column */}
+                  <div className="flex-1 space-y-2.5 overflow-y-auto">
+                    {colTasks.length === 0 ? (
+                      <div className="h-32 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-xs text-slate-400 dark:text-slate-500 italic p-3 text-center">
+                        {col.pmOnly && currentRole === 'developer' ? (
+                          <span className="flex items-center gap-1 text-[11px] not-italic">
+                            <Lock className="w-3 h-3" />
+                            PM Verification
                           </span>
-                        </div>
+                        ) : (
+                          'Drop tasks here'
+                        )}
                       </div>
-                    )
-                  })
-                )}
-              </div>
-            </div>
-          )
-        })}
+                    ) : (
+                      colTasks.map((task) => {
+                        const deadline = getRelativeDeadline(task.dueDate)
+                        const isBeingDragged = draggedTaskId === task.id
+
+                        return (
+                          <div
+                            key={task.id}
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, task.id)}
+                            onDragEnd={handleDragEnd}
+                            onClick={() => setSelectedTaskModal(task)}
+                            className={`p-3 bg-white dark:bg-slate-900 border rounded-2xl cursor-grab active:cursor-grabbing transition-all duration-150 shadow-2xs hover:shadow-xs group ${
+                              isBeingDragged
+                                ? 'opacity-40 border-lime-400 ring-2 ring-lime-300'
+                                : 'border-slate-100/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-1.5 mb-2">
+                              <Badge
+                                variant={
+                                  task.priority === 'urgent'
+                                    ? 'rose'
+                                    : task.priority === 'high'
+                                    ? 'amber'
+                                    : 'slate'
+                                }
+                                size="xs"
+                              >
+                                {task.priority}
+                              </Badge>
+
+                              <div className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500">
+                                <Clock className="w-3 h-3" />
+                                <span>{task.loggedHours}h</span>
+                                <GripVertical className="w-3 h-3 text-slate-300 dark:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity ml-1" />
+                              </div>
+                            </div>
+
+                            <h4 className="text-xs font-medium text-slate-900 dark:text-slate-100 group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors line-clamp-2 leading-snug">
+                              {task.title}
+                            </h4>
+
+                            <div className="mt-2.5 pt-2 border-t border-slate-50 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500">
+                              <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400">
+                                {task.project?.code || 'PROJ'}
+                              </span>
+                              <span className={deadline.isOverdue ? 'text-rose-600 dark:text-rose-400 font-semibold' : ''}>
+                                {deadline.label}
+                              </span>
+                            </div>
+                          </div>
+                        )
+                      })
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </div>
     </div>
   )

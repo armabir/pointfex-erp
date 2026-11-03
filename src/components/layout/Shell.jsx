@@ -31,7 +31,7 @@ export function Shell({ children }) {
   }, [setIsSearchOpen])
 
   return (
-    <div className="min-h-screen bg-[#eef1f6] text-slate-800 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#eef1f6] dark:bg-[#080a10] text-slate-800 dark:text-slate-100 flex flex-col font-sans transition-colors">
       {/* Sidebar */}
       <Sidebar />
 
@@ -65,7 +65,7 @@ export function Shell({ children }) {
 
       {/* Toast notification pill */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-white border border-slate-100 shadow-xl text-xs text-slate-800 animate-in fade-in slide-in-from-bottom-2 duration-150">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-white dark:bg-[#131722] border border-slate-100 dark:border-slate-800 shadow-xl text-xs text-slate-800 dark:text-slate-100 animate-in fade-in slide-in-from-bottom-2 duration-150">
           {toastMessage.type === 'success' ? (
             <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
           ) : toastMessage.type === 'error' ? (
