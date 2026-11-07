@@ -18,39 +18,59 @@ export function Header() {
   } = useApp()
 
   const getPageInfo = () => {
-    if (currentRole !== 'developer') {
-      const roleMap = {
-        pm: 'Project Manager',
-        cto: 'CTO Workspace',
-        cpo: 'CPO Workspace',
-        cfo: 'CFO Workspace',
-        ceo: 'CEO Workspace',
+    if (currentRole === 'developer') {
+      const routeMap = {
+        dashboard: { title: 'Dashboard', crumb: 'Dashboard' },
+        tasks: { title: 'My Tasks', crumb: 'My Tasks' },
+        projects: { title: 'My Projects', crumb: 'My Projects' },
+        team: { title: 'My Team', crumb: 'My Team' },
+        earnings: { title: 'Earnings', crumb: 'Earnings' },
+        report: { title: 'Submissions & Complaints', crumb: 'Submissions & Complaints' },
+        settings: { title: 'Settings', crumb: 'Settings' },
       }
+      const curr = routeMap[currentRoute] || { title: 'Dashboard', crumb: 'Dashboard' }
       return {
-        title: roleMap[currentRole] || 'Workspace',
+        title: curr.title,
         breadcrumbs: [
-          { label: 'Pointfex' },
-          { label: roleMap[currentRole] || currentRole },
+          { label: 'Developer', onClick: () => setRoute('dashboard') },
+          { label: curr.crumb },
         ],
       }
     }
 
-    const routeMap = {
-      dashboard: { title: 'Dashboard', crumb: 'Dashboard' },
-      tasks: { title: 'My Tasks', crumb: 'My Tasks' },
-      projects: { title: 'My Projects', crumb: 'My Projects' },
-      team: { title: 'My Team', crumb: 'My Team' },
-      earnings: { title: 'Earnings', crumb: 'Earnings' },
-      report: { title: 'Submissions & Complaints', crumb: 'Submissions & Complaints' },
-      settings: { title: 'Settings', crumb: 'Settings' },
+    if (currentRole === 'pm') {
+      const pmRouteMap = {
+        dashboard: { title: 'Dashboard', crumb: 'Dashboard' },
+        tasks: { title: 'My Tasks', crumb: 'My Tasks' },
+        'task-management': { title: 'Task Management', crumb: 'Task Management' },
+        projects: { title: 'My Projects', crumb: 'My Projects' },
+        'team-management': { title: 'Team Management', crumb: 'Team Management' },
+        'budget-finance': { title: 'Budget & Finance', crumb: 'Budget & Finance' },
+        earnings: { title: 'Earnings & Performance', crumb: 'Earnings & Performance' },
+        report: { title: 'Report to C-Level', crumb: 'Report to C-Level' },
+        settings: { title: 'Profile & Settings', crumb: 'Profile & Settings' },
+      }
+      const curr = pmRouteMap[currentRoute] || { title: 'Dashboard', crumb: 'Dashboard' }
+      return {
+        title: curr.title,
+        breadcrumbs: [
+          { label: 'Project Manager', onClick: () => setRoute('dashboard') },
+          { label: curr.crumb },
+        ],
+      }
     }
 
-    const curr = routeMap[currentRoute] || { title: 'Dashboard', crumb: 'Dashboard' }
+    const roleMap = {
+      cto: 'CTO Workspace',
+      cpo: 'CPO Workspace',
+      cfo: 'CFO Workspace',
+      ceo: 'CEO Workspace',
+    }
     return {
-      title: curr.title,
+      title: roleMap[currentRole] || 'Workspace',
       breadcrumbs: [
-        { label: 'Developer', onClick: () => setRoute('dashboard') },
-        { label: curr.crumb },
+        { label: 'Pointfex' },
+        { label: roleMap[currentRole] || currentRole },
       ],
     }
   }

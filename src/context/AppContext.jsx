@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useMemo, useCallback, useEffect } from 'react'
-import { getInitialSeedData, createDataResolvers, CURRENT_DEV_ID } from '../data/index.js'
+import { getInitialSeedData, createDataResolvers, CURRENT_DEV_ID, CURRENT_PM_ID } from '../data/index.js'
 import { ROLES } from '../data/roles.js'
 
 const AppContext = createContext(null)
@@ -13,6 +13,9 @@ export function AppProvider({ children }) {
   })
 
   const [currentDevId, setCurrentDevId] = useState(CURRENT_DEV_ID)
+  const [currentPmId, setCurrentPmId] = useState(() => {
+    return localStorage.getItem('pointfex_pm_id') || CURRENT_PM_ID
+  })
 
   const [currentRoute, setCurrentRouteState] = useState(() => {
     const hashRoute = window.location.hash.replace('#', '')
@@ -48,9 +51,13 @@ export function AppProvider({ children }) {
   // 3. Persistent Route Handler
   const setRoute = useCallback((routeId) => {
     setCurrentRouteState(routeId)
-    localStorage.setItem('pointfex_route', routeId)
+    if (currentRole === 'pm') {
+      localStorage.setItem('pointfex_pm_route', routeId)
+    } else {
+      localStorage.setItem('pointfex_route', routeId)
+    }
     window.location.hash = routeId
-  }, [])
+  }, [currentRole])
 
   // Listen to browser forward/back hash change
   useEffect(() => {
@@ -81,15 +88,21 @@ export function AppProvider({ children }) {
     if (currentRole === 'developer') {
       return resolvers.getUser(currentDevId)
     }
+    if (currentRole === 'pm') {
+      return resolvers.getUser(currentPmId) || data.users.find((u) => u.role === 'pm')
+    }
     const roleUser = data.users.find((u) => u.role === currentRole)
     return roleUser || resolvers.getUser(currentDevId)
-  }, [currentRole, currentDevId, resolvers, data.users])
+  }, [currentRole, currentDevId, currentPmId, resolvers, data.users])
 
-  // Current developer's team
+  // Current user's team
   const currentTeam = useMemo(() => {
+    if (currentRole === 'pm') {
+      return data.teams.find((t) => t.pmId === currentPmId || t.id === currentUser?.teamId) || null
+    }
     if (!currentUser?.teamId) return null
     return resolvers.getTeam(currentUser.teamId)
-  }, [currentUser, resolvers])
+  }, [currentRole, currentPmId, currentUser, resolvers, data.teams])
 
   // Handler: Change Role (persisted)
   const handleSetRole = useCallback((roleId) => {
@@ -99,11 +112,23 @@ export function AppProvider({ children }) {
       const target = localStorage.getItem('pointfex_route') || 'dashboard'
       setRoute(target)
       showToast('Switched to Developer Workspace', 'success')
+    } else if (roleId === 'pm') {
+      const target = localStorage.getItem('pointfex_pm_route') || 'dashboard'
+      setRoute(target)
+      showToast('Switched to Project Manager Workspace', 'success')
     } else {
       const targetRole = ROLES[roleId.toUpperCase()]?.name || roleId
       showToast(`Switched to ${targetRole} (Preview)`, 'info')
     }
   }, [setRoute, showToast])
+
+  // Handler: Change Active PM User (for dynamic PM switching)
+  const handleSetPmId = useCallback((pmId) => {
+    setCurrentPmId(pmId)
+    localStorage.setItem('pointfex_pm_id', pmId)
+    const pm = resolvers.getUser(pmId)
+    showToast(`Active PM: ${pm?.name || 'Project Manager'}`, 'info')
+  }, [resolvers, showToast])
 
   // Handler: Reset Demo Data
   const handleResetDemoData = useCallback(() => {
@@ -111,6 +136,8 @@ export function AppProvider({ children }) {
     setCurrentRole('developer')
     localStorage.setItem('pointfex_role', 'developer')
     setCurrentDevId(CURRENT_DEV_ID)
+    setCurrentPmId(CURRENT_PM_ID)
+    localStorage.setItem('pointfex_pm_id', CURRENT_PM_ID)
     setRoute('dashboard')
     setSelectedTaskModal(null)
     setSelectedProjectModal(null)
@@ -209,12 +236,275 @@ export function AppProvider({ children }) {
     showToast('All notifications marked read', 'info')
   }, [showToast])
 
+  // --- PM WORKSPACE ACTION HANDLERS ---
+
+  // PM Handler: Create New Task for Team
+  const handleCreateTask = useCallback((taskData) => {
+    const newTask = {
+      id: `task_${Date.now()}`,
+      title: taskData.title,
+      description: taskData.description || '',
+      projectId: taskData.projectId,
+      assigneeId: taskData.assigneeId,
+      creatorId: currentPmId,
+      status: 'todo',
+      priority: taskData.priority || 'medium',
+      dueDate: taskData.dueDate || new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+      estimatedHours: Number(taskData.estimatedHours) || 8,
+      loggedHours: 0,
+      tags: taskData.tags || [],
+      checklist: taskData.checklist || [],
+      createdAt: new Date().toISOString().split('T')[0],
+    }
+
+    const assignee = resolvers.getUser(newTask.assigneeId)
+    const newActivity = {
+      id: `act_${Date.now()}`,
+      userId: currentPmId,
+      action: 'task_created',
+      entityType: 'task',
+      entityId: newTask.id,
+      entityTitle: newTask.title,
+      description: `Task created and assigned to ${assignee?.name || 'developer'}`,
+      timestamp: 'Just now',
+      category: 'task',
+      badgeColor: 'sky',
+    }
+
+    setData((prev) => ({
+      ...prev,
+      tasks: [newTask, ...prev.tasks],
+      activityLogs: [newActivity, ...prev.activityLogs],
+    }))
+
+    showToast(`Task "${newTask.title}" created successfully`, 'success')
+    return newTask
+  }, [currentPmId, resolvers, showToast])
+
+  // PM Handler: Approve Task & Mark Completed
+  const handleApproveTask = useCallback((taskId, feedback) => {
+    setData((prev) => {
+      const taskIndex = prev.tasks.findIndex((t) => t.id === taskId)
+      if (taskIndex === -1) return prev
+
+      const oldTask = prev.tasks[taskIndex]
+      const updatedTasks = [...prev.tasks]
+      updatedTasks[taskIndex] = { ...oldTask, status: 'completed' }
+
+      const updatedComments = feedback
+        ? [
+            ...prev.comments,
+            {
+              id: `comm_${Date.now()}`,
+              taskId,
+              authorId: currentPmId,
+              content: `[PM Approval]: ${feedback}`,
+              createdAt: new Date().toISOString(),
+            },
+          ]
+        : prev.comments
+
+      const newActivity = {
+        id: `act_${Date.now()}`,
+        userId: currentPmId,
+        action: 'task_approved',
+        entityType: 'task',
+        entityId: taskId,
+        entityTitle: oldTask.title,
+        description: `Verified deliverable and marked task as Completed`,
+        timestamp: 'Just now',
+        category: 'task',
+        badgeColor: 'emerald',
+      }
+
+      return {
+        ...prev,
+        tasks: updatedTasks,
+        comments: updatedComments,
+        activityLogs: [newActivity, ...prev.activityLogs],
+      }
+    })
+    showToast('Task approved and marked as Completed', 'success')
+  }, [currentPmId, showToast])
+
+  // PM Handler: Reject Task & Return to In Progress
+  const handleRejectTask = useCallback((taskId, feedback) => {
+    setData((prev) => {
+      const taskIndex = prev.tasks.findIndex((t) => t.id === taskId)
+      if (taskIndex === -1) return prev
+
+      const oldTask = prev.tasks[taskIndex]
+      const updatedTasks = [...prev.tasks]
+      updatedTasks[taskIndex] = { ...oldTask, status: 'in_progress' }
+
+      const updatedComments = feedback
+        ? [
+            ...prev.comments,
+            {
+              id: `comm_${Date.now()}`,
+              taskId,
+              authorId: currentPmId,
+              content: `[PM Review Feedback - Needs Revision]: ${feedback}`,
+              createdAt: new Date().toISOString(),
+            },
+          ]
+        : prev.comments
+
+      const newActivity = {
+        id: `act_${Date.now()}`,
+        userId: currentPmId,
+        action: 'task_rejected',
+        entityType: 'task',
+        entityId: taskId,
+        entityTitle: oldTask.title,
+        description: `Returned task to In Progress with review feedback`,
+        timestamp: 'Just now',
+        category: 'task',
+        badgeColor: 'amber',
+      }
+
+      return {
+        ...prev,
+        tasks: updatedTasks,
+        comments: updatedComments,
+        activityLogs: [newActivity, ...prev.activityLogs],
+      }
+    })
+    showToast('Task returned to In Progress with feedback', 'info')
+  }, [currentPmId, showToast])
+
+  // PM Handler: Reassign Task
+  const handleReassignTask = useCallback((taskId, newAssigneeId) => {
+    setData((prev) => {
+      const taskIndex = prev.tasks.findIndex((t) => t.id === taskId)
+      if (taskIndex === -1) return prev
+
+      const oldTask = prev.tasks[taskIndex]
+      const updatedTasks = [...prev.tasks]
+      updatedTasks[taskIndex] = { ...oldTask, assigneeId: newAssigneeId }
+
+      const newAssignee = resolvers.getUser(newAssigneeId)
+      const newActivity = {
+        id: `act_${Date.now()}`,
+        userId: currentPmId,
+        action: 'task_reassigned',
+        entityType: 'task',
+        entityId: taskId,
+        entityTitle: oldTask.title,
+        description: `Reassigned task to ${newAssignee?.name || 'developer'}`,
+        timestamp: 'Just now',
+        category: 'task',
+        badgeColor: 'sky',
+      }
+
+      return {
+        ...prev,
+        tasks: updatedTasks,
+        activityLogs: [newActivity, ...prev.activityLogs],
+      }
+    })
+    const devName = resolvers.getUser(newAssigneeId)?.name || 'developer'
+    showToast(`Task reassigned to ${devName}`, 'success')
+  }, [currentPmId, resolvers, showToast])
+
+  // PM Handler: Allocate Budget to Developer
+  const handleAllocateBudget = useCallback((allocation) => {
+    const newTx = {
+      id: `alloc_${Date.now()}`,
+      userId: allocation.developerId,
+      projectId: allocation.projectId,
+      amount: Number(allocation.amount),
+      type: 'budget_allocation',
+      description: allocation.description || `Week ${allocation.week || 3} sprint allocation`,
+      date: new Date().toISOString().split('T')[0],
+      status: 'allocated',
+    }
+
+    setData((prev) => ({
+      ...prev,
+      transactions: [newTx, ...prev.transactions],
+    }))
+
+    const devName = resolvers.getUser(allocation.developerId)?.name || 'developer'
+    showToast(`Allocated $${allocation.amount} to ${devName}`, 'success')
+  }, [resolvers, showToast])
+
+  // PM Handler: Request Budget Increase from CFO
+  const handleRequestBudgetIncrease = useCallback((req) => {
+    const project = resolvers.getProject(req.projectId)
+    const newReport = {
+      id: `pm_budget_${Date.now()}`,
+      userId: currentPmId,
+      teamId: currentUser?.teamId || 'team_01',
+      type: 'pm_report',
+      category: 'Budget Request',
+      recipient: 'Chief Financial Officer (CFO)',
+      title: `Budget Increase Request: $${req.amount} for ${project?.name || 'Project'}`,
+      description: req.reason,
+      projectId: req.projectId,
+      date: new Date().toISOString().split('T')[0],
+      status: 'under_review',
+      submittedAt: new Date().toISOString(),
+      feedback: 'Awaiting CFO review in financial allocations queue.',
+    }
+
+    setData((prev) => ({
+      ...prev,
+      reports: [newReport, ...prev.reports],
+    }))
+    showToast(`Budget request of $${req.amount} submitted to CFO`, 'success')
+  }, [currentPmId, currentUser, resolvers, showToast])
+
+  // PM Handler: Submit Report to C-Level
+  const handleSubmitPmReport = useCallback((report) => {
+    const newReport = {
+      id: `pm_rep_${Date.now()}`,
+      userId: currentPmId,
+      teamId: currentUser?.teamId || 'team_01',
+      type: 'pm_report',
+      category: report.category,
+      recipient: report.recipient,
+      title: report.title,
+      description: report.description,
+      projectId: report.projectId || '',
+      docsUrl: report.docsUrl || '',
+      date: new Date().toISOString().split('T')[0],
+      status: 'under_review',
+      submittedAt: new Date().toISOString(),
+      feedback: `Report logged and queued for review by ${report.recipient}.`,
+    }
+
+    setData((prev) => ({
+      ...prev,
+      reports: [newReport, ...prev.reports],
+    }))
+    showToast(`Report submitted to ${report.recipient}`, 'success')
+  }, [currentPmId, currentUser, showToast])
+
+  // PM Handler: Update Personal Task Status
+  const handleUpdatePmTaskStatus = useCallback((taskId, newStatus) => {
+    setData((prev) => {
+      const taskIndex = prev.tasks.findIndex((t) => t.id === taskId)
+      if (taskIndex === -1) return prev
+
+      const updatedTasks = [...prev.tasks]
+      updatedTasks[taskIndex] = { ...updatedTasks[taskIndex], status: newStatus }
+
+      return {
+        ...prev,
+        tasks: updatedTasks,
+      }
+    })
+    showToast(`Task status updated to ${newStatus.replace('_', ' ')}`, 'success')
+  }, [showToast])
+
   // Context value
   const value = {
     // State
     data,
     currentRole,
     currentDevId,
+    currentPmId,
     currentRoute,
     theme,
     isSidebarCollapsed,
@@ -229,6 +519,7 @@ export function AppProvider({ children }) {
 
     // Setters / Actions
     setRole: handleSetRole,
+    setPmId: handleSetPmId,
     setRoute,
     toggleTheme,
     toggleSidebar: () => setIsSidebarCollapsed((prev) => !prev),
@@ -245,6 +536,16 @@ export function AppProvider({ children }) {
     markAllNotificationsRead: handleMarkAllNotificationsRead,
     resetDemoData: handleResetDemoData,
     showToast,
+
+    // PM Workspace Handlers
+    createTask: handleCreateTask,
+    approveTask: handleApproveTask,
+    rejectTask: handleRejectTask,
+    reassignTask: handleReassignTask,
+    allocateBudget: handleAllocateBudget,
+    requestBudgetIncrease: handleRequestBudgetIncrease,
+    submitPmReport: handleSubmitPmReport,
+    updatePmTaskStatus: handleUpdatePmTaskStatus,
   }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

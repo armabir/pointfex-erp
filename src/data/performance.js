@@ -38,5 +38,36 @@ export const PERFORMANCE_RECORDS = [
     strengths: ['Canvas / WebGL optimization', 'Modular CSS & Tailwind', 'State machine design'],
     improvementAreas: ['Coordinate earlier with DevOps on security header deployment'],
   },
+  {
+    userId: 'user_pm_01', // Sarah Jenkins
+    overallScore: 96,
+    completionRate: 92,
+    onTimeDeliveryRate: 98,
+    codeQualityScore: 94,
+    peerReviewScore: 4.95,
+    velocityPointsSprint3: 42,
+    targetVelocityPoints: 40,
+    sprintWeek: 3,
+    recentRewards: [
+      {
+        id: 'rew_pm_01',
+        title: 'Outstanding Agile Delivery: Sprint 2',
+        description: 'Awarded by CTO & CEO for leading Team 1 to 100% on-time milestone delivery with zero blockers.',
+        date: '2026-10-30',
+        icon: 'Award',
+        bonusValue: '$600',
+      },
+      {
+        id: 'rew_pm_02',
+        title: 'Budget Discipline Accolade',
+        description: 'Delivered Phase 2 telemetry deliverables 8% under approved project budget forecast.',
+        date: '2026-10-26',
+        icon: 'ShieldCheck',
+        bonusValue: '$300',
+      },
+    ],
+    strengths: ['Cross-functional coordination', 'Risk mitigation', 'Milestone pacing'],
+    improvementAreas: ['Earlier documentation synchronization with QA squads'],
+  },
 ]
 

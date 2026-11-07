@@ -1,5 +1,5 @@
 import { ROLES, ROLE_LIST } from './roles.js'
-import { USERS, CURRENT_DEV_ID, getCurrentDeveloper } from './users.js'
+import { USERS, CURRENT_DEV_ID, getCurrentDeveloper, CURRENT_PM_ID, getCurrentPm } from './users.js'
 import { TEAMS } from './teams.js'
 import { PROJECTS } from './projects.js'
 import { TASKS } from './tasks.js'
@@ -21,6 +21,8 @@ export {
   USERS,
   CURRENT_DEV_ID,
   getCurrentDeveloper,
+  CURRENT_PM_ID,
+  getCurrentPm,
   TEAMS,
   PROJECTS,
   TASKS,

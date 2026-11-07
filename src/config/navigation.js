@@ -13,6 +13,7 @@ import {
   Settings,
   Calendar,
   GitBranch,
+  Layers,
 } from 'lucide-react'
 
 // Role-specific navigation maps
@@ -34,11 +35,15 @@ export const ROLE_NAVIGATION = {
     roleId: 'pm',
     roleLabel: 'Project Manager Workspace',
     items: [
-      { id: 'pm-overview', label: 'Sprint Cockpit', icon: LayoutDashboard, isImplemented: false },
-      { id: 'pm-teams', label: 'Team Allocations (6 Teams)', icon: Users, isImplemented: false },
-      { id: 'pm-projects', label: '12 Projects Board', icon: FolderGit2, isImplemented: false },
-      { id: 'pm-deliverables', label: 'Milestone Approvals', icon: CheckSquare, isImplemented: false },
-      { id: 'pm-reports', label: 'Developer Standups', icon: Send, isImplemented: false },
+      { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, isImplemented: true },
+      { id: 'tasks', label: 'My Tasks', icon: CheckSquare, isImplemented: true },
+      { id: 'task-management', label: 'Task Management', icon: Layers, isImplemented: true },
+      { id: 'projects', label: 'My Projects', icon: FolderGit2, isImplemented: true },
+      { id: 'team-management', label: 'Team Management', icon: Users, isImplemented: true },
+      { id: 'budget-finance', label: 'Budget & Finance', icon: Coins, isImplemented: true },
+      { id: 'earnings', label: 'Earnings & Performance', icon: Wallet, isImplemented: true },
+      { id: 'report', label: 'Report to C-Level', icon: Send, isImplemented: true },
+      { id: 'settings', label: 'Profile & Settings', icon: Settings, isImplemented: true },
     ],
   },
   cto: {

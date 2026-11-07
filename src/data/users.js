@@ -117,4 +117,6 @@ export const USERS = [
 
 export const CURRENT_DEV_ID = 'user_dev_01'
 export const getCurrentDeveloper = () => USERS.find((u) => u.id === CURRENT_DEV_ID)
+export const CURRENT_PM_ID = 'user_pm_01'
+export const getCurrentPm = () => USERS.find((u) => u.id === CURRENT_PM_ID)
 

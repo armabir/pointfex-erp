@@ -11,7 +11,7 @@ export const ROLES = {
     name: 'Project Manager (PM)',
     badge: 'Management',
     description: 'Manage sprints, allocate tasks to 4-dev teams, review deliverables, and approve milestones.',
-    isImplemented: false,
+    isImplemented: true,
   },
   CTO: {
     id: 'cto',
