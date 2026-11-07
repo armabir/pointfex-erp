@@ -5,7 +5,6 @@ import { StatsSection } from '../../components/dashboard/StatsSection.jsx'
 import { MyTasksOverview } from '../../components/dashboard/MyTasksOverview.jsx'
 import { MyProjectsOverview } from '../../components/dashboard/MyProjectsOverview.jsx'
 import { UpcomingDeadlines } from '../../components/dashboard/UpcomingDeadlines.jsx'
-import { RecentActivityFeed } from '../../components/dashboard/RecentActivityFeed.jsx'
 import { AnnouncementsWidget } from '../../components/dashboard/AnnouncementsWidget.jsx'
 import { PerformanceSummary } from '../../components/dashboard/PerformanceSummary.jsx'
 import { QuickTaskCreateModal } from '../../components/dashboard/QuickTaskCreateModal.jsx'
@@ -18,7 +17,6 @@ export function DeveloperDashboard() {
     urgentTasksOverview,
     upcomingDeadlines,
     overdueTasks,
-    recentActivities,
     announcements,
     performance,
   } = useDeveloperData()
@@ -38,24 +36,26 @@ export function DeveloperDashboard() {
 
       {/* 3. Main Dashboard Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Tasks, Projects & Activity */}
+        {/* Left Column: Tasks -> Performance -> Projects */}
         <div className="lg:col-span-7 xl:col-span-8 space-y-6">
+          {/* Tasks Overview with Sorting Buttons */}
           <MyTasksOverview tasks={urgentTasksOverview} />
+
+          {/* Performance Summary (replacing Recent Activity) */}
+          <PerformanceSummary performance={performance} />
+
+          {/* Projects Overview (moved below Performance) */}
           <MyProjectsOverview projects={devProjects} />
-          <RecentActivityFeed activities={recentActivities} />
         </div>
 
-        {/* Right Column: Announcements (Moved UP), Deadlines & Performance */}
+        {/* Right Column: Announcements & Deadlines */}
         <div className="lg:col-span-5 xl:col-span-4 space-y-6">
-          {/* Announcements placed upward for immediate visibility */}
           <AnnouncementsWidget announcements={announcements} />
-          
+
           <UpcomingDeadlines
             deadlines={upcomingDeadlines}
             overdueTasks={overdueTasks}
           />
-          
-          <PerformanceSummary performance={performance} />
         </div>
       </div>
 

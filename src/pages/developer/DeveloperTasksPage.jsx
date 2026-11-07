@@ -147,7 +147,7 @@ export function DeveloperTasksPage() {
             className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
               selectedProjectId === 'all'
                 ? 'bg-slate-900 text-white dark:bg-lime-400 dark:text-slate-950 border-transparent shadow-xs'
-                : 'bg-white dark:bg-slate-900/90 text-slate-800 dark:text-slate-200 border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-2xs'
+                : 'bg-white dark:bg-[#0f1422] text-slate-800 dark:text-slate-200 border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-2xs'
             }`}
           >
             <div className="flex items-center justify-between mb-2">
@@ -196,7 +196,7 @@ export function DeveloperTasksPage() {
                 className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
                   isSelected
                     ? 'bg-slate-900 text-white dark:bg-lime-400 dark:text-slate-950 border-transparent shadow-xs'
-                    : 'bg-white dark:bg-slate-900/90 text-slate-800 dark:text-slate-200 border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-2xs'
+                    : 'bg-white dark:bg-[#0f1422] text-slate-800 dark:text-slate-200 border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-2xs'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1.5">
@@ -246,7 +246,7 @@ export function DeveloperTasksPage() {
                   className={`rounded-3xl p-3 flex flex-col min-h-[500px] border transition-all ${
                     isDragOver
                       ? 'bg-lime-50/60 dark:bg-lime-950/30 border-lime-400 dark:border-lime-500 ring-2 ring-lime-300 dark:ring-lime-700'
-                      : 'bg-slate-100/70 dark:bg-slate-850/80 border-slate-200/50 dark:border-slate-800'
+                      : 'bg-slate-100/70 dark:bg-[#0f1422] border-slate-200/50 dark:border-slate-800'
                   }`}
                 >
                   {/* Column Header */}
@@ -268,7 +268,7 @@ export function DeveloperTasksPage() {
                   {/* Task Cards in this Column */}
                   <div className="flex-1 space-y-2.5 overflow-y-auto">
                     {colTasks.length === 0 ? (
-                      <div className="h-32 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-xs text-slate-400 dark:text-slate-500 italic p-3 text-center">
+                      <div className="h-32 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800/80 bg-white/30 dark:bg-[#131a2b]/30 flex flex-col items-center justify-center text-xs text-slate-400 dark:text-slate-500 italic p-3 text-center">
                         {col.pmOnly && currentRole === 'developer' ? (
                           <span className="flex items-center gap-1 text-[11px] not-italic">
                             <Lock className="w-3 h-3" />
@@ -290,10 +290,10 @@ export function DeveloperTasksPage() {
                             onDragStart={(e) => handleDragStart(e, task.id)}
                             onDragEnd={handleDragEnd}
                             onClick={() => setSelectedTaskModal(task)}
-                            className={`p-3 bg-white dark:bg-slate-900 border rounded-2xl cursor-grab active:cursor-grabbing transition-all duration-150 shadow-2xs hover:shadow-xs group ${
+                            className={`p-3 bg-white dark:bg-[#182033] border rounded-2xl cursor-grab active:cursor-grabbing transition-all duration-150 shadow-2xs hover:shadow-xs group ${
                               isBeingDragged
-                                ? 'opacity-40 border-lime-400 ring-2 ring-lime-300'
-                                : 'border-slate-100/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                                ? 'opacity-40 border-lime-400 ring-2 ring-lime-300 dark:ring-lime-500'
+                                : 'border-slate-200/80 dark:border-slate-700/70 hover:border-slate-300 dark:hover:border-slate-600'
                             }`}
                           >
                             <div className="flex items-center justify-between gap-1.5 mb-2">
@@ -321,7 +321,7 @@ export function DeveloperTasksPage() {
                               {task.title}
                             </h4>
 
-                            <div className="mt-2.5 pt-2 border-t border-slate-50 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500">
+                            <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-400">
                               <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400">
                                 {task.project?.code || 'PROJ'}
                               </span>

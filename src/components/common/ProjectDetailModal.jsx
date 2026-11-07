@@ -3,17 +3,29 @@ import { Modal } from './Modal.jsx'
 import { Badge } from './Badge.jsx'
 import { Button } from './Button.jsx'
 import { StatusPill } from './StatusPill.jsx'
-import { useApp } from '../../context/AppContext.jsx'
-import { formatCurrency, formatDate } from '../../utils/formatters.js'
-import { GitBranch, Calendar } from 'lucide-react'
+import { formatDate, getRelativeDeadline } from '../../utils/formatters.js'
+import {
+  Calendar,
+  FileCode,
+  ExternalLink,
+  Clock,
+  CheckCircle2,
+  GitBranch,
+} from 'lucide-react'
 
 export function ProjectDetailModal({ project, isOpen, onClose }) {
-  const { data, resolvers } = useApp()
-
   if (!project) return null
 
-  const repo = project.repoId ? resolvers.getRepo(project.repoId) : null
-  const milestones = data.milestones.filter((m) => m.projectId === project.id)
+  const deadlineInfo = getRelativeDeadline(project.deadline)
+
+  const srs = project.srs || {
+    documentTitle: `${project.code}-Software-Requirements-Specification.pdf`,
+    documentUrl: `https://docs.pointfex.internal/srs/${project.code}-SRS.pdf`,
+    version: 'v1.0 (Draft)',
+    lastUpdated: project.startDate || '2026-10-12',
+    overview: 'System requirements specification defining functional architecture, data pipeline thresholds, and API specifications.',
+    requirementsCount: 20,
+  }
 
   return (
     <Modal
@@ -24,11 +36,11 @@ export function ProjectDetailModal({ project, isOpen, onClose }) {
           <Badge variant="indigo" size="sm">
             {project.code}
           </Badge>
-          <span>{project.name}</span>
+          <span className="truncate">{project.name}</span>
         </div>
       }
-      subtitle={`Sprint Week ${project.currentWeek || 3} of ${project.totalWeeks || 5}`}
-      maxWidth="max-w-xl"
+      subtitle={`Sprint Cycle: Week ${project.currentWeek || 3} of ${project.totalWeeks || 5}`}
+      maxWidth="max-w-2xl"
       footer={
         <Button variant="secondary" size="sm" onClick={onClose}>
           Close
@@ -36,68 +48,111 @@ export function ProjectDetailModal({ project, isOpen, onClose }) {
       }
     >
       <div className="space-y-4 text-xs">
-        {/* Progress Card */}
-        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
+        {/* 1. Progress & Status Section */}
+        <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-3">
           <div className="flex items-center justify-between">
-            <StatusPill status={project.status} />
-            <div className="flex items-center gap-1.5 text-slate-500">
-              <Calendar className="w-3.5 h-3.5 text-slate-400" />
-              <span>Due {formatDate(project.deadline, 'short')}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-slate-500 dark:text-slate-400 font-medium">Status:</span>
+              <StatusPill status={project.status} size="sm" />
             </div>
+            <span className="text-xs font-bold text-slate-900 dark:text-white">
+              {project.progress}% Complete
+            </span>
           </div>
 
-          <div>
-            <div className="flex justify-between text-xs mb-1.5">
-              <span className="text-slate-500">Progress</span>
-              <span className="font-semibold text-slate-900">{project.progress}%</span>
-            </div>
-            <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
-              <div
-                className="bg-sky-500 h-2.5 rounded-full transition-all duration-300"
-                style={{ width: `${project.progress}%` }}
-              />
-            </div>
+          <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden">
+            <div
+              className="bg-sky-500 h-2.5 rounded-full transition-all duration-300"
+              style={{ width: `${project.progress}%` }}
+            />
           </div>
         </div>
 
-        {/* Description */}
-        <p className="text-slate-600 leading-relaxed bg-slate-50/70 p-3.5 rounded-2xl border border-slate-100">
-          {project.description}
-        </p>
+        {/* 2. Title & Description */}
+        <div className="p-4 bg-slate-50/70 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1.5">
+          <h4 className="font-bold text-slate-900 dark:text-white text-xs">
+            {project.name}
+          </h4>
+          <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-xs">
+            {project.description}
+          </p>
+        </div>
 
-        {/* Repository details */}
-        {repo && (
-          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between text-slate-600 font-mono text-[11px]">
-            <div className="flex items-center gap-2">
-              <GitBranch className="w-3.5 h-3.5 text-emerald-600" />
-              <span>{repo.activeBranch}</span>
-            </div>
-            <span>{repo.openPRsCount} open PRs</span>
-          </div>
-        )}
-
-        {/* Sprint Milestones */}
-        {milestones.length > 0 && (
+        {/* 3. Deadlines Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800">
           <div>
-            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
-              Milestones
+            <span className="text-slate-400 dark:text-slate-500 block text-[11px]">Sprint Start</span>
+            <span className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5 flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+              {formatDate(project.startDate, 'medium')}
+            </span>
+          </div>
+
+          <div>
+            <span className="text-slate-400 dark:text-slate-500 block text-[11px]">Final Deadline</span>
+            <span className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5 flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-amber-500" />
+              {formatDate(project.deadline, 'medium')}
+            </span>
+          </div>
+
+          <div>
+            <span className="text-slate-400 dark:text-slate-500 block text-[11px]">Time Remaining</span>
+            <span className="font-semibold text-sky-600 dark:text-sky-400 mt-0.5 block">
+              {deadlineInfo.label}
+            </span>
+          </div>
+        </div>
+
+        {/* 4. SRS (Software Requirements Specification) Section */}
+        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">
+                <FileCode className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-white text-xs">
+                  Software Requirements Specification (SRS)
+                </h4>
+                <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                  {srs.version} · Updated {formatDate(srs.lastUpdated, 'short')}
+                </span>
+              </div>
             </div>
-            <div className="space-y-1.5">
-              {milestones.map((ms) => (
-                <div
-                  key={ms.id}
-                  className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/70 border border-slate-100"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Badge variant={ms.status === 'completed' ? 'emerald' : 'slate'} size="xs">
-                      Week {ms.sprintWeek}
-                    </Badge>
-                    <span className="text-slate-800 font-medium truncate">{ms.title}</span>
-                  </div>
-                  <span className="font-medium text-slate-600">{formatCurrency(ms.payoutAmount)}</span>
-                </div>
-              ))}
+
+            <a
+              href={srs.documentUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors text-xs font-semibold"
+            >
+              <span>View Spec</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+
+          <p className="text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed bg-white dark:bg-slate-900/80 p-3 rounded-xl border border-slate-200/60 dark:border-slate-800">
+            {srs.overview}
+          </p>
+
+          <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1">
+            <span className="flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+              {srs.requirementsCount} functional requirements specified
+            </span>
+            <span className="font-mono text-slate-400">{srs.documentTitle}</span>
+          </div>
+        </div>
+
+        {/* Repository & Branch info if available */}
+        {project.repo && (
+          <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between text-slate-600 dark:text-slate-400 font-mono text-[11px]">
+            <div className="flex items-center gap-2">
+              <GitBranch className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>{project.repo.activeBranch}</span>
             </div>
+            <span>{project.repo.openPRsCount} open pull requests</span>
           </div>
         )}
       </div>

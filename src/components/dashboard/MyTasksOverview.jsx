@@ -5,98 +5,119 @@ import { StatusPill } from '../common/StatusPill.jsx'
 import { Button } from '../common/Button.jsx'
 import { useApp } from '../../context/AppContext.jsx'
 import { formatDate } from '../../utils/formatters.js'
-import { CheckSquare, ArrowRight, Filter, X } from 'lucide-react'
+import {
+  CheckSquare,
+  ArrowRight,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+} from 'lucide-react'
 
 export function MyTasksOverview({ tasks }) {
   const { setRoute, setSelectedTaskModal } = useApp()
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [priorityFilter, setPriorityFilter] = useState('all')
+  const [sortBy, setSortBy] = useState('dueDate') // 'dueDate' | 'priority' | 'status' | 'title'
+  const [sortOrder, setSortOrder] = useState('asc') // 'asc' | 'desc'
 
-  const filteredTasks = useMemo(() => {
-    return tasks.filter((task) => {
-      if (statusFilter !== 'all' && task.status !== statusFilter) return false
-      if (priorityFilter !== 'all' && task.priority !== priorityFilter) return false
-      return true
-    })
-  }, [tasks, statusFilter, priorityFilter])
-
-  const hasActiveFilters = statusFilter !== 'all' || priorityFilter !== 'all'
-
-  const clearFilters = () => {
-    setStatusFilter('all')
-    setPriorityFilter('all')
+  const handleSortToggle = (field) => {
+    if (sortBy === field) {
+      setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortBy(field)
+      setSortOrder('asc')
+    }
   }
+
+  const sortedTasks = useMemo(() => {
+    const list = [...tasks]
+    const priorityWeight = { urgent: 4, high: 3, medium: 2, low: 1 }
+    const statusWeight = { in_progress: 5, in_review: 4, todo: 3, blocked: 2, completed: 1 }
+
+    list.sort((a, b) => {
+      let comparison = 0
+      if (sortBy === 'dueDate') {
+        const timeA = new Date(a.dueDate).getTime()
+        const timeB = new Date(b.dueDate).getTime()
+        comparison = timeA - timeB
+      } else if (sortBy === 'priority') {
+        comparison = (priorityWeight[b.priority] || 0) - (priorityWeight[a.priority] || 0)
+      } else if (sortBy === 'status') {
+        comparison = (statusWeight[b.status] || 0) - (statusWeight[a.status] || 0)
+      } else if (sortBy === 'title') {
+        comparison = a.title.localeCompare(b.title)
+      }
+      return sortOrder === 'asc' ? comparison : -comparison
+    })
+
+    return list
+  }, [tasks, sortBy, sortOrder])
+
+  const sortOptions = [
+    { id: 'dueDate', label: 'Due Date' },
+    { id: 'priority', label: 'Priority' },
+    { id: 'status', label: 'Status' },
+    { id: 'title', label: 'Title (A-Z)' },
+  ]
 
   return (
     <Card
       title="My Tasks"
       icon={CheckSquare}
       action={
-        <div className="flex items-center gap-2">
-          {hasActiveFilters && (
-            <button
-              onClick={clearFilters}
-              className="text-[11px] font-medium text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 flex items-center gap-1 transition-colors px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
-            >
-              <X className="w-3 h-3" />
-              Reset filters
-            </button>
-          )}
-          <Button
-            variant="ghost"
-            size="xs"
-            rightIcon={ArrowRight}
-            onClick={() => setRoute('tasks')}
-          >
-            Kanban View
-          </Button>
-        </div>
+        <Button
+          variant="ghost"
+          size="xs"
+          rightIcon={ArrowRight}
+          onClick={() => setRoute('tasks')}
+        >
+          Kanban View
+        </Button>
       }
       noPadding
     >
-      {/* Filtering Toolbar */}
-      <div className="px-5 py-2.5 bg-slate-50/60 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-2.5">
+      {/* Sorting Toolbar */}
+      <div className="px-5 py-2.5 bg-slate-50/70 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-2.5">
         <div className="flex items-center gap-2 text-xs">
-          <Filter className="w-3.5 h-3.5 text-slate-400" />
-          <span className="text-slate-500 dark:text-slate-400 font-medium">Filter:</span>
+          <span className="text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1">
+            <ArrowUpDown className="w-3.5 h-3.5" />
+            Sort by:
+          </span>
 
-          {/* Status Select */}
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1 text-xs focus:outline-none focus:border-slate-400 cursor-pointer shadow-2xs font-medium"
-          >
-            <option value="all">All Statuses</option>
-            <option value="in_progress">In Progress</option>
-            <option value="in_review">In Review</option>
-            <option value="todo">To Do</option>
-            <option value="completed">Completed</option>
-            <option value="blocked">Blocked</option>
-          </select>
-
-          {/* Priority Select */}
-          <select
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-            className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1 text-xs focus:outline-none focus:border-slate-400 cursor-pointer shadow-2xs font-medium"
-          >
-            <option value="all">All Priorities</option>
-            <option value="urgent">Urgent</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </select>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {sortOptions.map((opt) => {
+              const isActive = sortBy === opt.id
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() => handleSortToggle(opt.id)}
+                  className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition-all inline-flex items-center gap-1 cursor-pointer ${
+                    isActive
+                      ? 'bg-slate-900 text-white dark:bg-lime-400 dark:text-slate-950 shadow-2xs'
+                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                  }`}
+                >
+                  <span>{opt.label}</span>
+                  {isActive && (
+                    sortOrder === 'asc' ? (
+                      <ArrowUp className="w-3 h-3" />
+                    ) : (
+                      <ArrowDown className="w-3 h-3" />
+                    )
+                  )}
+                </button>
+              )
+            })}
+          </div>
         </div>
 
-        <span className="text-[11px] text-slate-400">
-          Showing {filteredTasks.length} of {tasks.length} tasks
+        <span className="text-[11px] text-slate-400 dark:text-slate-500">
+          {sortedTasks.length} tasks
         </span>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead>
-            <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-medium bg-slate-50/30 dark:bg-slate-850">
+            <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-medium bg-slate-50/30 dark:bg-slate-800/20">
               <th className="py-3 px-5 font-medium">Task</th>
               <th className="py-3 px-3 font-medium">Project</th>
               <th className="py-3 px-3 font-medium">Priority</th>
@@ -105,14 +126,14 @@ export function MyTasksOverview({ tasks }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-            {filteredTasks.length === 0 ? (
+            {sortedTasks.length === 0 ? (
               <tr>
                 <td colSpan={5} className="py-8 text-center text-slate-400 dark:text-slate-500">
-                  No tasks match the selected filters.
+                  No active tasks.
                 </td>
               </tr>
             ) : (
-              filteredTasks.map((task) => (
+              sortedTasks.map((task) => (
                 <tr
                   key={task.id}
                   onClick={() => setSelectedTaskModal(task)}

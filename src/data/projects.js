@@ -20,6 +20,14 @@ export const PROJECTS = [
     tags: ['React', 'WebSockets', 'Canvas', 'TypeScript'],
     color: '#38bdf8',
     assignedDevIds: ['user_dev_01', 'user_dev_02', 'user_dev_03', 'user_dev_04'],
+    srs: {
+      documentTitle: 'PFA-01-SRS-Telemetry-Engine-v2.4.pdf',
+      documentUrl: 'https://docs.pointfex.internal/srs/PFA-01-v2.4.pdf',
+      version: 'v2.4 (Approved)',
+      lastUpdated: '2026-10-14',
+      overview: 'System specification for high-throughput WebSocket telemetry ingestion, sub-millisecond circular memory buffers, and canvas-accelerated rendering pipelines.',
+      requirementsCount: 28,
+    },
   },
   {
     id: 'proj_02',
@@ -41,6 +49,14 @@ export const PROJECTS = [
     tags: ['Next.js', 'Tailwind', 'Go Proxy', 'GraphQL'],
     color: '#818cf8',
     assignedDevIds: ['user_dev_01', 'user_dev_02', 'user_dev_04'],
+    srs: {
+      documentTitle: 'CMG-02-SRS-Gateway-Control-v1.8.pdf',
+      documentUrl: 'https://docs.pointfex.internal/srs/CMG-02-v1.8.pdf',
+      version: 'v1.8 (Approved)',
+      lastUpdated: '2026-10-10',
+      overview: 'Functional and technical requirements for dynamic token bucket rate limiting, zero-downtime routing table synchronization, and SSL edge certificate lifecycle management.',
+      requirementsCount: 22,
+    },
   },
 
   // --- TEAM 2 PROJECTS ---
