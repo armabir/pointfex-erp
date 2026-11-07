@@ -11,14 +11,14 @@
 
 body {
   font-family: var(--font-sans);
-  background-color: #eef1f6;
+  background-color: #eaeef2;
   color: #1e293b;
   overflow-x: hidden;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .dark body {
-  background-color: #080a10;
+  background-color: #090c14;
   color: #f1f5f9;
 }
 

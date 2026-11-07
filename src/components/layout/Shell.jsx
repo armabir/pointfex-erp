@@ -31,7 +31,7 @@ export function Shell({ children }) {
   }, [setIsSearchOpen])
 
   return (
-    <div className="min-h-screen bg-[#eef1f6] dark:bg-[#080a10] text-slate-800 dark:text-slate-100 flex flex-col font-sans transition-colors">
+    <div className="min-h-screen bg-[#eaeef2] dark:bg-[#090c14] text-slate-800 dark:text-slate-100 flex flex-col font-sans transition-colors">
       {/* Sidebar */}
       <Sidebar />
 

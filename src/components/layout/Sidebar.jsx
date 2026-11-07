@@ -21,7 +21,7 @@ export function Sidebar() {
 
   return (
     <aside
-      className={`fixed top-0 left-0 bottom-0 z-30 flex flex-col bg-[#eef1f6] dark:bg-[#080a10] border-r border-slate-200/60 dark:border-slate-800/60 transition-all duration-200 select-none ${
+      className={`fixed top-0 left-0 bottom-0 z-30 flex flex-col bg-[#eaeef2] dark:bg-[#090c14] border-r border-slate-200/60 dark:border-slate-800/60 transition-all duration-200 select-none ${
         isSidebarCollapsed ? 'w-20' : 'w-64'
       }`}
     >

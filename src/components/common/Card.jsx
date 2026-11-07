@@ -12,12 +12,12 @@ export function Card({
 }) {
   return (
     <div
-      className={`bg-white dark:bg-[#0f1422] border border-slate-100 dark:border-slate-800 rounded-3xl shadow-xs transition-colors ${className}`}
+      className={`bg-white dark:bg-[#0f1422] border border-slate-200/60 dark:border-slate-800/80 rounded-3xl shadow-[0_4px_20px_-2px_rgba(15,23,42,0.03),0_2px_6px_-1px_rgba(15,23,42,0.02)] dark:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.35)] transition-all ${className}`}
     >
       {(title || subtitle || action || Icon) && (
         <div
           className={`flex items-center justify-between px-5 py-4 ${
-            headerBorder ? 'border-b border-slate-100 dark:border-slate-800' : ''
+            headerBorder ? 'border-b border-slate-100 dark:border-slate-800/70' : ''
           }`}
         >
           <div className="flex items-center gap-2.5 min-w-0">
