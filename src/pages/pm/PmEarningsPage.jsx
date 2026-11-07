@@ -1,20 +1,28 @@
 import React, { useState, useMemo } from 'react'
 import { Card } from '../../components/common/Card.jsx'
-import { Badge } from '../../components/common/Badge.jsx'
+import { StatusPill } from '../../components/common/StatusPill.jsx'
 import { usePmData } from '../../hooks/usePmData.js'
 import { formatCurrency, formatDate } from '../../utils/formatters.js'
 import {
   Wallet,
   ShieldCheck,
   AlertTriangle,
-  Award,
+  ShoppingBag,
+  ArrowDownRight,
   ArrowUpRight,
+  Award,
+  CheckCircle2,
+  Clock,
+  Sparkles,
   Zap,
 } from 'lucide-react'
 
 export function PmEarningsPage() {
-  const { pmWallet, pmTransactions, teamPerformance, developerWorkloads, team } = usePmData()
+  const { pmWallet, pmTransactions, teamPerformance, team } = usePmData()
   const [filterType, setFilterType] = useState('all')
+
+  const totalPenalties = pmWallet?.totalPenalties || 0
+  const totalSpendings = pmWallet?.totalSpendings || 250
 
   const filteredTransactions = useMemo(() => {
     return pmTransactions.filter((tx) => {
@@ -29,19 +37,19 @@ export function PmEarningsPage() {
       {/* Header */}
       <div>
         <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">
-          Earnings & Team Performance
+          Earnings & Virtual Wallet
         </h2>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-          PM management compensation balance, payout history, and delivery metrics for <span className="font-semibold text-slate-700 dark:text-slate-300">{team?.name}</span>
+          Compensation balance, earnings history, penalties, and performance metrics for <span className="font-semibold text-slate-700 dark:text-slate-300">{team?.name || 'Squad'}</span>
         </p>
       </div>
 
-      {/* Top 4 Metric Cards (Matching Developer Workspace pattern strictly) */}
+      {/* Top 4 Metric Cards: Balance, Total Earned, Penalty, Spendings (Identical to Dev) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* 1. Balance */}
         <div className="bg-[#fff8f2] dark:bg-amber-950/20 border border-amber-100/80 dark:border-amber-900/40 rounded-3xl p-5 shadow-2xs">
           <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
-            <span>Available Balance</span>
+            <span>Balance</span>
             <div className="p-2 rounded-xl bg-amber-100/80 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300">
               <Wallet className="w-4 h-4" />
             </div>
@@ -51,7 +59,7 @@ export function PmEarningsPage() {
           </div>
           <div className="mt-2 text-[11px] text-amber-700 dark:text-amber-400 font-medium flex items-center gap-1">
             <ArrowUpRight className="w-3 h-3" />
-            +${formatCurrency(pmWallet.pendingEscrow)} in escrow
+            Available in wallet
           </div>
         </div>
 
@@ -67,7 +75,7 @@ export function PmEarningsPage() {
             {formatCurrency(pmWallet.totalEarnedToDate)}
           </div>
           <div className="mt-2 text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
-            Cumulative PM compensation
+            Cumulative career earnings
           </div>
         </div>
 
@@ -79,161 +87,202 @@ export function PmEarningsPage() {
               <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-3xl font-bold font-display text-slate-900 dark:text-white">
-            {formatCurrency(pmWallet.totalPenalties || 0)}
+          <div className="text-3xl font-bold font-display text-rose-600 dark:text-rose-400">
+            -{formatCurrency(totalPenalties)}
           </div>
-          <div className="mt-2 text-[11px] text-rose-700 dark:text-rose-400 font-medium">
-            0 management SLA penalties
+          <div className="mt-2 text-[11px] text-rose-700 dark:text-rose-400 font-medium flex items-center gap-1">
+            <ArrowDownRight className="w-3 h-3" />
+            SLA & quality deductions
           </div>
         </div>
 
         {/* 4. Spendings */}
-        <div className="bg-[#faf6ff] dark:bg-purple-950/20 border border-purple-100/80 dark:border-purple-900/40 rounded-3xl p-5 shadow-2xs">
+        <div className="bg-[#f2f7ff] dark:bg-sky-950/20 border border-sky-100/80 dark:border-sky-900/40 rounded-3xl p-5 shadow-2xs">
           <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
             <span>Spendings</span>
-            <div className="p-2 rounded-xl bg-purple-100/80 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300">
-              <Zap className="w-4 h-4" />
+            <div className="p-2 rounded-xl bg-sky-100/80 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300">
+              <ShoppingBag className="w-4 h-4" />
             </div>
           </div>
           <div className="text-3xl font-bold font-display text-slate-900 dark:text-white">
-            {formatCurrency(pmWallet.totalSpendings || 250)}
+            {formatCurrency(totalSpendings)}
           </div>
-          <div className="mt-2 text-[11px] text-purple-700 dark:text-purple-400 font-medium">
-            Project tooling & team gear
+          <div className="mt-2 text-[11px] text-sky-700 dark:text-sky-400 font-medium">
+            Internal perk store (catalog coming soon)
           </div>
         </div>
       </div>
 
-      {/* Transaction Ledger Table */}
-      <Card title="PM Compensation & Disbursement Ledger" icon={Wallet}>
-        <div className="space-y-4 text-xs">
-          {/* Filter Tabs */}
-          <div className="flex items-center gap-1.5 border-b border-slate-100 dark:border-slate-800 pb-3">
-            {[
-              { id: 'all', label: 'All Transactions' },
-              { id: 'payout', label: 'Disbursements & Bonuses' },
-              { id: 'penalty', label: 'Penalties' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setFilterType(tab.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                  filterType === tab.id
-                    ? 'bg-slate-900 text-white dark:bg-lime-400 dark:text-slate-950'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+      {/* Transactions & Ledger Table */}
+      <Card
+        title="Ledger & Transactions"
+        icon={Wallet}
+        action={
+          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+            <button
+              onClick={() => setFilterType('all')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                filterType === 'all'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
+              }`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setFilterType('payout')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                filterType === 'payout'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
+              }`}
+            >
+              Payouts
+            </button>
+            <button
+              onClick={() => setFilterType('penalty')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                filterType === 'penalty'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
+              }`}
+            >
+              Penalties
+            </button>
           </div>
-
-          {/* Table */}
-          {filteredTransactions.length === 0 ? (
-            <div className="py-8 text-center text-slate-400">
-              No transactions match this filter.
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {filteredTransactions.map((tx) => (
-                <div
-                  key={tx.id}
-                  className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
-                >
-                  <div className="space-y-0.5">
-                    <div className="font-semibold text-slate-900 dark:text-white">
-                      {tx.description}
-                    </div>
-                    <div className="flex items-center gap-2 text-[11px] text-slate-400">
-                      <span>{formatDate(tx.date, 'short')}</span>
-                      <span>•</span>
-                      <span className="capitalize">{tx.type.replace('_', ' ')}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 self-end sm:self-center">
-                    <span
-                      className={`font-bold font-display text-sm ${
-                        tx.amount >= 0
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : 'text-rose-600 dark:text-rose-400'
-                      }`}
+        }
+      >
+        <div className="overflow-x-auto -mx-5 -mb-5">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-medium">
+                <th className="pb-3 px-5">Type / Description</th>
+                <th className="pb-3 px-3">Date</th>
+                <th className="pb-3 px-3">Status</th>
+                <th className="pb-3 px-5 text-right">Amount</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+              {filteredTransactions.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="py-8 text-center text-slate-400">
+                    No transactions found
+                  </td>
+                </tr>
+              ) : (
+                filteredTransactions.map((tx) => {
+                  const isPenalty = tx.type === 'penalty' || tx.amount < 0
+                  return (
+                    <tr
+                      key={tx.id}
+                      className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
                     >
-                      {formatCurrency(tx.amount)}
-                    </span>
-                    <Badge variant={tx.status === 'completed' ? 'emerald' : 'amber'} size="xs">
-                      {tx.status}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+                      <td className="py-3.5 px-5">
+                        <div className="font-semibold text-slate-800 dark:text-slate-200">
+                          {tx.description}
+                        </div>
+                        <div className="text-[11px] text-slate-400 dark:text-slate-500 capitalize">
+                          {tx.type.replace('_', ' ')}
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-3 whitespace-nowrap text-slate-400 dark:text-slate-500">
+                        {formatDate(tx.date, 'short')}
+                      </td>
+                      <td className="py-3.5 px-3 whitespace-nowrap">
+                        <StatusPill status={tx.status} size="sm" />
+                      </td>
+                      <td
+                        className={`py-3.5 px-5 whitespace-nowrap text-right font-semibold ${
+                          isPenalty
+                            ? 'text-rose-600 dark:text-rose-400'
+                            : 'text-emerald-600 dark:text-emerald-400'
+                        }`}
+                      >
+                        {isPenalty ? `-${formatCurrency(Math.abs(tx.amount))}` : `+${formatCurrency(tx.amount)}`}
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       </Card>
 
-      {/* Team Delivery & Performance Scorecard */}
-      <Card title="Team Performance & Delivery Grading" icon={Award}>
-        <div className="space-y-4 text-xs">
-          {/* Top Score Strip */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-center">
-            <div>
-              <span className="text-[10px] text-slate-400 block">Overall Score</span>
-              <span className="text-xl font-bold font-display text-slate-900 dark:text-white mt-0.5 block">
-                {teamPerformance.overallScore}%
-              </span>
+      {/* Performance Section below table (Identical to Dev) */}
+      <Card
+        title="Performance & Delivery Metrics"
+        subtitle="Key management indicators tied to sprint payouts and bonuses"
+        icon={Award}
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            {/* Metric 1: Quality Score */}
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-center space-y-1">
+              <div className="flex items-center justify-center gap-1.5 text-slate-400 dark:text-slate-500 text-[11px] font-medium">
+                <Award className="w-3.5 h-3.5 text-amber-500" />
+                <span>Overall Quality</span>
+              </div>
+              <div className="text-2xl font-bold font-display text-slate-900 dark:text-white">
+                {teamPerformance.overallScore || 95}/100
+              </div>
+              <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                Tier 1 Band
+              </div>
             </div>
-            <div>
-              <span className="text-[10px] text-slate-400 block">On-Time Rate</span>
-              <span className="text-xl font-bold font-display text-emerald-600 dark:text-emerald-400 mt-0.5 block">
-                {teamPerformance.onTimeDeliveryRate}%
-              </span>
+
+            {/* Metric 2: On-Time Delivery */}
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-center space-y-1">
+              <div className="flex items-center justify-center gap-1.5 text-slate-400 dark:text-slate-500 text-[11px] font-medium">
+                <Clock className="w-3.5 h-3.5 text-sky-500" />
+                <span>On-Time Rate</span>
+              </div>
+              <div className="text-2xl font-bold font-display text-slate-900 dark:text-white">
+                {teamPerformance.onTimeDeliveryRate || 96}%
+              </div>
+              <div className="text-[10px] text-slate-400 dark:text-slate-500">
+                12 of 13 deadlines met
+              </div>
             </div>
-            <div>
-              <span className="text-[10px] text-slate-400 block">Completion Pacing</span>
-              <span className="text-xl font-bold font-display text-sky-600 dark:text-sky-400 mt-0.5 block">
-                {teamPerformance.completionRate}%
-              </span>
+
+            {/* Metric 3: Completion Rate */}
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-center space-y-1">
+              <div className="flex items-center justify-center gap-1.5 text-slate-400 dark:text-slate-500 text-[11px] font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Task Completion</span>
+              </div>
+              <div className="text-2xl font-bold font-display text-slate-900 dark:text-white">
+                {teamPerformance.completionRate || 92}%
+              </div>
+              <div className="text-[10px] text-slate-400 dark:text-slate-500">
+                Sprint tasks completed
+              </div>
             </div>
-            <div>
-              <span className="text-[10px] text-slate-400 block">Sprint Velocity</span>
-              <span className="text-xl font-bold font-display text-purple-600 dark:text-purple-400 mt-0.5 block">
-                {teamPerformance.teamVelocity} pts
-              </span>
+
+            {/* Metric 4: Sprint Velocity */}
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-center space-y-1">
+              <div className="flex items-center justify-center gap-1.5 text-slate-400 dark:text-slate-500 text-[11px] font-medium">
+                <Zap className="w-3.5 h-3.5 text-purple-500" />
+                <span>Velocity</span>
+              </div>
+              <div className="text-2xl font-bold font-display text-slate-900 dark:text-white">
+                {teamPerformance.teamVelocity || 42} pts
+              </div>
+              <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                +15% vs baseline
+              </div>
             </div>
           </div>
 
-          {/* Individual Developer Standings */}
-          <div className="space-y-2 pt-2">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
-              Individual Engineer Scores
-            </span>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {developerWorkloads.map((dev) => (
-                <div
-                  key={dev.id}
-                  className="p-3.5 rounded-2xl bg-white dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 flex items-center justify-between gap-3"
-                >
-                  <div className="min-w-0">
-                    <span className="font-semibold text-slate-900 dark:text-white truncate block">
-                      {dev.name}
-                    </span>
-                    <span className="text-[11px] text-slate-400 truncate block">
-                      {dev.title} · {dev.completedTasks} completed
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="font-bold text-sm font-display text-emerald-600 dark:text-emerald-400">
-                      {dev.performance?.overallScore || 92}%
-                    </span>
-                    <Badge variant="emerald" size="xs">
-                      Qualified
-                    </Badge>
-                  </div>
-                </div>
-              ))}
+          {/* Qualified bonus indicator */}
+          <div className="p-3 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-200">
+              <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+              <span>Current Sprint Management Performance Bonus Qualified:</span>
             </div>
+            <span className="font-bold text-amber-700 dark:text-amber-300 font-display text-sm">
+              +${formatCurrency(pmWallet.sprintBonusEarned || 1200)}
+            </span>
           </div>
         </div>
       </Card>

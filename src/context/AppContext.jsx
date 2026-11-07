@@ -498,6 +498,102 @@ export function AppProvider({ children }) {
     showToast(`Task status updated to ${newStatus.replace('_', ' ')}`, 'success')
   }, [showToast])
 
+  // PM Handler: Forward Developer Submission to C-Level
+  const handleForwardSubmissionToCLevel = useCallback((submissionId, recipient, endorsement) => {
+    setData((prev) => {
+      const idx = prev.reports.findIndex((r) => r.id === submissionId)
+      if (idx === -1) return prev
+
+      const old = prev.reports[idx]
+      const updatedReports = [...prev.reports]
+      updatedReports[idx] = {
+        ...old,
+        status: 'forwarded_to_c_level',
+        forwardedTo: recipient,
+        forwardedBy: currentPmId,
+        forwardedAt: new Date().toISOString(),
+        pmEndorsement: endorsement,
+        feedback: `Forwarded to ${recipient} with PM endorsement: "${endorsement}"`,
+      }
+
+      return {
+        ...prev,
+        reports: updatedReports,
+      }
+    })
+    showToast(`Project idea forwarded to ${recipient}`, 'success')
+  }, [currentPmId, showToast])
+
+  // PM Handler: Add Project Milestone
+  const handleAddProjectMilestone = useCallback((projectId, milestoneData) => {
+    setData((prev) => {
+      const projIndex = prev.projects.findIndex((p) => p.id === projectId)
+      if (projIndex === -1) return prev
+
+      const project = prev.projects[projIndex]
+      const newMilestone = {
+        id: `ms_${Date.now()}`,
+        title: milestoneData.title,
+        dueDate: milestoneData.dueDate || new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
+        status: milestoneData.status || 'pending',
+      }
+
+      const updatedProjects = [...prev.projects]
+      updatedProjects[projIndex] = {
+        ...project,
+        milestones: [...(project.milestones || []), newMilestone],
+      }
+
+      return {
+        ...prev,
+        projects: updatedProjects,
+      }
+    })
+    showToast('New milestone added to project', 'success')
+  }, [showToast])
+
+  // PM Handler: Update Milestone Status
+  const handleUpdateMilestoneStatus = useCallback((projectId, milestoneId, newStatus) => {
+    setData((prev) => {
+      const projIndex = prev.projects.findIndex((p) => p.id === projectId)
+      if (projIndex === -1) return prev
+
+      const project = prev.projects[projIndex]
+      const updatedMilestones = (project.milestones || []).map((ms) =>
+        ms.id === milestoneId ? { ...ms, status: newStatus } : ms
+      )
+
+      const updatedProjects = [...prev.projects]
+      updatedProjects[projIndex] = {
+        ...project,
+        milestones: updatedMilestones,
+      }
+
+      return {
+        ...prev,
+        projects: updatedProjects,
+      }
+    })
+    showToast(`Milestone status updated to "${newStatus.replace('_', ' ')}"`, 'success')
+  }, [showToast])
+
+  // PM Handler: Update PM Profile (Skills, etc.)
+  const handleUpdatePmProfile = useCallback((updatedFields) => {
+    setData((prev) => {
+      const userIndex = prev.users.findIndex((u) => u.id === currentPmId)
+      if (userIndex === -1) return prev
+
+      const updatedUsers = [...prev.users]
+      updatedUsers[userIndex] = { ...updatedUsers[userIndex], ...updatedFields }
+
+      return {
+        ...prev,
+        users: updatedUsers,
+      }
+    })
+    showToast('PM profile updated successfully', 'success')
+  }, [currentPmId, showToast])
+
   // Context value
   const value = {
     // State
@@ -546,6 +642,10 @@ export function AppProvider({ children }) {
     requestBudgetIncrease: handleRequestBudgetIncrease,
     submitPmReport: handleSubmitPmReport,
     updatePmTaskStatus: handleUpdatePmTaskStatus,
+    forwardSubmissionToCLevel: handleForwardSubmissionToCLevel,
+    addProjectMilestone: handleAddProjectMilestone,
+    updateMilestoneStatus: handleUpdateMilestoneStatus,
+    updatePmProfile: handleUpdatePmProfile,
   }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

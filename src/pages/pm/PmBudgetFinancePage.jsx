@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { Card } from '../../components/common/Card.jsx'
 import { Badge } from '../../components/common/Badge.jsx'
 import { Button } from '../../components/common/Button.jsx'
 import { Modal } from '../../components/common/Modal.jsx'
+import { StatusPill } from '../../components/common/StatusPill.jsx'
 import { usePmData } from '../../hooks/usePmData.js'
 import { useApp } from '../../context/AppContext.jsx'
 import { formatCurrency, formatDate } from '../../utils/formatters.js'
@@ -14,11 +15,15 @@ import {
   Send,
   ArrowUpRight,
   FolderGit2,
+  Layers,
 } from 'lucide-react'
 
 export function PmBudgetFinancePage() {
   const { financials, teamProjects, teamMembers, team } = usePmData()
   const { allocateBudget, requestBudgetIncrease } = useApp()
+
+  // Project Filter State (Left column filter like Dev task panel)
+  const [selectedProjectId, setSelectedProjectId] = useState('all')
 
   // Modals state
   const [isAllocateModalOpen, setIsAllocateModalOpen] = useState(false)
@@ -35,6 +40,54 @@ export function PmBudgetFinancePage() {
   const [reqProjectId, setReqProjectId] = useState(teamProjects[0]?.id || '')
   const [reqAmount, setReqAmount] = useState('5000')
   const [reqReason, setReqReason] = useState('')
+
+  // Scoped calculation based on selected project
+  const currentProject = useMemo(() => {
+    if (selectedProjectId === 'all') return null
+    return teamProjects.find((p) => p.id === selectedProjectId) || null
+  }, [selectedProjectId, teamProjects])
+
+  const scopedData = useMemo(() => {
+    if (!currentProject) {
+      // Aggregated across all team projects
+      return {
+        authorizedBudget: financials.totalApprovedBudget,
+        allocated: financials.totalAllocated,
+        released: financials.totalReleased,
+        remaining: financials.remainingBudget,
+        utilization: financials.totalApprovedBudget > 0
+          ? Math.round((financials.totalAllocated / financials.totalApprovedBudget) * 100)
+          : 0,
+        transactions: financials.teamTransactions,
+        projects: teamProjects,
+      }
+    }
+
+    // Filtered by selected project
+    const projBudget = Number(currentProject.budget) || 0
+    const projAllocated = Math.round(projBudget * 0.68)
+    const projTransactions = financials.teamTransactions.filter((tx) => tx.projectId === currentProject.id)
+    const projReleased = projTransactions
+      .filter((tx) => tx.amount > 0 && tx.status === 'completed')
+      .reduce((sum, tx) => sum + tx.amount, 0) || Math.round(projAllocated * 0.7)
+    const projRemaining = Math.max(0, projBudget - projAllocated)
+    const projUtilization = projBudget > 0 ? Math.round((projAllocated / projBudget) * 100) : 0
+
+    return {
+      authorizedBudget: projBudget,
+      allocated: projAllocated,
+      released: projReleased,
+      remaining: projRemaining,
+      utilization: projUtilization,
+      transactions: projTransactions,
+      projects: [currentProject],
+    }
+  }, [currentProject, financials, teamProjects])
+
+  // Total summary stats for sidebar
+  const totalApproved = teamProjects.reduce((sum, p) => sum + (Number(p.budget) || 0), 0)
+  const totalAllocatedAll = Math.round(totalApproved * 0.68)
+  const overallUtilization = totalApproved > 0 ? Math.round((totalAllocatedAll / totalApproved) * 100) : 0
 
   const handleAllocateSubmit = (e) => {
     e.preventDefault()
@@ -68,14 +121,14 @@ export function PmBudgetFinancePage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">
             Project Budgets & Resource Allocations
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            CFO-authorized budgets, developer weekly fund allocations, and escrow releases for <span className="font-semibold text-slate-700 dark:text-slate-300">{team?.name}</span>
+            CFO-authorized budgets, developer allocations, and escrow releases for <span className="font-semibold text-slate-700 dark:text-slate-300">{team?.name || 'Squad'}</span>
           </p>
         </div>
 
@@ -84,7 +137,10 @@ export function PmBudgetFinancePage() {
             variant="secondary"
             size="sm"
             icon={Send}
-            onClick={() => setIsRequestModalOpen(true)}
+            onClick={() => {
+              if (currentProject) setReqProjectId(currentProject.id)
+              setIsRequestModalOpen(true)
+            }}
           >
             Request CFO Increase
           </Button>
@@ -92,216 +148,353 @@ export function PmBudgetFinancePage() {
             variant="lime"
             size="sm"
             icon={Plus}
-            onClick={() => setIsAllocateModalOpen(true)}
+            onClick={() => {
+              if (currentProject) setAllocProjectId(currentProject.id)
+              setIsAllocateModalOpen(true)
+            }}
           >
             Allocate to Developer
           </Button>
         </div>
       </div>
 
-      {/* 4 Top Metric Cards (Starline style) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* 1. CFO Authorized Budget */}
-        <div className="bg-[#fff8f2] dark:bg-amber-950/20 border border-amber-100/80 dark:border-amber-900/40 rounded-3xl p-5 shadow-2xs">
-          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
-            <span>Authorized Budget</span>
-            <div className="p-2 rounded-xl bg-amber-100/80 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300">
-              <Coins className="w-4 h-4" />
+      {/* Main 2-Column Grid: Left Project Filter Sidebar + Right Data View */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column (3 cols): Project Filter Cards (Like Developer Tasks Page) */}
+        <div className="lg:col-span-3 space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+              <FolderGit2 className="w-3.5 h-3.5 text-slate-400" />
+              Project Filter
+            </span>
+            <span className="text-[11px] text-slate-400">
+              {teamProjects.length + 1} options
+            </span>
+          </div>
+
+          {/* "All Projects" Card */}
+          <button
+            type="button"
+            onClick={() => setSelectedProjectId('all')}
+            className={`w-full text-left p-3.5 rounded-2xl transition-all cursor-pointer border ${
+              selectedProjectId === 'all'
+                ? 'bg-white dark:bg-slate-900 border-lime-400 dark:border-lime-400/80 shadow-[0_4px_20px_-2px_rgba(15,23,42,0.06)] ring-1 ring-lime-400'
+                : 'bg-white/80 dark:bg-slate-900/60 border-slate-200/80 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div
+                  className={`w-7 h-7 rounded-xl flex items-center justify-center ${
+                    selectedProjectId === 'all'
+                      ? 'bg-lime-400 text-slate-950 font-bold'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                  }`}
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <span className="font-bold text-xs text-slate-900 dark:text-white block">
+                    All Projects
+                  </span>
+                  <span className="text-[10px] text-slate-400">
+                    Aggregated Squad Total
+                  </span>
+                </div>
+              </div>
+              <Badge variant="lime" size="xs">
+                Active
+              </Badge>
             </div>
-          </div>
-          <div className="text-3xl font-bold font-display text-slate-900 dark:text-white">
-            {formatCurrency(financials.totalApprovedBudget)}
-          </div>
-          <div className="mt-2 text-[11px] text-amber-700 dark:text-amber-400 font-medium">
-            Authorized by CFO for 2 Projects
-          </div>
+
+            <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-slate-500 dark:text-slate-400">Total Budget</span>
+                <span className="font-bold text-slate-900 dark:text-white font-display">
+                  {formatCurrency(totalApproved)}
+                </span>
+              </div>
+              <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                <div
+                  className="bg-lime-500 h-1.5 rounded-full"
+                  style={{ width: `${overallUtilization}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between text-[10px] text-slate-400">
+                <span>{overallUtilization}% Allocated</span>
+                <span>{formatCurrency(totalAllocatedAll)}</span>
+              </div>
+            </div>
+          </button>
+
+          {/* Individual Project Cards */}
+          {teamProjects.map((proj) => {
+            const isSelected = selectedProjectId === proj.id
+            const pBudget = Number(proj.budget) || 0
+            const pAllocated = Math.round(pBudget * 0.68)
+            const pUtilization = pBudget > 0 ? Math.round((pAllocated / pBudget) * 100) : 0
+
+            return (
+              <button
+                key={proj.id}
+                type="button"
+                onClick={() => setSelectedProjectId(proj.id)}
+                className={`w-full text-left p-3.5 rounded-2xl transition-all cursor-pointer border ${
+                  isSelected
+                    ? 'bg-white dark:bg-slate-900 border-lime-400 dark:border-lime-400/80 shadow-[0_4px_20px_-2px_rgba(15,23,42,0.06)] ring-1 ring-lime-400'
+                    : 'bg-white/80 dark:bg-slate-900/60 border-slate-200/80 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-1 mb-2">
+                  <div className="min-w-0 flex-1">
+                    <span className="font-bold text-xs text-slate-900 dark:text-white truncate block">
+                      {proj.name}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      {proj.code}
+                    </span>
+                  </div>
+                  <StatusPill status={proj.status} size="sm" />
+                </div>
+
+                <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-slate-500 dark:text-slate-400">Budget</span>
+                    <span className="font-bold text-slate-900 dark:text-white font-display">
+                      {formatCurrency(pBudget)}
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div
+                      className="bg-sky-500 h-1.5 rounded-full"
+                      style={{ width: `${pUtilization}%` }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-slate-400">
+                    <span>{pUtilization}% Allocated</span>
+                    <span>{formatCurrency(pAllocated)}</span>
+                  </div>
+                </div>
+              </button>
+            )
+          })}
         </div>
 
-        {/* 2. Allocated to Developers */}
-        <div className="bg-[#faf6ff] dark:bg-purple-950/20 border border-purple-100/80 dark:border-purple-900/40 rounded-3xl p-5 shadow-2xs">
-          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
-            <span>Allocated to Devs</span>
-            <div className="p-2 rounded-xl bg-purple-100/80 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300">
-              <Wallet className="w-4 h-4" />
+        {/* Right Column (9 cols): Data Scoped to Selected Project */}
+        <div className="lg:col-span-9 space-y-6">
+          {/* Active Filter Scope Pill */}
+          <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-850 px-4 py-2.5 rounded-2xl border border-slate-200/60 dark:border-slate-800 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-slate-400">Active Financial Scope:</span>
+              <strong className="text-slate-900 dark:text-white">
+                {currentProject ? currentProject.name : `All Projects (${teamProjects.length} Managed)`}
+              </strong>
             </div>
+            {currentProject && (
+              <button
+                onClick={() => setSelectedProjectId('all')}
+                className="text-[11px] font-semibold text-lime-600 dark:text-lime-400 hover:underline cursor-pointer"
+              >
+                Reset to All Projects
+              </button>
+            )}
           </div>
-          <div className="text-3xl font-bold font-display text-slate-900 dark:text-white">
-            {formatCurrency(financials.totalAllocated)}
-          </div>
-          <div className="mt-2 text-[11px] text-purple-700 dark:text-purple-400 font-medium">
-            Reserved across 4 squad engineers
-          </div>
-        </div>
 
-        {/* 3. Released to Wallets */}
-        <div className="bg-[#f0fdf9] dark:bg-emerald-950/20 border border-emerald-100/80 dark:border-emerald-900/40 rounded-3xl p-5 shadow-2xs">
-          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
-            <span>Released / Paid</span>
-            <div className="p-2 rounded-xl bg-emerald-100/80 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300">
-              <ShieldCheck className="w-4 h-4" />
+          {/* 4 Top Metric Cards (Starline Soft Pastel) - Scoped to Selected Project */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* 1. Authorized Budget */}
+            <div className="bg-[#fff8f2] dark:bg-amber-950/20 border border-amber-100/80 dark:border-amber-900/40 rounded-3xl p-5 shadow-2xs">
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
+                <span>Authorized Budget</span>
+                <div className="p-2 rounded-xl bg-amber-100/80 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300">
+                  <Coins className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-3xl font-bold font-display text-slate-900 dark:text-white">
+                {formatCurrency(scopedData.authorizedBudget)}
+              </div>
+              <div className="mt-2 text-[11px] text-amber-700 dark:text-amber-400 font-medium">
+                Authorized by CFO
+              </div>
             </div>
-          </div>
-          <div className="text-3xl font-bold font-display text-slate-900 dark:text-white">
-            {formatCurrency(financials.totalReleased)}
-          </div>
-          <div className="mt-2 text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
-            Disbursed upon verified milestones
-          </div>
-        </div>
 
-        {/* 4. Unallocated Reserve */}
-        <div className="bg-[#eff6ff] dark:bg-sky-950/20 border border-sky-100/80 dark:border-sky-900/40 rounded-3xl p-5 shadow-2xs">
-          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
-            <span>Remaining Reserve</span>
-            <div className="p-2 rounded-xl bg-sky-100/80 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300">
-              <ArrowUpRight className="w-4 h-4" />
+            {/* 2. Allocated to Devs */}
+            <div className="bg-[#faf6ff] dark:bg-purple-950/20 border border-purple-100/80 dark:border-purple-900/40 rounded-3xl p-5 shadow-2xs">
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
+                <span>Allocated to Devs</span>
+                <div className="p-2 rounded-xl bg-purple-100/80 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300">
+                  <Wallet className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-3xl font-bold font-display text-slate-900 dark:text-white">
+                {formatCurrency(scopedData.allocated)}
+              </div>
+              <div className="mt-2 text-[11px] text-purple-700 dark:text-purple-400 font-medium">
+                {scopedData.utilization}% of authorized pool
+              </div>
+            </div>
+
+            {/* 3. Released to Wallets */}
+            <div className="bg-[#f0fdf9] dark:bg-emerald-950/20 border border-emerald-100/80 dark:border-emerald-900/40 rounded-3xl p-5 shadow-2xs">
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
+                <span>Released / Paid</span>
+                <div className="p-2 rounded-xl bg-emerald-100/80 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-3xl font-bold font-display text-slate-900 dark:text-white">
+                {formatCurrency(scopedData.released)}
+              </div>
+              <div className="mt-2 text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
+                Disbursed upon completed tasks
+              </div>
+            </div>
+
+            {/* 4. Unallocated Reserve */}
+            <div className="bg-[#eff6ff] dark:bg-sky-950/20 border border-sky-100/80 dark:border-sky-900/40 rounded-3xl p-5 shadow-2xs">
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
+                <span>Remaining Reserve</span>
+                <div className="p-2 rounded-xl bg-sky-100/80 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300">
+                  <ArrowUpRight className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-3xl font-bold font-display text-slate-900 dark:text-white">
+                {formatCurrency(scopedData.remaining)}
+              </div>
+              <div className="mt-2 text-[11px] text-sky-700 dark:text-sky-400 font-medium">
+                Available for Sprint 4 & 5
+              </div>
             </div>
           </div>
-          <div className="text-3xl font-bold font-display text-slate-900 dark:text-white">
-            {formatCurrency(financials.remainingBudget)}
-          </div>
-          <div className="mt-2 text-[11px] text-sky-700 dark:text-sky-400 font-medium">
-            Available for Sprints 4 & 5
-          </div>
+
+          {/* Project Details or Breakdown */}
+          <Card
+            title={currentProject ? `${currentProject.name} — Budget Specification` : 'Project Allocation Breakdown'}
+            icon={FolderGit2}
+          >
+            <div className="space-y-4 text-xs">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {scopedData.projects.map((p) => {
+                  const allocated = Math.round(Number(p.budget) * 0.68)
+                  const remaining = Number(p.budget) - allocated
+                  return (
+                    <div
+                      key={p.id}
+                      className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-slate-900 dark:text-white text-sm">
+                          {p.name} ({p.code})
+                        </span>
+                        <Badge variant="indigo" size="xs">
+                          {p.status}
+                        </Badge>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
+                          <span>Authorized Budget:</span>
+                          <strong className="text-slate-900 dark:text-white font-display">
+                            {formatCurrency(p.budget)}
+                          </strong>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
+                          <span>Allocated to Devs:</span>
+                          <span className="font-semibold text-purple-600 dark:text-purple-400">
+                            {formatCurrency(allocated)}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
+                          <span>Remaining Balance:</span>
+                          <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                            {formatCurrency(remaining)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                        <div
+                          className="bg-lime-500 h-2 rounded-full"
+                          style={{ width: '68%' }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </Card>
+
+          {/* Allocation & Transaction Ledger - Scoped */}
+          <Card title="Allocation & Payment Ledger" icon={Wallet}>
+            <div className="space-y-3 text-xs">
+              {scopedData.transactions.length === 0 ? (
+                <div className="py-8 text-center text-slate-400">
+                  No transactions recorded for this scope yet.
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {scopedData.transactions.map((tx) => (
+                    <div
+                      key={tx.id}
+                      className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                    >
+                      <div className="min-w-0 flex-1 space-y-0.5">
+                        <div className="font-semibold text-slate-900 dark:text-white truncate">
+                          {tx.description}
+                        </div>
+                        <div className="flex items-center gap-2 text-[11px] text-slate-400">
+                          <span>Date: {formatDate(tx.date, 'short')}</span>
+                          <span>•</span>
+                          <span className="capitalize">{tx.type.replace('_', ' ')}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
+                        <span
+                          className={`font-bold font-display text-sm ${
+                            tx.amount >= 0
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : 'text-rose-600 dark:text-rose-400'
+                          }`}
+                        >
+                          {formatCurrency(tx.amount)}
+                        </span>
+                        <Badge
+                          variant={tx.status === 'completed' ? 'emerald' : 'amber'}
+                          size="xs"
+                        >
+                          {tx.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </Card>
         </div>
       </div>
 
-      {/* Project-by-Project Budget Table */}
-      <Card title="Project Budget Breakdown" icon={FolderGit2}>
-        <div className="space-y-4 text-xs">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {teamProjects.map((p) => {
-              const allocated = Math.round(Number(p.budget) * 0.68)
-              const remaining = Number(p.budget) - allocated
-              return (
-                <div
-                  key={p.id}
-                  className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900 dark:text-white text-sm">
-                      {p.name} ({p.code})
-                    </span>
-                    <Badge variant="indigo" size="xs">
-                      {p.status}
-                    </Badge>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
-                      <span>Authorized Budget:</span>
-                      <strong className="text-slate-900 dark:text-white font-display">
-                        {formatCurrency(p.budget)}
-                      </strong>
-                    </div>
-                    <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
-                      <span>Allocated to Devs:</span>
-                      <span className="font-semibold text-purple-600 dark:text-purple-400">
-                        {formatCurrency(allocated)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
-                      <span>Remaining Balance:</span>
-                      <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                        {formatCurrency(remaining)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
-                    <div
-                      className="bg-lime-500 h-2 rounded-full"
-                      style={{ width: '68%' }}
-                    />
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </Card>
-
-      {/* Team Allocation & Payment Transaction Log */}
-      <Card title="Team Financial & Allocation Log" icon={Wallet}>
-        <div className="space-y-3 text-xs">
-          {financials.teamTransactions.length === 0 ? (
-            <div className="py-8 text-center text-slate-400">
-              No transactions recorded for this team yet.
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {financials.teamTransactions.map((tx) => (
-                <div
-                  key={tx.id}
-                  className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
-                >
-                  <div className="min-w-0 flex-1 space-y-0.5">
-                    <div className="font-semibold text-slate-900 dark:text-white truncate">
-                      {tx.description}
-                    </div>
-                    <div className="flex items-center gap-2 text-[11px] text-slate-400">
-                      <span>Date: {formatDate(tx.date, 'short')}</span>
-                      <span>•</span>
-                      <span className="capitalize">{tx.type.replace('_', ' ')}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
-                    <span
-                      className={`font-bold font-display text-sm ${
-                        tx.amount >= 0
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : 'text-rose-600 dark:text-rose-400'
-                      }`}
-                    >
-                      {formatCurrency(tx.amount)}
-                    </span>
-                    <Badge
-                      variant={tx.status === 'completed' ? 'emerald' : 'amber'}
-                      size="xs"
-                    >
-                      {tx.status}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </Card>
-
-      {/* Allocate to Developer Modal */}
+      {/* Modal: Allocate Budget to Developer */}
       <Modal
         isOpen={isAllocateModalOpen}
         onClose={() => setIsAllocateModalOpen(false)}
-        title="Allocate Sprint Budget to Developer"
-        subtitle="Distribute project funds to an engineer's sprint escrow"
-        maxWidth="max-w-md"
-        footer={
-          <div className="flex items-center justify-end gap-2">
-            <Button variant="secondary" size="sm" onClick={() => setIsAllocateModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="lime" size="sm" onClick={handleAllocateSubmit}>
-              Confirm Allocation
-            </Button>
-          </div>
-        }
+        title="Allocate Weekly Budget to Developer"
       >
-        <form onSubmit={handleAllocateSubmit} className="space-y-3.5 text-xs">
+        <form onSubmit={handleAllocateSubmit} className="space-y-4 text-xs">
           <div>
             <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
               Select Developer <span className="text-rose-500">*</span>
             </label>
             <select
-              required
               value={allocDevId}
               onChange={(e) => setAllocDevId(e.target.value)}
-              className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none"
+              className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none cursor-pointer"
             >
-              {teamMembers.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name} ({m.title})
+              {teamMembers.map((dev) => (
+                <option key={dev.id} value={dev.id}>
+                  {dev.name} ({dev.title})
                 </option>
               ))}
             </select>
@@ -309,17 +502,16 @@ export function PmBudgetFinancePage() {
 
           <div>
             <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Charge to Project <span className="text-rose-500">*</span>
+              Associated Project <span className="text-rose-500">*</span>
             </label>
             <select
-              required
               value={allocProjectId}
               onChange={(e) => setAllocProjectId(e.target.value)}
-              className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none"
+              className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none cursor-pointer"
             >
-              {teamProjects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.code} - {p.name}
+              {teamProjects.map((proj) => (
+                <option key={proj.id} value={proj.id}>
+                  {proj.name} ({proj.code})
                 </option>
               ))}
             </select>
@@ -332,15 +524,14 @@ export function PmBudgetFinancePage() {
               </label>
               <input
                 type="number"
+                required
                 min="100"
                 step="50"
-                required
                 value={allocAmount}
                 onChange={(e) => setAllocAmount(e.target.value)}
                 className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none"
               />
             </div>
-
             <div>
               <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Sprint Week
@@ -348,8 +539,10 @@ export function PmBudgetFinancePage() {
               <select
                 value={allocWeek}
                 onChange={(e) => setAllocWeek(e.target.value)}
-                className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none"
+                className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none cursor-pointer"
               >
+                <option value="1">Week 1</option>
+                <option value="2">Week 2</option>
                 <option value="3">Week 3 (Current)</option>
                 <option value="4">Week 4</option>
                 <option value="5">Week 5</option>
@@ -359,51 +552,52 @@ export function PmBudgetFinancePage() {
 
           <div>
             <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Allocation Purpose / Milestone Note
+              Allocation Note / Description
             </label>
             <input
               type="text"
+              placeholder="e.g. Sprint 3 Canvas rendering milestone allocation"
               value={allocDesc}
               onChange={(e) => setAllocDesc(e.target.value)}
-              placeholder="e.g. Phase 3 WebGL telemetry widget release milestone"
               className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none"
             />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsAllocateModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" variant="lime" size="sm">
+              Confirm Allocation
+            </Button>
           </div>
         </form>
       </Modal>
 
-      {/* Request Budget Increase Modal */}
+      {/* Modal: Request Budget Increase from CFO */}
       <Modal
         isOpen={isRequestModalOpen}
         onClose={() => setIsRequestModalOpen(false)}
-        title="Submit Budget Increase Request to CFO"
-        subtitle="Request contingency pool allocation from Vincent Gallagher (CFO)"
-        maxWidth="max-w-md"
-        footer={
-          <div className="flex items-center justify-end gap-2">
-            <Button variant="secondary" size="sm" onClick={() => setIsRequestModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="lime" size="sm" onClick={handleRequestSubmit}>
-              Submit Request
-            </Button>
-          </div>
-        }
+        title="Request Project Budget Increase from CFO"
       >
-        <form onSubmit={handleRequestSubmit} className="space-y-3.5 text-xs">
+        <form onSubmit={handleRequestSubmit} className="space-y-4 text-xs">
           <div>
             <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Project <span className="text-rose-500">*</span>
+              Target Project <span className="text-rose-500">*</span>
             </label>
             <select
-              required
               value={reqProjectId}
               onChange={(e) => setReqProjectId(e.target.value)}
-              className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none"
+              className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none cursor-pointer"
             >
-              {teamProjects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.code} - {p.name}
+              {teamProjects.map((proj) => (
+                <option key={proj.id} value={proj.id}>
+                  {proj.name} ({proj.code}) — Current Budget: {formatCurrency(proj.budget)}
                 </option>
               ))}
             </select>
@@ -411,13 +605,13 @@ export function PmBudgetFinancePage() {
 
           <div>
             <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Requested Amount ($) <span className="text-rose-500">*</span>
+              Requested Increase Amount ($) <span className="text-rose-500">*</span>
             </label>
             <input
               type="number"
-              min="500"
-              step="500"
               required
+              min="500"
+              step="250"
               value={reqAmount}
               onChange={(e) => setReqAmount(e.target.value)}
               className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none"
@@ -426,16 +620,30 @@ export function PmBudgetFinancePage() {
 
           <div>
             <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Justification & Business Case <span className="text-rose-500">*</span>
+              Business & Technical Justification <span className="text-rose-500">*</span>
             </label>
             <textarea
-              rows="4"
               required
+              rows="4"
               value={reqReason}
               onChange={(e) => setReqReason(e.target.value)}
-              placeholder="Outline the scope expansion, infrastructure requirements, or third-party license costs justifying this budget request..."
-              className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none resize-none"
+              placeholder="Explain why this budget increase is required (e.g. additional infrastructure stress testing nodes, third-party API quotas, scope expansion)..."
+              className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none resize-none leading-relaxed"
             />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsRequestModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" variant="lime" size="sm" icon={Send}>
+              Send Request to CFO
+            </Button>
           </div>
         </form>
       </Modal>

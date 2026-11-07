@@ -6,58 +6,63 @@ import { usePmData } from '../../hooks/usePmData.js'
 import { useApp } from '../../context/AppContext.jsx'
 import {
   User,
+  RotateCcw,
   Mail,
   Globe,
   Tag,
-  Plus,
   X,
-  RotateCcw,
-  Briefcase,
+  Plus,
   Users,
 } from 'lucide-react'
 
 export function PmSettingsPage() {
-  const { pm, team, teamProjects, teamMembers } = usePmData()
-  const { resetDemoData, showToast } = useApp()
+  const { pm, team } = usePmData()
+  const { resetDemoData, updatePmProfile, showToast } = useApp()
 
-  const [skills, setSkills] = useState([
+  const [newSkillInput, setNewSkillInput] = useState('')
+
+  const currentSkills = pm?.skills || [
     'Agile Delivery',
     'Kanban & Sprint Pacing',
     'Budget & Resource Forecasting',
     'Scrum Master',
     'Cross-Functional Leadership',
     'Risk Mitigation',
-  ])
-  const [newSkill, setNewSkill] = useState('')
+  ]
 
   const handleAddSkill = (e) => {
-    e.preventDefault()
-    const trimmed = newSkill.trim()
-    if (!trimmed || skills.includes(trimmed)) return
-
-    setSkills([...skills, trimmed])
-    setNewSkill('')
+    e?.preventDefault()
+    const trimmed = newSkillInput.trim()
+    if (!trimmed) return
+    if (currentSkills.includes(trimmed)) {
+      setNewSkillInput('')
+      return
+    }
+    const updated = [...currentSkills, trimmed]
+    updatePmProfile({ skills: updated })
+    setNewSkillInput('')
     showToast(`Added competency: "${trimmed}"`, 'success')
   }
 
   const handleRemoveSkill = (skillToRemove) => {
-    setSkills(skills.filter((s) => s !== skillToRemove))
+    const updated = currentSkills.filter((s) => s !== skillToRemove)
+    updatePmProfile({ skills: updated })
     showToast(`Removed competency: "${skillToRemove}"`, 'info')
   }
 
   return (
     <div className="space-y-6 max-w-4xl">
-      {/* Header */}
+      {/* Page Header */}
       <div>
         <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">
-          Profile & Workspace Preferences
+          Profile & Settings
         </h2>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-          Project Manager corporate identity, squad credentials, and workspace configuration
+          Project Manager identity and management skills
         </p>
       </div>
 
-      {/* Identity Card (View Only) */}
+      {/* Profile Information Card - View-only */}
       <Card title="Management Identity" icon={User}>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 text-xs">
           <div className="w-16 h-16 rounded-2xl bg-slate-900 text-white dark:bg-lime-400 dark:text-slate-950 flex items-center justify-center font-bold text-xl shrink-0 shadow-sm">
@@ -79,111 +84,82 @@ export function PmSettingsPage() {
                 <Mail className="w-3.5 h-3.5 text-slate-400" /> {pm?.email}
               </span>
               <span className="flex items-center gap-1.5">
-                <Globe className="w-3.5 h-3.5 text-slate-400" /> UTC-5 (EST)
+                <Globe className="w-3.5 h-3.5 text-slate-400" /> {pm?.timezone || 'UTC-5 (EST)'}
               </span>
               <span className="flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5 text-slate-400" /> {team?.name}
+                <Users className="w-3.5 h-3.5 text-slate-400" /> {team?.name || 'Squad'}
               </span>
             </div>
           </div>
         </div>
       </Card>
 
-      {/* Squad Oversight Summary */}
-      <Card title="Assigned Squad Oversight" icon={Briefcase}>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-1">
-            <span className="text-slate-400 block text-[11px]">Managed Squad</span>
-            <span className="font-bold text-slate-900 dark:text-white text-sm block">
-              {team?.name}
-            </span>
-            <span className="text-[11px] text-slate-500">{team?.focus}</span>
-          </div>
-
-          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-1">
-            <span className="text-slate-400 block text-[11px]">Dedicated Engineers</span>
-            <span className="font-bold text-slate-900 dark:text-white text-sm block">
-              {teamMembers.length} Developers
-            </span>
-            <span className="text-[11px] text-slate-500">
-              {teamMembers.map((m) => m.name.split(' ')[0]).join(', ')}
-            </span>
-          </div>
-
-          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-1">
-            <span className="text-slate-400 block text-[11px]">Sprint Deliverables</span>
-            <span className="font-bold text-slate-900 dark:text-white text-sm block">
-              {teamProjects.length} Projects
-            </span>
-            <span className="text-[11px] text-slate-500">
-              {teamProjects.map((p) => p.code).join(' & ')}
-            </span>
-          </div>
-        </div>
-      </Card>
-
-      {/* Management Competencies */}
-      <Card title="Management Competencies & Methodologies" icon={Tag}>
-        <div className="space-y-4 text-xs">
-          <div className="flex flex-wrap items-center gap-2">
-            {skills.map((skill) => (
+      {/* Skills & Expertise - Skills can be added or removed */}
+      <Card
+        title="Management Skills & Competencies"
+        subtitle="Add or remove competencies in your management skillset"
+        icon={Tag}
+      >
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-2 text-xs">
+            {currentSkills.map((skill) => (
               <span
                 key={skill}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium transition-all group border border-slate-200/50 dark:border-slate-700/60"
               >
                 <span>{skill}</span>
                 <button
                   type="button"
                   onClick={() => handleRemoveSkill(skill)}
-                  className="text-slate-400 hover:text-rose-500 transition-colors cursor-pointer"
-                  title="Remove competency"
+                  className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 ml-0.5 cursor-pointer transition-colors"
+                  title={`Remove ${skill}`}
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </span>
             ))}
           </div>
 
-          <form onSubmit={handleAddSkill} className="flex items-center gap-2 pt-2">
+          {/* Add skill input */}
+          <form onSubmit={handleAddSkill} className="pt-1 flex items-center gap-2 max-w-sm">
             <input
               type="text"
-              value={newSkill}
-              onChange={(e) => setNewSkill(e.target.value)}
-              placeholder="Add management competency (e.g. OKR Alignment, Six Sigma)..."
-              className="flex-1 px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
+              placeholder="Add skill (e.g., OKRs, Risk Matrix, Six Sigma)..."
+              value={newSkillInput}
+              onChange={(e) => setNewSkillInput(e.target.value)}
+              className="flex-1 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-slate-400"
             />
             <Button
               type="submit"
               variant="secondary"
-              size="sm"
+              size="xs"
               icon={Plus}
-              disabled={!newSkill.trim()}
             >
-              Add
+              Add Skill
             </Button>
           </form>
         </div>
       </Card>
 
-      {/* Danger Zone: Reset Demo Data */}
-      <Card title="Workspace State & Demo Reset" icon={RotateCcw}>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+      {/* Demo Controls */}
+      <Card title="Prototype Controls" icon={RotateCcw}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
           <div>
-            <div className="font-semibold text-slate-900 dark:text-white">
-              Restore Demo State to Defaults
-            </div>
+            <span className="font-semibold text-slate-800 dark:text-slate-200 block">
+              Reset Simulated Data
+            </span>
             <p className="text-slate-500 dark:text-slate-400 mt-0.5">
-              Resets all in-memory task status changes, created tasks, and submitted reports back to seed defaults.
+              Restore mock database, projects, tasks, earnings, and user preferences back to initial state.
             </p>
           </div>
 
           <Button
             variant="danger"
-            size="sm"
+            size="xs"
             icon={RotateCcw}
             onClick={resetDemoData}
           >
-            Reset All Demo Data
+            Reset Demo Data
           </Button>
         </div>
       </Card>

@@ -26,6 +26,19 @@ export const REPORTS = [
     submittedAt: '2026-10-18T11:00:00Z',
     feedback: 'Approved by PM & CTO. Greenlit as an internal R&D prototype for Q1 sprint.',
   },
+  {
+    id: 'prop_03',
+    userId: 'user_dev_03',
+    teamId: 'team_01',
+    type: 'project_submission',
+    title: 'HyperLogLog Realtime Cardinality Stream Aggregator',
+    docsUrl: 'https://docs.google.com/document/d/1HLL-Stream-RFC/edit',
+    description: 'Probabilistic data structure library for sub-millisecond distinct user counting across millions of concurrent WebSocket sessions.',
+    date: '2026-11-04',
+    status: 'under_review',
+    submittedAt: '2026-11-04T10:15:00Z',
+    feedback: 'Awaiting PM review and endorsement to C-Level.',
+  },
 
   // --- GENERAL COMPLAINTS & GRIEVANCES ---
   {
