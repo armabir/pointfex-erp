@@ -239,66 +239,7 @@ export function PmDashboard() {
             )}
           </Card>
 
-          {/* Team Projects Overview */}
-          <Card
-            title="Assigned Projects"
-            icon={FolderGit2}
-            action={
-              <Button
-                variant="ghost"
-                size="xs"
-                rightIcon={ArrowRight}
-                onClick={() => setRoute('projects')}
-              >
-                All Projects
-              </Button>
-            }
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {teamProjects.map((project) => (
-                <div
-                  key={project.id}
-                  onClick={() => setSelectedProjectModal(project)}
-                  className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/80 cursor-pointer transition-all duration-150 group shadow-2xs"
-                >
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <Badge variant="indigo" size="xs">
-                        {project.code}
-                      </Badge>
-                      <h4 className="font-semibold text-xs text-slate-900 dark:text-slate-100 group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors truncate">
-                        {project.name}
-                      </h4>
-                    </div>
-                    <StatusPill status={project.status} size="sm" />
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="space-y-1.5 mb-3">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-500 dark:text-slate-400">Sprint Progress</span>
-                      <span className="font-semibold text-slate-800 dark:text-slate-200">
-                        {project.progress}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-slate-200/80 dark:bg-slate-700/80 rounded-full h-2 overflow-hidden">
-                      <div
-                        className="bg-sky-500 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${project.progress}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-400 dark:text-slate-500">
-                    <span>Budget: {formatCurrency(project.budget)}</span>
-                    <span>Due {formatDate(project.deadline, 'short')}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          {/* Team Performance Analytics with Donut Ring */}
+          {/* Team Performance Analytics with Donut Ring (matching Dev Dashboard order) */}
           <Card
             title="Team Performance Analytics"
             icon={Award}
@@ -367,7 +308,7 @@ export function PmDashboard() {
               <div className="flex-1 w-full grid grid-cols-2 gap-3 min-w-0">
                 <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
                   <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
                     Completion
                   </div>
                   <div className="text-base font-bold font-display text-slate-900 dark:text-white mt-1">
@@ -377,7 +318,7 @@ export function PmDashboard() {
 
                 <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
                   <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-cyan-500" />
+                    <span className="w-2 h-2 rounded-full bg-cyan-500 shrink-0" />
                     Velocity
                   </div>
                   <div className="text-base font-bold font-display text-slate-900 dark:text-white mt-1">
@@ -387,7 +328,7 @@ export function PmDashboard() {
 
                 <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
                   <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-amber-500" />
+                    <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
                     On-Time Delivery
                   </div>
                   <div className="text-base font-bold font-display text-slate-900 dark:text-white mt-1">
@@ -397,7 +338,7 @@ export function PmDashboard() {
 
                 <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
                   <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-purple-500" />
+                    <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
                     Code Quality
                   </div>
                   <div className="text-base font-bold font-display text-slate-900 dark:text-white mt-1">
@@ -407,10 +348,95 @@ export function PmDashboard() {
               </div>
             </div>
           </Card>
+
+          {/* Team Projects Overview */}
+          <Card
+            title="Assigned Projects"
+            icon={FolderGit2}
+            action={
+              <Button
+                variant="ghost"
+                size="xs"
+                rightIcon={ArrowRight}
+                onClick={() => setRoute('projects')}
+              >
+                All Projects
+              </Button>
+            }
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
+              {teamProjects.map((project) => (
+                <div
+                  key={project.id}
+                  onClick={() => setSelectedProjectModal(project)}
+                  className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/80 cursor-pointer transition-all duration-150 group shadow-2xs flex flex-col justify-between"
+                >
+                  <div>
+                    {/* Top Row: Project Code Badge & Status Pill */}
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <Badge variant="indigo" size="xs">
+                        {project.code}
+                      </Badge>
+                      <StatusPill status={project.status} size="sm" />
+                    </div>
+
+                    {/* Title: Full width, never squeezed by badges */}
+                    <h4 className="font-semibold text-xs text-slate-900 dark:text-slate-100 group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors truncate mb-3">
+                      {project.name}
+                    </h4>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="space-y-1.5 mb-2.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-500 dark:text-slate-400">Sprint Progress</span>
+                      <span className="font-semibold text-slate-800 dark:text-slate-200">
+                        {project.progress}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-200/80 dark:bg-slate-700/80 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-sky-500 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${project.progress}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-400 dark:text-slate-500">
+                    <span>Budget: {formatCurrency(project.budget)}</span>
+                    <span>Due {formatDate(project.deadline, 'short')}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
         </div>
 
-        {/* Right Column (4 cols): Task Status Breakdown -> Budget Summary -> Announcements */}
+        {/* Right Column (4 cols): Announcements -> Task Status Breakdown -> Budget Summary */}
         <div className="lg:col-span-5 xl:col-span-4 space-y-6">
+          {/* Announcements / Bulletins (moved to top of right column matching Dev) */}
+          <Card title="Company Bulletins" icon={Megaphone}>
+            <div className="space-y-2.5 text-xs">
+              {announcements.slice(0, 3).map((ann) => (
+                <div
+                  key={ann.id}
+                  className="p-3 rounded-2xl bg-slate-50/70 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-1"
+                >
+                  <div className="flex items-center justify-between gap-1 text-[11px] text-slate-400">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">{ann.authorName}</span>
+                    <span>{formatDate(ann.date, 'short')}</span>
+                  </div>
+                  <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-xs truncate">
+                    {ann.title}
+                  </h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                    {ann.content}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Card>
+
           {/* Task Status Overview */}
           <Card title="Task Distribution" icon={Layers}>
             <div className="space-y-2.5 text-xs">
@@ -510,29 +536,6 @@ export function PmDashboard() {
                   </span>
                 </div>
               </div>
-            </div>
-          </Card>
-
-          {/* Announcements */}
-          <Card title="Company Bulletins" icon={Megaphone}>
-            <div className="space-y-2.5 text-xs">
-              {announcements.slice(0, 3).map((ann) => (
-                <div
-                  key={ann.id}
-                  className="p-3 rounded-2xl bg-slate-50/70 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-1"
-                >
-                  <div className="flex items-center justify-between gap-1 text-[11px] text-slate-400">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300">{ann.authorName}</span>
-                    <span>{formatDate(ann.date, 'short')}</span>
-                  </div>
-                  <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-xs truncate">
-                    {ann.title}
-                  </h4>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                    {ann.content}
-                  </p>
-                </div>
-              ))}
             </div>
           </Card>
         </div>
