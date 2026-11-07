@@ -58,7 +58,7 @@ export function TaskDetailModal({ task, isOpen, onClose }) {
       maxWidth="max-w-xl"
       footer={
         <>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="secondary" size="sm" onClick={onClose}>
             Close
           </Button>
 
@@ -116,7 +116,7 @@ export function TaskDetailModal({ task, isOpen, onClose }) {
     >
       <div className="space-y-4 text-xs">
         {/* Status & Priority Row */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800">
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-[#131a2b] rounded-2xl border border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2">
             <span className="text-slate-500 dark:text-slate-400 font-medium">Status:</span>
             <select
@@ -155,13 +155,13 @@ export function TaskDetailModal({ task, isOpen, onClose }) {
         {/* Description */}
         <div>
           <h4 className="font-semibold text-slate-700 dark:text-slate-300 mb-1">Description</h4>
-          <p className="text-slate-600 dark:text-slate-400 leading-relaxed bg-slate-50/50 dark:bg-slate-800/30 p-3 rounded-2xl border border-slate-100 dark:border-slate-800">
+          <p className="text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50/50 dark:bg-[#131a2b] p-3 rounded-2xl border border-slate-100 dark:border-slate-800">
             {currentTask.description || 'No description provided.'}
           </p>
         </div>
 
         {/* Metadata info grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-[11px]">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-[#131a2b] border border-slate-100 dark:border-slate-800 text-[11px]">
           <div>
             <span className="text-slate-400 dark:text-slate-500 block">Due Date</span>
             <span className="font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1 mt-0.5">
@@ -201,7 +201,7 @@ export function TaskDetailModal({ task, isOpen, onClose }) {
                 return (
                   <div
                     key={c.id}
-                    className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-xs"
+                    className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#131a2b] border border-slate-100 dark:border-slate-800 text-xs"
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-bold text-slate-900 dark:text-slate-100 text-[11px]">
@@ -211,7 +211,7 @@ export function TaskDetailModal({ task, isOpen, onClose }) {
                         {formatDate(c.createdAt, 'short')}
                       </span>
                     </div>
-                    <p className="text-slate-600 dark:text-slate-400 leading-snug">{c.content}</p>
+                    <p className="text-slate-600 dark:text-slate-300 leading-snug">{c.content}</p>
                   </div>
                 )
               })
@@ -225,7 +225,7 @@ export function TaskDetailModal({ task, isOpen, onClose }) {
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Add an update or note..."
-              className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:bg-white dark:focus:bg-slate-850 focus:outline-none focus:border-slate-400"
+              className="flex-1 bg-slate-50 dark:bg-[#131a2b] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:bg-white dark:focus:bg-[#0b101b] focus:outline-none focus:border-slate-400"
             />
             <Button type="submit" variant="secondary" size="xs" icon={Send}>
               Send

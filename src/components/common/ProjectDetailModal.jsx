@@ -49,7 +49,7 @@ export function ProjectDetailModal({ project, isOpen, onClose }) {
     >
       <div className="space-y-4 text-xs">
         {/* 1. Progress & Status Section */}
-        <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-3">
+        <div className="p-4 bg-slate-50 dark:bg-[#131a2b] rounded-2xl border border-slate-100 dark:border-slate-800 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-slate-500 dark:text-slate-400 font-medium">Status:</span>
@@ -60,7 +60,7 @@ export function ProjectDetailModal({ project, isOpen, onClose }) {
             </span>
           </div>
 
-          <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden">
+          <div className="w-full bg-slate-200 dark:bg-slate-700/80 rounded-full h-2.5 overflow-hidden">
             <div
               className="bg-sky-500 h-2.5 rounded-full transition-all duration-300"
               style={{ width: `${project.progress}%` }}
@@ -69,7 +69,7 @@ export function ProjectDetailModal({ project, isOpen, onClose }) {
         </div>
 
         {/* 2. Title & Description */}
-        <div className="p-4 bg-slate-50/70 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1.5">
+        <div className="p-4 bg-slate-50/70 dark:bg-[#131a2b] rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1.5">
           <h4 className="font-bold text-slate-900 dark:text-white text-xs">
             {project.name}
           </h4>
@@ -79,7 +79,7 @@ export function ProjectDetailModal({ project, isOpen, onClose }) {
         </div>
 
         {/* 3. Deadlines Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 bg-slate-50 dark:bg-[#131a2b] rounded-2xl border border-slate-100 dark:border-slate-800">
           <div>
             <span className="text-slate-400 dark:text-slate-500 block text-[11px]">Sprint Start</span>
             <span className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5 flex items-center gap-1.5">
@@ -105,10 +105,10 @@ export function ProjectDetailModal({ project, isOpen, onClose }) {
         </div>
 
         {/* 4. SRS (Software Requirements Specification) Section */}
-        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 space-y-3">
+        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#131a2b] border border-slate-200/80 dark:border-slate-700/80 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">
+              <div className="p-1.5 rounded-lg bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300">
                 <FileCode className="w-4 h-4" />
               </div>
               <div>
@@ -125,14 +125,14 @@ export function ProjectDetailModal({ project, isOpen, onClose }) {
               href={srs.documentUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors text-xs font-semibold"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/80 border border-indigo-100 dark:border-indigo-800/60 transition-colors text-xs font-semibold"
             >
               <span>View Spec</span>
               <ExternalLink className="w-3 h-3" />
             </a>
           </div>
 
-          <p className="text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed bg-white dark:bg-slate-900/80 p-3 rounded-xl border border-slate-200/60 dark:border-slate-800">
+          <p className="text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed bg-white dark:bg-[#0b101b] p-3 rounded-xl border border-slate-200/60 dark:border-slate-800">
             {srs.overview}
           </p>
 
@@ -141,13 +141,13 @@ export function ProjectDetailModal({ project, isOpen, onClose }) {
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
               {srs.requirementsCount} functional requirements specified
             </span>
-            <span className="font-mono text-slate-400">{srs.documentTitle}</span>
+            <span className="font-mono text-slate-400 dark:text-slate-500">{srs.documentTitle}</span>
           </div>
         </div>
 
         {/* Repository & Branch info if available */}
         {project.repo && (
-          <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between text-slate-600 dark:text-slate-400 font-mono text-[11px]">
+          <div className="p-3 bg-slate-50 dark:bg-[#131a2b] rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between text-slate-600 dark:text-slate-400 font-mono text-[11px]">
             <div className="flex items-center gap-2">
               <GitBranch className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               <span>{project.repo.activeBranch}</span>

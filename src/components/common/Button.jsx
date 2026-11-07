@@ -28,16 +28,16 @@ export function Button({
     lime:
       'bg-[#e2f952] hover:bg-[#d9f538] text-slate-950 font-semibold shadow-xs active:translate-y-px',
     secondary:
-      'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/80 shadow-2xs active:translate-y-px',
+      'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 shadow-2xs active:translate-y-px',
     subtle:
-      'bg-transparent hover:bg-slate-200/60 text-slate-600 hover:text-slate-900',
+      'bg-transparent hover:bg-slate-200/60 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white',
     outline:
-      'border border-slate-300 hover:border-slate-400 text-slate-700 hover:bg-white',
+      'border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800',
     danger:
-      'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200',
+      'bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/50',
     ghost:
-      'text-slate-500 hover:text-slate-900 hover:bg-slate-100/80',
-  }[variant] || 'bg-white text-slate-700 border border-slate-200'
+      'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800',
+  }[variant] || 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700'
 
   return (
     <button

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { useDeveloperData } from '../../hooks/useDeveloperData.js'
 import { WelcomeBanner } from '../../components/dashboard/WelcomeBanner.jsx'
 import { StatsSection } from '../../components/dashboard/StatsSection.jsx'
@@ -7,7 +7,6 @@ import { MyProjectsOverview } from '../../components/dashboard/MyProjectsOvervie
 import { UpcomingDeadlines } from '../../components/dashboard/UpcomingDeadlines.jsx'
 import { AnnouncementsWidget } from '../../components/dashboard/AnnouncementsWidget.jsx'
 import { PerformanceSummary } from '../../components/dashboard/PerformanceSummary.jsx'
-import { QuickTaskCreateModal } from '../../components/dashboard/QuickTaskCreateModal.jsx'
 
 export function DeveloperDashboard() {
   const {
@@ -21,15 +20,10 @@ export function DeveloperDashboard() {
     performance,
   } = useDeveloperData()
 
-  const [isQuickTaskOpen, setIsQuickTaskOpen] = useState(false)
-
   return (
     <div className="space-y-6">
       {/* 1. Welcome Section */}
-      <WelcomeBanner
-        dev={dev}
-        onOpenQuickTask={() => setIsQuickTaskOpen(true)}
-      />
+      <WelcomeBanner dev={dev} />
 
       {/* 2. Key Metrics & Statistics - Soft Pastel Cards */}
       <StatsSection stats={stats} />
@@ -58,12 +52,6 @@ export function DeveloperDashboard() {
           />
         </div>
       </div>
-
-      {/* Quick Task Modal */}
-      <QuickTaskCreateModal
-        isOpen={isQuickTaskOpen}
-        onClose={() => setIsQuickTaskOpen(false)}
-      />
     </div>
   )
 }
