@@ -109,5 +109,33 @@ export const TRANSACTIONS: Transaction[] = [
     date: '2026-10-19',
     status: 'completed',
   },
+  // CTO Transactions
+  {
+    id: 'tx_cto_01',
+    userId: 'user_cto_01',
+    amount: 4500.00,
+    type: 'executive_payout',
+    description: 'Sprint 2 Architecture Oversight & Executive Delivery Stipend',
+    date: '2026-10-28',
+    status: 'completed',
+  },
+  {
+    id: 'tx_cto_02',
+    userId: 'user_cto_01',
+    amount: 1500.00,
+    type: 'bonus',
+    description: 'Executive Quality Gate Incentive: Zero High-Severity Outages',
+    date: '2026-10-30',
+    status: 'completed',
+  },
+  {
+    id: 'tx_cto_03',
+    userId: 'user_cto_01',
+    amount: 3400.00,
+    type: 'executive_payout',
+    description: 'Sprint 1 Company-Wide Technology Standard Sign-Off',
+    date: '2026-10-14',
+    status: 'completed',
+  },
 ]
 

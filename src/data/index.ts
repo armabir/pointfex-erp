@@ -14,6 +14,12 @@ import { NOTIFICATIONS } from './notifications'
 import { ACTIVITY_LOGS } from './activityLogs'
 import { MILESTONES } from './milestones'
 import { REPOSITORIES } from './repositories'
+import { PULL_REQUESTS } from './pullRequests'
+import { CODE_QUALITY_GATES } from './codeQuality'
+import { SECURITY_ALERTS, BUG_BOUNTIES } from './securityAlerts'
+import { TESTING_SUITES } from './testingSuites'
+import { CONSULTANCY_REQUESTS } from './consultancy'
+import { CURRENT_CTO_ID, getCurrentCto } from './users'
 import type {
   SeedData,
   DataResolvers,
@@ -36,6 +42,8 @@ export {
   getCurrentDeveloper,
   CURRENT_PM_ID,
   getCurrentPm,
+  CURRENT_CTO_ID,
+  getCurrentCto,
   TEAMS,
   PROJECTS,
   TASKS,
@@ -50,6 +58,12 @@ export {
   ACTIVITY_LOGS,
   MILESTONES,
   REPOSITORIES,
+  PULL_REQUESTS,
+  CODE_QUALITY_GATES,
+  SECURITY_ALERTS,
+  BUG_BOUNTIES,
+  TESTING_SUITES,
+  CONSULTANCY_REQUESTS,
 }
 
 // Deep clone helper for clean demo state isolation & instant resets
@@ -71,6 +85,12 @@ export function getInitialSeedData(): SeedData {
     activityLogs: JSON.parse(JSON.stringify(ACTIVITY_LOGS)),
     milestones: JSON.parse(JSON.stringify(MILESTONES)),
     repositories: JSON.parse(JSON.stringify(REPOSITORIES)),
+    pullRequests: JSON.parse(JSON.stringify(PULL_REQUESTS)),
+    codeQualityGates: JSON.parse(JSON.stringify(CODE_QUALITY_GATES)),
+    securityAlerts: JSON.parse(JSON.stringify(SECURITY_ALERTS)),
+    testingSuites: JSON.parse(JSON.stringify(TESTING_SUITES)),
+    bugBounties: JSON.parse(JSON.stringify(BUG_BOUNTIES)),
+    consultancyRequests: JSON.parse(JSON.stringify(CONSULTANCY_REQUESTS)),
   }
 }
 

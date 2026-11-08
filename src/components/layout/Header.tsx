@@ -59,6 +59,32 @@ export function Header() {
       }
     }
 
+    if (currentRole === 'cto') {
+      const ctoRouteMap: Record<string, { title: string; crumb: string }> = {
+        dashboard: { title: 'Executive Engineering Dashboard', crumb: 'Dashboard' },
+        tasks: { title: 'My Executive Tasks', crumb: 'My Tasks' },
+        'task-management': { title: 'Engineering Task Management', crumb: 'Task Management' },
+        'team-management': { title: 'Squad Engineering Oversight', crumb: 'Team Management' },
+        'audit-log': { title: 'System & Engineering Audit Trail', crumb: 'Audit Log' },
+        people: { title: 'Engineering Directory', crumb: 'People' },
+        'projects-repos': { title: 'Projects & Repositories', crumb: 'Projects & Repos' },
+        'code-quality': { title: 'Code Review & Quality Gates', crumb: 'Code Review & Quality' },
+        'security-testing': { title: 'Security Posture & Testing', crumb: 'Security & Testing' },
+        consultancy: { title: 'Technical Consultancy Hub', crumb: 'Consultancy' },
+        earnings: { title: 'Earnings & Performance', crumb: 'Earnings & Performance' },
+        reports: { title: 'Engineering Escalations & Reports', crumb: 'Reports' },
+        settings: { title: 'Profile & Technical Settings', crumb: 'Profile & Settings' },
+      }
+      const curr = ctoRouteMap[currentRoute] || { title: 'Executive Engineering Dashboard', crumb: 'Dashboard' }
+      return {
+        title: curr.title,
+        breadcrumbs: [
+          { label: 'CTO Command', onClick: () => setRoute('dashboard') },
+          { label: curr.crumb },
+        ],
+      }
+    }
+
     const roleMap: Record<string, string> = {
       cto: 'CTO Workspace',
       cpo: 'CPO Workspace',

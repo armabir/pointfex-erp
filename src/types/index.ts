@@ -306,6 +306,100 @@ export interface Repository {
   openIssues: number
 }
 
+// --- CTO SPECIFIC TYPES: PULL REQUESTS, SECURITY, TESTING, CONSULTANCY ---
+export interface PullRequest {
+  id: string
+  projectId: string
+  repoId: string
+  title: string
+  authorId: string
+  reviewerId?: string
+  branch: string
+  baseBranch: string
+  status: 'open' | 'in_review' | 'approved' | 'merged' | 'changes_requested'
+  additions: number
+  deletions: number
+  changedFiles: number
+  createdAt: string
+  reviewCommentsCount: number
+  qualityScore?: number
+  description: string
+}
+
+export interface CodeQualityGate {
+  projectId: string
+  complianceScore: number
+  testCoverage: number
+  techDebtHours: number
+  codeSmellsCount: number
+  bugsDetected: number
+  vulnerabilitiesCount: number
+  lastAnalysis: string
+  status: 'passed' | 'warning' | 'failed'
+}
+
+export interface SecurityAlert {
+  id: string
+  projectId: string
+  title: string
+  severity: 'critical' | 'high' | 'medium' | 'low'
+  category: 'dependency' | 'auth' | 'injection' | 'encryption' | 'infrastructure'
+  status: 'open' | 'investigating' | 'patch_in_progress' | 'resolved'
+  detectedAt: string
+  resolvedAt?: string
+  assignedPmId?: string
+  cveOrPackage?: string
+  description: string
+  recommendation: string
+}
+
+export interface TestingSuite {
+  id: string
+  projectId: string
+  name: string
+  totalTests: number
+  passed: number
+  failed: number
+  skipped: number
+  duration: string
+  coveragePercent: number
+  lastRun: string
+  status: 'passed' | 'failed' | 'warning'
+}
+
+export interface BugBountyItem {
+  id: string
+  title: string
+  projectId: string
+  reporterName: string
+  reporterType: 'internal_qa' | 'external_researcher' | 'developer'
+  severity: 'critical' | 'high' | 'medium' | 'low'
+  bountyAmount: number
+  status: 'reported' | 'triaged' | 'rewarded' | 'rejected'
+  submittedAt: string
+  description: string
+}
+
+export interface ConsultancyRequest {
+  id: string
+  title: string
+  requesterId: string
+  teamId: string
+  projectId: string
+  category: string
+  description: string
+  urgency: 'critical' | 'high' | 'medium' | 'low'
+  status: 'submitted' | 'under_review' | 'accepted' | 'assigned' | 'in_progress' | 'completed' | 'rejected'
+  assignedConsultantId?: string
+  assignedConsultantName?: string
+  estimatedHours?: number
+  feeUSD?: number
+  requestedAt: string
+  targetDate?: string
+  ctoNotes?: string
+  completedAt?: string
+}
+
 // --- SEED DATA & RESOLVERS ---
 export interface SeedData {
   roles: Role[]
@@ -324,6 +418,12 @@ export interface SeedData {
   activityLogs: ActivityLog[]
   milestones: Milestone[]
   repositories: Repository[]
+  pullRequests: PullRequest[]
+  codeQualityGates: CodeQualityGate[]
+  securityAlerts: SecurityAlert[]
+  testingSuites: TestingSuite[]
+  bugBounties: BugBountyItem[]
+  consultancyRequests: ConsultancyRequest[]
 }
 
 export interface DataResolvers {
@@ -487,4 +587,53 @@ export interface AppContextType {
   updateMilestoneStatus: (projectId: string, milestoneId: string, newStatus: string) => void
   updatePmProfile: (updatedFields: Partial<User>) => void
   updateComplaintStatus: (complaintId: string, newStatus: string, pmComment?: string) => void
+
+  // CTO State Handlers
+  createCtoEngineeringTask: (taskData: {
+    title: string
+    description?: string
+    projectId: string
+    pmId: string
+    priority?: TaskPriority
+    dueDate?: string
+    estimatedHours?: number | string
+    tags?: string[]
+  }) => Task
+  reviewCtoTaskSubmission: (taskId: string, approved: boolean, feedback?: string) => void
+  updateCtoPersonalTaskStatus: (taskId: string, newStatus: TaskStatus) => void
+  updateRepoConfig: (projectId: string, updates: {
+    repositoryUrl?: string
+    defaultBranch?: string
+    tags?: string[]
+    srsUrl?: string
+  }) => void
+  reviewPullRequest: (prId: string, newStatus: 'approved' | 'merged' | 'changes_requested') => void
+  createSecurityIssue: (issue: {
+    title: string
+    projectId: string
+    severity: 'critical' | 'high' | 'medium' | 'low'
+    category: 'dependency' | 'auth' | 'injection' | 'encryption' | 'infrastructure'
+    assignedPmId?: string
+    description: string
+    recommendation: string
+    cveOrPackage?: string
+  }) => void
+  updateSecurityIssueStatus: (issueId: string, newStatus: 'open' | 'investigating' | 'patch_in_progress' | 'resolved') => void
+  updateConsultancyStatus: (requestId: string, updates: {
+    status: 'submitted' | 'under_review' | 'accepted' | 'assigned' | 'in_progress' | 'completed' | 'rejected'
+    assignedConsultantName?: string
+    feeUSD?: number
+    targetDate?: string
+    ctoNotes?: string
+  }) => void
+  submitCtoReport: (report: {
+    category: string
+    recipient: string
+    title: string
+    description: string
+    projectId?: string
+    docsUrl?: string
+  }) => void
+  updateIncomingReportStatus: (reportId: string, newStatus: string, feedback?: string, forwardTo?: string) => void
+  updateCtoProfile: (updatedFields: Partial<User>) => void
 }

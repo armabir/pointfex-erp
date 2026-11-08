@@ -1,9 +1,9 @@
 # Pointfex ERP — Project Status & Architecture Documentation
 
-> **Document Version:** 2.0.0  
+> **Document Version:** 3.0.0  
 > **Last Updated:** November 2026  
 > **Target Audience:** Engineering Team & AI Assistants  
-> **Status:** Phase 1 Complete (Developer Workspace) · Phase 2 Complete (Project Manager Workspace) · Phase 3 Pending (C-Suite Workspaces)
+> **Status:** Phase 1 Complete (Developer Workspace) · Phase 2 Complete (Project Manager Workspace) · Phase 3 Complete (Chief Technology Officer Workspace) · Phase 4-6 Pending (CPO, CFO, CEO)
 
 ---
 
@@ -331,172 +331,239 @@ All 9 PM panels are fully functional, interactive, and powered by reactive state
 
 ---
 
-## 6. Data Architecture and State Management
+## 6. CTO Section — Completed Implementation (Phase 3)
 
-### 6.1 Mock Data Organization (`src/data/`)
-All data resides in separate JavaScript modules in `src/data/`, aggregated by [src/data/index.js](file:///z:/Pointfex/erp/src/data/index.js):
+The Chief Technology Officer (CTO) workspace is **fully implemented, interactive, tested, and verified** across all 13 sidebar panels.
+
+### 6.1 Implemented 13-Panel Sidebar Structure
+All 13 CTO panels are fully functional, interactive, and powered by reactive state:
+
+1. **Dashboard (`CtoDashboard.tsx`):**
+   - **4 Starline Pastel Cards:** Active Projects (12), Active Engineering Tasks (19), Code Quality Index (96%), Security CVE Status (0 Critical).
+   - **12 Monitored Projects:** Robust responsive card grid (using code badge + status pill on row 1, non-wrapping titles, and sprint progress bars).
+   - **Code Quality Donut Ring:** SVG donut ring chart displaying automated code compliance distribution (Clean: 74%, Tech Debt: 16%, In Review: 10%), quality scorecard metrics, and architectural awards.
+   - **Active Pull Requests Stream:** High-priority PRs awaiting executive inspection.
+   - **Security Posture & CVE Watch:** Real-time vulnerability posture across repositories.
+   - **Company-Wide Engineering Velocity:** 240 pts across all 6 squads.
+   - **Engineering Activity Log:** Live git, task, and architectural events.
+
+2. **My Tasks (`CtoTasksPage.tsx`):**
+   - **Executive Strategic Directives:** Tasks assigned directly to the CTO by CEO Victoria Sterling-Fox and the Board.
+   - **Strategic Pillar Filter Sidebar:** "All Strategic Directives" card with overall completion bar, plus category filters (`System Architecture`, `Security & Compliance`, `AI & Data Platforms`).
+   - **5-Column Kanban Board:** `todo`, `in_progress`, `in_review`, `completed`, `blocked`.
+   - **Permission Rule:** CTO cannot drag strategic directives directly to `Completed`. The `completed` column is locked with a lock icon. Attempting to drop into Completed triggers an executive permission toast: *"Permission denied: CTO strategic directives require CEO verification & Board sign-off to be completed. Please move to 'In Review' for review."*
+
+3. **Task Management (`CtoTaskManagementPage.tsx`):**
+   - **PM Directive Assignment Desk:** CTO assigns technical architecture mandates and sprint directives to Project Managers.
+   - **PM Summary Cards Sidebar:** Shows all 6 PMs with active directive counts, in-review indicators, and completion bars.
+   - **Directive Kanban Board:** 5-column board (`Assigned`, `In Progress`, `Deliverable Review`, `Verified & Merged`, `Escalated/Blocked`).
+   - **Inline Verification & Changes:** In the `in_review` column, CTO can click **Approve** (marks deliverable verified & merged) or **Request Changes** (opens modal to write technical feedback, returning the task to in_progress).
+   - **"Assign Directive" Modal:** Form allowing CTO to specify title, target project, assignee PM, priority (`urgent`, `high`, `medium`, `low`), deadline, technical specification / acceptance criteria, and tech tags.
+
+4. **Team Management (`CtoTeamManagementPage.tsx`):**
+   - **6 Autonomous Squads:** Squad Alpha, Squad Beta, Squad Gamma, Squad Delta, Squad Epsilon, Squad Zeta.
+   - **Top Metric Cards:** 6 Squads, 24 Active Engineers, Avg Weekly Velocity (40 pts), Squad Health Index (98.2%).
+   - **Squad Cards Grid:** Shows squad focus, weekly velocity badge, PM & Tech Lead avatars, assigned project tags with sprint progress, developer roster avatars, and task completion progress bars.
+   - **Squad Inspection Modal:** Detailed view of all 4 developers in the squad, lead engineer badge, and managed projects.
+
+5. **Audit Log (`CtoAuditLogPage.tsx`):**
+   - **Company-Wide Immutable Audit Trail:** Tracks all git merges, PR reviews, task status mutations, security advisories, and financial allocations.
+   - **Filters:** Search by description, action, or actor; category filters (`All`, `Git & PRs`, `Tasks & Directives`, `Financial & Budget`, `Security & Auth`, `Milestones`).
+   - **Export Feature:** "Export Audit (JSON)" button downloads formatted audit JSON logs.
+   - **Audit Record Inspection Modal:** Displays actor ID, timestamp, full description, target entity, and cryptographic sha256 verification hash.
+
+6. **People (`CtoPeoplePage.tsx`):**
+   - **Engineering Directory:** 24 software engineers, 6 project managers, and 4 C-Level executives (34 total users).
+   - **Search & Role Tabs:** Instant search by name, title, or competency tags; filter tabs (`All`, `Engineers`, `PMs`, `Leadership`).
+   - **Engineer Cards:** Shows avatar, online indicator, role badge, title, squad association, competency tags, active task count, and direct inspect button.
+   - **Personnel Inspection Modal:** Displays biography, core competencies list, and currently assigned deliverables with real-time statuses.
+
+7. **Projects & Repos (`CtoProjectsReposPage.tsx`):**
+   - **12 Code Repositories:** Full architecture oversight of all company projects (`repo_01` to `repo_12`).
+   - **Repository Overview Cards:** Displays project code badge, status pill, name, description, progress bar, GitHub repository name, default branch (`main`), star count, fork count, open PR count, tech stack tags, and SRS link.
+   - **"Configure Repository" Modal:** CTO can update GitHub repo URL, change default production branch, update SRS documentation link, and add/edit tech stack tags. Calls `updateRepoConfig` with activity log recording.
+   - **Project Details:** Links directly to `ProjectDetailModal`.
+
+8. **Code Review & Quality (`CtoCodeQualityPage.tsx`):**
+   - **Top Metrics:** Average Quality Score (95%), Unit Test Coverage (88%), Open Pull Requests (6), Technical Debt Hours (18.4 hrs).
+   - **Tab 1: Pull Requests Review Center:** List of active PRs (`pr_01` to `pr_06`) showing branch source/target, author, project code, diff line stats (`+420 / -35`), automated Sonar score pill, and PR status. "Review PR" modal allows CTO to **Approve & Merge**, **Approve**, or **Request Changes** with review notes.
+   - **Tab 2: Sonar Quality Gates:** Detailed scorecard table for all 12 projects showing compliance score, test coverage bar, bugs detected, code smells, vulnerabilities, tech debt hours, and gate pass status (`passed`, `warning`, `failed`).
+
+9. **Security & Testing (`CtoSecurityTestingPage.tsx`):**
+   - **Cybersecurity Posture:** Tracks active CVEs and security advisories (`sec_01` to `sec_04`).
+   - **"Log Security Advisory" Modal:** Form allowing CTO to log critical vulnerabilities with target project, severity (`critical`, `high`, `medium`, `low`), category (`dependency`, `auth`, `injection`, `encryption`, `infrastructure`), CVE ID, description, and remediation advice.
+   - **Status Updates:** Dropdown allowing status transitions between `open`, `investigating`, `patch_in_progress`, and `resolved`.
+   - **Automated Test Suites:** 6 CI/CD testing suites (Unit, E2E Cypress, Penetration DAST, Microservice Contract, Load Chaos, Static Secret Scanner) with test counts, execution durations, pass rates, and an interactive "Run Suite" simulation trigger.
+   - **Bug Bounty Hall of Fame:** HackerOne vulnerability disclosure log showing researcher handle, vulnerability title, target project, bounty reward payout, status, and disclosure date.
+
+10. **Consultancy (`CtoConsultancyPage.tsx`):**
+    - **Internal Architecture Advisory Requests:** Manages specialized consulting requests from squads (`cons_01` to `cons_04`).
+    - **Top Metrics:** Total Engagements (4), Advisory Hours (36 hrs), Internal Billed Allocation ($6,800), Squad Satisfaction (100%).
+    - **Engagement Cards:** Displays requesting squad, status pill, title, scope description, lead advisor, estimated hours, and internal fee.
+    - **"Manage Advisory" Modal:** CTO can update advisory status (`submitted`, `under_review`, `assigned`, `in_progress`, `completed`), assign principal architect/advisor, set advisory fee, and add architecture guidance notes.
+
+11. **Earnings & Performance (`CtoEarningsPage.tsx`):**
+    - **Exact Match with Dev & PM Layout:**
+      - **Top 4 Metric Cards:** Balance ($9,400.00), Total Earned ($26,800.00), Penalty ($0.00), Spendings ($0.00).
+      - **Ledger & Transactions Table:** Filter tabs (`All`, `Payouts`, `Penalties`), transaction descriptions, types, dates, status pills, and amounts.
+      - **Performance & Delivery Metrics:** Card below table displaying Overall Quality (98/100, Executive Top Tier), Architecture SLA (100%), Division Velocity (240 pts across 6 squads), and PR Turnaround (3.8 hrs).
+
+12. **Reports (`CtoReportsPage.tsx`):**
+    - **Unified Reporting & Escalation Center:**
+      - **Tab 1: Incoming PM Escalations:** Lists technical blockers and architecture proposals submitted by PMs. CTO can update status (`pending`, `under_investigation`, `resolved`) or **Forward to C-Level** (modal to select CEO, CFO, or CPO with CTO executive endorsement).
+      - **Tab 2: Author Executive Engineering Brief:** Form allowing CTO to submit formal technical briefs to CEO Victoria Sterling-Fox, Board of Directors, CFO, or CPO with category, project selection, architecture spec URL, and executive summary.
+      - **Tab 3: CTO Outgoing Briefs Log:** Full history of all executive briefs submitted by the CTO with status tracking and spec document links.
+
+13. **Profile & Settings (`CtoSettingsPage.tsx`):**
+    - **Exact Match with Dev & PM Layout:**
+      - **Chief Technology Officer Identity (View-Only):** Dr. Arthur Sterling, avatar, role badge (`CTO`), ID (`user_cto_01`), title, email, timezone, and executive committee badge.
+      - **Technical Competencies & Domains:** Interactive management of skill tags (System Architecture, Distributed Systems, Microservices, Kubernetes, Rust, TypeScript, Zero-Trust Security, SOC2 Compliance, LLM Ops). CTO can add new domain competencies or remove existing tags with immediate reactive persistence.
+      - **Engineering Workspace Preferences:** Enforced default production branch policy, automated quality gate blocking status, and "Reset Demo Data" button.
+
+---
+
+## 7. Data Architecture and State Management
+
+### 7.1 Mock Data Organization (`src/data/`)
+All data resides in separate TypeScript modules in `src/data/`, aggregated by [src/data/index.ts](file:///z:/Pointfex/erp/src/data/index.ts):
 
 | File | Primary Model | Key Fields & Relationships |
 | :--- | :--- | :--- |
-| `users.js` | `USERS` (34 users) | `id`, `name`, `email`, `role`, `title`, `teamId`, `skills`, `timezone`, `github`, `avatar`, `initials`, `status`. Contains 24 devs across 6 teams, 6 PMs, and 4 C-levels. Default dev: `user_dev_01` (Alex Rivera). |
-| `teams.js` | `TEAMS` (6 squads) | `id`, `name`, `code`, `focus`, `pmId`, `leadDevId`, `memberIds` (4 devs), `projectIds` (2 projects), `weeklyVelocity`, `health`. |
-| `projects.js` | `PROJECTS` (12 projects) | `id`, `name`, `code`, `teamId`, `pmId`, `leadDevId`, `repoId`, `progress`, `budget`, `startDate`, `deadline`, `tags`, `assignedDevIds`, `srs` (document title, URL, version, requirements count). |
-| `tasks.js` | `TASKS` (24+ sprint tasks)| `id`, `title`, `description`, `projectId`, `assigneeId`, `creatorId`, `status` (`todo`, `in_progress`, `in_review`, `completed`, `blocked`), `priority` (`urgent`, `high`, `medium`, `low`), `dueDate`, `estimatedHours`, `loggedHours`, `tags`. |
-| `comments.js` | `TASK_COMMENTS` | `id`, `taskId`, `authorId`, `content`, `createdAt`. |
-| `attachments.js` | `TASK_ATTACHMENTS` | `id`, `taskId`, `name`, `size`, `type`, `uploadedById`, `uploadedAt`. |
-| `wallets.js` | `WALLETS` | `userId`, `balance`, `pendingEscrow`, `totalEarnedToDate`, `totalPenalties`, `hourlyRateEquivalent`, `lastPayoutDate`. |
-| `transactions.js`| `TRANSACTIONS` | `id`, `userId`, `projectId`, `milestoneId`, `amount` (+payout / -penalty), `type` (`milestone_payout`, `penalty`, `bonus`, `advance_disbursement`), `description`, `date`, `status`, `reason`. |
-| `performance.js` | `PERFORMANCE_RECORDS` | `userId`, `overallScore`, `completionRate`, `onTimeDeliveryRate`, `codeQualityScore`, `peerReviewScore`, `recentRewards` (`id`, `title`, `description`, `icon`, `bonusValue`). |
-| `reports.js` | `REPORTS` | Contains both `project_submission` (ideas) and `complaint` (grievances) with `userId`, `teamId`, `title`, `docsUrl`, `complainTo`, `description`, `date`, `status`, `feedback`. |
-| `milestones.js` | `MILESTONES` | `id`, `projectId`, `sprintWeek`, `title`, `dueDate`, `status`, `progress`, `payoutAmount`. |
-| `repositories.js`| `REPOSITORIES` | `id`, `projectId`, `name`, `url`, `defaultBranch`, `activeBranch`, `openPRsCount`, `lastCommit`. |
-| `announcements.js`| `ANNOUNCEMENTS` | `id`, `title`, `content`, `authorId`, `authorName`, `category`, `priority`, `date`, `read`, `pinned`. |
-| `notifications.js`| `NOTIFICATIONS` | `id`, `userId`, `title`, `message`, `type`, `timestamp`, `read`, `entityType`, `entityId`. |
-| `activityLogs.js` | `ACTIVITY_LOGS` | `id`, `userId`, `action`, `entityType`, `entityId`, `entityTitle`, `description`, `timestamp`, `badgeColor`. |
-| `roles.js` | `ROLES`, `ROLE_LIST` | `id`, `name`, `badge`, `description`, `isImplemented`. |
+| `users.ts` | `USERS` (34 users) | `id`, `name`, `email`, `role`, `title`, `teamId`, `skills`, `timezone`, `github`, `avatar`, `initials`, `status`. Contains 24 devs across 6 teams, 6 PMs, and 4 C-levels. Default dev: `user_dev_01`, default PM: `user_pm_01`, default CTO: `user_cto_01` (Dr. Arthur Sterling). |
+| `teams.ts` | `TEAMS` (6 squads) | `id`, `name`, `code`, `focus`, `pmId`, `leadDevId`, `memberIds` (4 devs), `projectIds` (2 projects), `weeklyVelocity`, `health`. |
+| `projects.ts` | `PROJECTS` (12 projects) | `id`, `name`, `code`, `teamId`, `pmId`, `leadDevId`, `repoId`, `progress`, `budget`, `startDate`, `deadline`, `tags`, `assignedDevIds`, `srs` (document title, URL, version, requirements count). |
+| `tasks.ts` | `TASKS` (30+ sprint tasks)| `id`, `title`, `description`, `projectId`, `assigneeId`, `creatorId`, `status` (`todo`, `in_progress`, `in_review`, `completed`, `blocked`), `priority` (`urgent`, `high`, `medium`, `low`), `dueDate`, `estimatedHours`, `loggedHours`, `tags`. Includes CEO-assigned tasks to CTO and CTO-assigned tasks to PMs. |
+| `comments.ts` | `TASK_COMMENTS` | `id`, `taskId`, `authorId`, `content`, `createdAt`. |
+| `attachments.ts` | `TASK_ATTACHMENTS` | `id`, `taskId`, `name`, `size`, `type`, `uploadedById`, `uploadedAt`. |
+| `wallets.ts` | `WALLETS` | `userId`, `balance`, `pendingEscrow`, `totalEarnedToDate`, `totalPenalties`, `hourlyRateEquivalent`, `lastPayoutDate`. Includes CTO wallet (`user_cto_01`: $9,400 balance). |
+| `transactions.ts`| `TRANSACTIONS` | `id`, `userId`, `projectId`, `milestoneId`, `amount` (+payout / -penalty), `type`, `description`, `date`, `status`, `reason`. |
+| `performance.ts` | `PERFORMANCE_RECORDS` | `userId`, `overallScore`, `completionRate`, `onTimeDeliveryRate`, `codeQualityScore`, `peerReviewScore`, `recentRewards`. |
+| `reports.ts` | `REPORTS` | `project_submission`, `complaint`, and `cto_report` with status, recipient, feedback, and forward metadata. |
+| `milestones.ts` | `MILESTONES` | `id`, `projectId`, `sprintWeek`, `title`, `dueDate`, `status`, `progress`, `payoutAmount`. |
+| `repositories.ts`| `REPOSITORIES` (12 repos) | `id`, `projectId`, `name`, `url`, `defaultBranch`, `activeBranch`, `openPRsCount`, `lastCommit`, `stars`, `forks`, `openIssues`. |
+| `pullRequests.ts` | `PULL_REQUESTS` (6 PRs) | `id`, `projectId`, `repoId`, `title`, `authorId`, `branch`, `baseBranch`, `status`, `additions`, `deletions`, `qualityScore`. |
+| `codeQuality.ts` | `CODE_QUALITY_GATES` (12 gates) | `projectId`, `complianceScore`, `testCoverage`, `techDebtHours`, `bugsDetected`, `codeSmellsCount`, `vulnerabilitiesCount`, `status`. |
+| `securityAlerts.ts` | `SECURITY_ALERTS` (4 alerts + 3 bounties) | CVE alerts (`sec_01` to `sec_04`), severity, category, CVE id, remediation; bug bounty disclosures. |
+| `testingSuites.ts` | `TESTING_SUITES` (6 suites) | Automated unit, E2E, DAST, contract, chaos, and secret scanner suites with durations and pass rates. |
+| `consultancy.ts` | `CONSULTANCY_REQUESTS` (4 requests) | Internal architecture requests from squads with assigned advisor, fee USD, hours, and status. |
+| `announcements.ts`| `ANNOUNCEMENTS` | `id`, `title`, `content`, `authorId`, `authorName`, `category`, `priority`, `date`, `read`, `pinned`. |
+| `notifications.ts`| `NOTIFICATIONS` | `id`, `userId`, `title`, `message`, `type`, `timestamp`, `read`, `entityType`, `entityId`. |
+| `activityLogs.ts` | `ACTIVITY_LOGS` | `id`, `userId`, `action`, `entityType`, `entityId`, `entityTitle`, `description`, `timestamp`, `badgeColor`. |
+| `roles.ts` | `ROLES`, `ROLE_LIST` | `id`, `name`, `badge`, `description`, `isImplemented`. (`developer`: true, `pm`: true, `cto`: true). |
 
-### 6.2 Relational Mapping
+### 7.2 Relational Mapping
 Entities reference each other strictly via primary keys:
-- `Task` references `projectId` (`projects.js`) and `assigneeId` (`users.js`).
-- `Project` references `teamId` (`teams.js`), `pmId` (`users.js`), and `repoId` (`repositories.js`).
-- `Team` references `pmId` (`users.js`), `memberIds` (`users.js`), and `projectIds` (`projects.js`).
-- `Transaction` references `userId` (`users.js`) and `projectId` (`projects.js`).
-- `Data Resolvers` in `src/data/index.js` (`createDataResolvers`) provide efficient relational joins:
-  `getUser(id)`, `getProject(id)`, `getTeam(id)`, `getRepo(id)`, `getDeveloperTasks(devId)`, `getDeveloperProjects(devId)`, `getDeveloperWallet(devId)`, etc.
+- `Task` references `projectId` (`projects.ts`) and `assigneeId` (`users.ts`).
+- `Project` references `teamId` (`teams.ts`), `pmId` (`users.ts`), and `repoId` (`repositories.ts`).
+- `Team` references `pmId` (`users.ts`), `memberIds` (`users.ts`), and `projectIds` (`projects.ts`).
+- `PullRequest` references `projectId` and `repoId`.
+- `CodeQualityGate` and `SecurityAlert` reference `projectId`.
+- `Data Resolvers` in `src/data/index.ts` (`createDataResolvers`) provide efficient relational joins across all 12 projects, 6 teams, and 34 users.
 
-### 6.3 State Management & React Context
-Global state is managed by `AppProvider` in [src/context/AppContext.jsx](file:///z:/Pointfex/erp/src/context/AppContext.jsx):
+### 7.3 State Management & React Context
+Global state is managed by `AppProvider` in [src/context/AppContext.tsx](file:///z:/Pointfex\erp\src\context\AppContext.tsx):
 - **Core State Variables:**
-  - `data`: Complete deep-cloned in-memory data store.
-  - `currentRole`: Active role string (`'developer'`, `'pm'`, etc.).
-  - `currentDevId`: ID of active developer (`'user_dev_01'`).
-  - `currentRoute`: Active navigation route (`'dashboard'`, `'tasks'`, etc.).
+  - `data`: Complete deep-cloned in-memory data store with all seed models.
+  - `currentRole`: Active role string (`'developer'`, `'pm'`, `'cto'`).
+  - `currentRoute`: Active navigation route synced to `window.location.hash` and `localStorage` (`pointfex_cto_route`, `pointfex_pm_route`, `pointfex_dev_route`).
   - `theme`: Active color theme (`'light'` or `'dark'`).
   - `isSidebarCollapsed`: Boolean controlling sidebar width.
-  - `selectedTaskModal`: Task object for detail inspection dialog.
-  - `selectedProjectModal`: Project object for detail inspection dialog.
-  - `isSearchOpen`: Boolean controlling the `⌘K` modal.
-  - `toastMessage`: Object `{ msg, type, id }` controlling feedback alerts.
-- **State Action Handlers:**
-  - `updateTaskStatus(taskId, newStatus)`: Mutates task status and logs an activity entry; enforces the PM-only completion check.
-  - `updateUserProfile(updatedFields)`: Updates user skills in the in-memory state.
-  - `addSubmission(submission)`: Adds a new project idea to `reports`.
-  - `addComplaint(complaint)`: Adds a new grievance to `reports`.
-  - `markNotificationRead(id)` / `markAllNotificationsRead()`: Updates notification read flags.
-  - `resetDemoData()`: Deep-clones fresh seed data from `getInitialSeedData()` and restores the workspace.
+  - `selectedTaskModal`, `selectedProjectModal`, `isSearchOpen`, `toastMessage`.
+- **CTO State Action Handlers:**
+  - `createCtoEngineeringTask(taskData)`: Dispatches technical directive to PMs.
+  - `reviewCtoTaskSubmission(taskId, approved, feedback)`: Verifies and approves or requests changes on PM deliverables.
+  - `updateCtoPersonalTaskStatus(taskId, newStatus)`: Enforces CEO verification guard on `completed`.
+  - `updateRepoConfig(projectId, updates)`: Updates repo URL, default branch, SRS docs, and tech tags with audit logging.
+  - `reviewPullRequest(prId, newStatus)`: Approves, merges, or requests changes on PRs with audit logging.
+  - `createSecurityIssue(issue)`: Logs CVE / security vulnerability and notifies PM.
+  - `updateSecurityIssueStatus(issueId, newStatus)`: Transitions security alert status.
+  - `updateConsultancyStatus(requestId, updates)`: Manages internal architecture consulting assignments.
+  - `submitCtoReport(report)`: Submits executive technical brief to CEO / Board.
+  - `updateIncomingReportStatus(reportId, newStatus, feedback, forwardTo)`: Updates PM escalation status or forwards to C-Level.
+  - `updateCtoProfile(updatedFields)`: Updates CTO technical competency tags.
 
 ---
 
-## 7. Existing Functionality & Interactions
+## 8. Existing Functionality & Interactions
 
-### 7.1 Fully Working Interactive Features
+### 8.1 Fully Working Interactive Features
 - **Sidebar Navigation:** Clicking any sidebar route switches panels instantly without full-page reloads and syncs with `window.location.hash` and `localStorage`.
-- **Sidebar Collapse/Expand:** Chevron button toggles between full 64-character width and compact icon-only 20-character width.
-- **Theme Switching:** Top-bar Moon/Sun button toggles between light (`#eaeef2`) and dark (`#090c14`) mode, persisting in `localStorage` and updating DOM class.
-- **Role Switcher:** Header dropdown allows switching between Developer and 5 simulated executive/management roles.
-- **Kanban Drag-and-Drop:** Native HTML5 drag-and-drop allows moving tasks between To Do, In Progress, In Review, and Blocked columns.
-- **PM Completion Guard:** Prevents developers from moving tasks to Completed, displaying an error toast.
-- **Task Sorting:** Dashboard task table allows sorting by Due Date, Priority, Status, and Title with ascending/descending toggling.
-- **Project Filtering on Tasks:** Project cards in the Tasks sidebar filter the Kanban board dynamically.
-- **Global Search (`⌘K` / `Ctrl+K`):** Live filtering across tasks, projects, and squad members with direct click-to-open handlers.
-- **Notifications System:** Bell button opens dropdown with unread badge counter, individual mark-read actions, and a "Mark all read" button.
-- **Project Detail Inspection:** Modals display sprint progress, deadlines, repo branch, and full SRS document metadata.
-- **Task Detail Inspection & Commenting:** Modals display full task metadata, checklist, and allow posting new comments into the thread.
-- **Project Idea Submission Form:** Functional form submitting proposals with status tracking.
-- **Grievance / Complaint Filing Form:** Functional form routing complaints to PM, CTO, or CPO with status tracking.
-- **Interactive Skills Management:** Add and remove skill pills on the Profile page with immediate UI persistence.
+- **Role Switcher:** Header dropdown allows seamless switching between Developer (7 panels), PM (9 panels), and CTO (13 panels).
+- **Kanban Drag-and-Drop:** Native HTML5 drag-and-drop across all 3 workspaces with role-based permission locks.
+- **Permission Enforcements:**
+  - Developer cannot mark tasks as `Completed` (PM verification required).
+  - PM personal tasks cannot be marked `Completed` directly (C-level verification required).
+  - CTO personal directives cannot be marked `Completed` directly (CEO verification & Board sign-off required).
+- **Audit Trail Export:** Direct JSON export of company-wide cryptographic audit events.
+- **Technical Configuration:** In-memory updates to GitHub repo settings, branches, and SRS links.
+- **Pull Request Review Workflow:** Complete inspection, approval, merging, and revision requests.
+- **Automated Test Simulation:** CI/CD test suite execution with instant feedback.
+- **Escalation & Forwarding Pipeline:** PMs forward developer proposals to CTO; CTO forwards PM escalations to CEO/CFO/CPO with endorsement.
+- **Skills Management:** Add and remove skill pills on Developer, PM, and CTO profiles.
 - **Demo Data Reset:** Destructive action restoring all data and state to original seed values.
-- **Non-intrusive Toast Notifications:** Self-dismissing alerts confirming state mutations and errors.
-
-### 7.2 Non-Functional / Simulated Elements
-- **External Links:** GitHub URLs, external SRS PDF links, and document URLs are realistic dummy URLs.
-- **Authentication:** No login forms or session tokens; role switching is simulated via state.
-- **Spendings Catalog:** The spendings metric card displays simulated historical equipment deductions; the interactive catalog will be developed in a future phase.
 
 ---
 
-## 8. Backend and Integration Status
+## 9. Backend and Integration Status
 
 - **Backend Server:** **None.** No Express, Node, Python, or Go API server is running or connected.
 - **Database:** **None.** No PostgreSQL, MongoDB, SQLite, or Firebase integration exists.
 - **Authentication:** **Simulated.** No JWT, OAuth, session cookies, or user login screens.
-- **Network / API Calls:** **None.** All data transactions take place synchronously in-memory inside `AppContext.jsx`.
+- **Network / API Calls:** **None.** All data transactions take place synchronously in-memory inside `AppContext.tsx`.
 - **Third-Party Integrations:** Simulated GitHub repositories and document URLs; no active GitHub Webhooks or REST integrations.
 
 ---
 
-## 9. Project Structure & Development Guidelines
+## 10. Project Structure & Development Guidelines
 
-### 9.1 Important Files & Responsibilities
-- `src/App.jsx`: Main routing logic. Renders `RolePlaceholderPage` if `currentRole !== 'developer'`; otherwise switches between developer pages based on `currentRoute`.
-- `src/components/layout/Shell.jsx`: Master UI layout holding `Sidebar`, `Header`, `main` content area, modals, and toast pill.
-- `src/context/AppContext.jsx`: Single source of truth for all demo data, active role, active route, modals, and state modification handlers.
-- `src/config/navigation.js`: Defines sidebar menus and icon configurations for each role.
-- `src/utils/formatters.js`: Formatters for currency (`$3,850`), dates (`Nov 4, 2026`), relative deadlines (`2d overdue`), and status pills.
+### 10.1 Important Files & Responsibilities
+- `src/App.tsx`: Main routing logic for Developer, PM, and CTO roles.
+- `src/components/layout/Shell.tsx`: Master UI layout holding `Sidebar`, `Header`, `main` content area, modals, and toast pill.
+- `src/context/AppContext.tsx`: Single source of truth for all demo data, active role, active route, modals, and state modification handlers.
+- `src/hooks/useDeveloperData.ts`: Aggregations for Alex Rivera (Team 1 Developer).
+- `src/hooks/usePmData.ts`: Aggregations for Sarah Jenkins (Team 1 PM).
+- `src/hooks/useCtoData.ts`: Company-wide aggregations for Dr. Arthur Sterling (CTO, 6 squads, 12 projects, 24 devs, 6 PMs).
+- `src/config/navigation.ts`: Defines sidebar menus and icon configurations for each role.
+- `src/utils/formatters.ts`: Formatters for currency (`$3,850`), dates (`Nov 4, 2026`), relative deadlines (`2d overdue`), and status pills.
 
-### 9.2 How to Add a New Page to the Developer Workspace
-1. Create the page component in `src/pages/developer/NewPage.jsx`.
-2. Add the route entry to `src/config/navigation.js` under `ROLE_NAVIGATION.developer.items`:
-   ```javascript
-   { id: 'new-page', label: 'New Page', icon: IconComponent, isImplemented: true }
-   ```
-3. Update `MainContentRouter` in `src/App.jsx`:
-   ```javascript
-   case 'new-page':
-     return <NewPage />
-   ```
-4. Update header title mapping in `src/components/layout/Header.jsx` (`routeMap`).
-
-### 9.3 How to Implement the PM Workspace (Phase 2 Roadmap)
-1. Update `ROLE_NAVIGATION.pm.items` in `src/config/navigation.js` with the 9 agreed panels.
-2. Create PM pages inside `src/pages/pm/` (e.g., `PmDashboard.jsx`, `PmTaskManagementPage.jsx`, etc.).
-3. Update `src/App.jsx` to route PM roles to PM pages rather than `RolePlaceholderPage`.
-4. Ensure PM role has full authorization to mark tasks as `Completed`.
-
-### 9.4 Coding Conventions & Guidelines
-- **Modularity:** Keep components small, focused, and organized under `src/components/common/`, `dashboard/`, or `layout/`.
-- **Styling:** Use Tailwind CSS utility classes. Never hardcode inline style objects for colors or borders unless computing dynamic percentage widths.
-- **Icons:** Use Lucide React icons (`lucide-react`).
-- **Purity & Linter:** Ensure code adheres to `oxlint` rules (`npm run lint`). Avoid impure functions (like `new Date()`) directly inside render bodies; use formatters or memoized hooks.
-- **Extensible Data:** Always link data records via relational IDs rather than deep object duplication.
-
-### 9.5 Local Development Commands
+### 10.2 Local Development Commands
 ```bash
-# Install packages
-npm install
-
 # Start Vite local development server (runs on port 5173)
 npm run dev
+
+# Run TypeScript typecheck
+npm run typecheck
 
 # Run Oxlint linter check
 npm run lint
 
 # Build for production
 npm run build
-
-# Preview production build locally
-npm run preview
 ```
 
 ---
 
-## 10. Known Issues & Incomplete Work
+## 11. Known Issues & Incomplete Work
 
-1. **Non-Developer Role Dashboards:** Switching to PM, CTO, CPO, CFO, or CEO renders `RolePlaceholderPage`. These workspaces are pending subsequent development phases.
-2. **PM Navigation Configuration Discrepancy:** `src/config/navigation.js` currently lists 5 preliminary items for PM (`pm-overview`, `pm-teams`, `pm-projects`, `pm-deliverables`, `pm-reports`) instead of the newly agreed 9-panel structure. This will be updated when starting Phase 2.
-3. **Detached Components:**
-   - `src/components/dashboard/QuickTaskCreateModal.jsx`: Exists in the codebase but was detached when quick action buttons were removed from the dashboard banner to simplify UI.
-   - `src/components/dashboard/RecentActivityFeed.jsx`: Exists in the codebase but was detached when replaced by `PerformanceSummary.jsx`.
-4. **Session Volatility:** In-memory state changes (newly submitted proposals, grievances, dragged tasks) reset upon hard browser reload unless modified in persistent local storage.
+1. **Non-Implemented Roles:** CPO, CFO, and CEO workspaces currently display `RolePlaceholderPage`. These workspaces are scheduled for Phases 4, 5, and 6.
+2. **Session Volatility:** In-memory state changes (newly submitted proposals, grievances, dragged tasks) reset upon hard browser reload unless modified in persistent local storage.
 
 ---
 
-## 11. Important Development Decisions to Preserve
+## 12. Important Development Decisions to Preserve
 
 1. **Frontend Prototype First:** Continue developing with clean, structured mock data and in-memory state. Do not introduce a backend server, database, or API layer at this stage.
-2. **Role Progression:** The **Developer Workspace is Phase 1 (Complete)**. The **Project Manager (PM) Workspace is Phase 2 (Next Target)**. Subsequent phases will address C-level dashboards (CTO, CPO, CFO, CEO).
+2. **Role Progression:**
+   - **Phase 1: Developer Workspace (Complete)**
+   - **Phase 2: Project Manager (PM) Workspace (Complete)**
+   - **Phase 3: Chief Technology Officer (CTO) Workspace (Complete)**
+   - **Phases 4-6: CPO, CFO, CEO Workspaces (Next Targets)**
 3. **Preserve Visual Design & Theme:** Retain the soft minimalist aesthetic, rounded-3xl cards, subtle ambient drop shadows, soft pastel stat tiles, lime active navigation pill, and floating header action capsule. **Do not redesign or alter established UI patterns.**
-4. **PM Task Completion Authority:** Developers must remain restricted from marking tasks as `Completed`. Only PM and management roles possess completion verification authority.
+4. **Hierarchical Completion Authority:**
+   - Developers cannot self-complete tasks (PM verification required).
+   - PMs cannot self-complete operational directives (C-level verification required).
+   - CTO cannot self-complete strategic initiatives (CEO sign-off required).
+5. **Component Reusability:** Always reuse existing common primitives (`Card`, `Button`, `Badge`, `StatusPill`, `Modal`) when constructing new panels.
 5. **Component Reusability:** Always reuse existing common primitives (`Card`, `Button`, `Badge`, `StatusPill`, `Modal`) when constructing new panels.
 6. **Progressive Disclosure:** Keep interfaces clean and low-fatigue. Secondary details should always be placed inside drawers, tabs, or modal dialogs rather than cluttering default views.
 

@@ -67,6 +67,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCurrentRouteState(routeId)
     if (currentRole === 'pm') {
       localStorage.setItem('pointfex_pm_route', routeId)
+    } else if (currentRole === 'cto') {
+      localStorage.setItem('pointfex_cto_route', routeId)
     } else {
       localStorage.setItem('pointfex_route', routeId)
     }
@@ -105,6 +107,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (currentRole === 'pm') {
       return resolvers.getUser(currentPmId) || data.users.find((u) => u.role === 'pm') || null
     }
+    if (currentRole === 'cto') {
+      return data.users.find((u) => u.role === 'cto') || resolvers.getUser('user_cto_01')
+    }
     const roleUser = data.users.find((u) => u.role === currentRole)
     return roleUser || resolvers.getUser(currentDevId)
   }, [currentRole, currentDevId, currentPmId, resolvers, data.users])
@@ -130,6 +135,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const target = localStorage.getItem('pointfex_pm_route') || 'dashboard'
       setRoute(target)
       showToast('Switched to Project Manager Workspace', 'success')
+    } else if (roleId === 'cto') {
+      const target = localStorage.getItem('pointfex_cto_route') || 'dashboard'
+      setRoute(target)
+      showToast('Switched to CTO Engineering Command', 'success')
     } else {
       const targetRole = ROLES[roleId.toUpperCase()]?.name || roleId
       showToast(`Switched to ${targetRole} (Preview)`, 'info')
@@ -661,6 +670,420 @@ export function AppProvider({ children }: { children: ReactNode }) {
     showToast('PM profile updated successfully', 'success')
   }, [currentPmId, showToast])
 
+  // --- CTO WORKSPACE HANDLERS ---
+  const handleCreateCtoEngineeringTask = useCallback((taskData: {
+    title: string
+    description?: string
+    projectId: string
+    pmId: string
+    priority?: TaskPriority
+    dueDate?: string
+    estimatedHours?: number | string
+    tags?: string[]
+  }): Task => {
+    const newTask: Task = {
+      id: `task_cto_${Date.now()}`,
+      title: taskData.title,
+      description: taskData.description || '',
+      projectId: taskData.projectId,
+      assigneeId: taskData.pmId,
+      creatorId: 'user_cto_01',
+      status: 'todo',
+      priority: taskData.priority || 'high',
+      dueDate: taskData.dueDate || new Date(Date.now() + 10 * 86400000).toISOString().split('T')[0],
+      estimatedHours: Number(taskData.estimatedHours) || 8,
+      loggedHours: 0,
+      tags: taskData.tags || ['Engineering Task', 'CTO Mandate'],
+      createdAt: new Date().toISOString().split('T')[0],
+    }
+
+    const newActivity: ActivityLog = {
+      id: `act_${Date.now()}`,
+      userId: 'user_cto_01',
+      action: 'task_created',
+      entityType: 'task',
+      entityId: newTask.id,
+      entityTitle: newTask.title,
+      description: `CTO Arthur Sterling assigned engineering task to PM (${taskData.pmId})`,
+      timestamp: 'Just now',
+      category: 'task',
+      badgeColor: 'purple',
+    }
+
+    setData((prev) => ({
+      ...prev,
+      tasks: [newTask, ...prev.tasks],
+      activityLogs: [newActivity, ...prev.activityLogs],
+    }))
+
+    showToast(`Engineering task created and assigned to PM`, 'success')
+    return newTask
+  }, [showToast])
+
+  const handleReviewCtoTaskSubmission = useCallback((taskId: string, approved: boolean, feedback?: string) => {
+    setData((prev) => {
+      const idx = prev.tasks.findIndex((t) => t.id === taskId)
+      if (idx === -1) return prev
+
+      const oldTask = prev.tasks[idx]
+      const updatedTasks = [...prev.tasks]
+      updatedTasks[idx] = {
+        ...oldTask,
+        status: approved ? 'completed' : 'in_progress',
+      }
+
+      const note = feedback || (approved ? 'Verified and approved by CTO' : 'Revisions requested by CTO')
+      const newActivity: ActivityLog = {
+        id: `act_${Date.now()}`,
+        userId: 'user_cto_01',
+        action: approved ? 'task_approved' : 'task_revision_requested',
+        entityType: 'task',
+        entityId: taskId,
+        entityTitle: oldTask.title,
+        description: `CTO Arthur Sterling: ${note}`,
+        timestamp: 'Just now',
+        category: 'task',
+        badgeColor: approved ? 'emerald' : 'amber',
+      }
+
+      return {
+        ...prev,
+        tasks: updatedTasks,
+        activityLogs: [newActivity, ...prev.activityLogs],
+      }
+    })
+
+    showToast(
+      approved ? 'Deliverable approved & completed by CTO' : 'Revisions requested from PM',
+      approved ? 'success' : 'info'
+    )
+  }, [showToast])
+
+  const handleUpdateCtoPersonalTaskStatus = useCallback((taskId: string, newStatus: TaskStatus) => {
+    // Permission constraint: CTO personal tasks assigned by CEO require CEO sign-off
+    if (newStatus === 'completed') {
+      showToast(
+        'Permission required: Executive initiatives require CEO verification to be marked Completed. Please move to "In Review" for CEO sign-off.',
+        'error'
+      )
+      return
+    }
+
+    setData((prev) => {
+      const idx = prev.tasks.findIndex((t) => t.id === taskId)
+      if (idx === -1) return prev
+
+      const oldTask = prev.tasks[idx]
+      const updatedTasks = [...prev.tasks]
+      updatedTasks[idx] = { ...oldTask, status: newStatus }
+
+      const newActivity: ActivityLog = {
+        id: `act_${Date.now()}`,
+        userId: 'user_cto_01',
+        action: 'status_change',
+        entityType: 'task',
+        entityId: taskId,
+        entityTitle: oldTask.title,
+        description: `CTO updated operational initiative status to ${newStatus.replace('_', ' ')}`,
+        timestamp: 'Just now',
+        category: 'task',
+        badgeColor: 'sky',
+      }
+
+      return {
+        ...prev,
+        tasks: updatedTasks,
+        activityLogs: [newActivity, ...prev.activityLogs],
+      }
+    })
+
+    showToast(`Task moved to ${newStatus.replace('_', ' ')}`, 'info')
+  }, [showToast])
+
+  const handleUpdateRepoConfig = useCallback((projectId: string, updates: {
+    repositoryUrl?: string
+    defaultBranch?: string
+    tags?: string[]
+    srsUrl?: string
+  }) => {
+    setData((prev) => {
+      // Update repository
+      const repoIdx = prev.repositories.findIndex((r) => r.projectId === projectId)
+      const updatedRepos = [...prev.repositories]
+      if (repoIdx !== -1) {
+        updatedRepos[repoIdx] = {
+          ...updatedRepos[repoIdx],
+          url: updates.repositoryUrl || updatedRepos[repoIdx].url,
+          defaultBranch: updates.defaultBranch || updatedRepos[repoIdx].defaultBranch,
+        }
+      }
+
+      // Update project tags & srs
+      const projIdx = prev.projects.findIndex((p) => p.id === projectId)
+      const updatedProjects = [...prev.projects]
+      if (projIdx !== -1) {
+        const oldP = updatedProjects[projIdx]
+        updatedProjects[projIdx] = {
+          ...oldP,
+          repositoryUrl: updates.repositoryUrl || oldP.repositoryUrl,
+          tags: updates.tags || oldP.tags,
+          srs: updates.srsUrl && oldP.srs ? { ...oldP.srs, documentUrl: updates.srsUrl } : oldP.srs,
+        }
+      }
+
+      const newActivity: ActivityLog = {
+        id: `act_${Date.now()}`,
+        userId: 'user_cto_01',
+        action: 'repo_updated',
+        entityType: 'repository',
+        entityId: projectId,
+        entityTitle: updatedProjects[projIdx]?.name || 'Project Repository',
+        description: `CTO Arthur Sterling updated technical repository and architecture configuration`,
+        timestamp: 'Just now',
+        category: 'git',
+        badgeColor: 'indigo',
+      }
+
+      return {
+        ...prev,
+        repositories: updatedRepos,
+        projects: updatedProjects,
+        activityLogs: [newActivity, ...prev.activityLogs],
+      }
+    })
+
+    showToast('Technical configuration and repository details updated', 'success')
+  }, [showToast])
+
+  const handleReviewPullRequest = useCallback((prId: string, newStatus: 'approved' | 'merged' | 'changes_requested') => {
+    setData((prev) => {
+      const idx = prev.pullRequests.findIndex((pr) => pr.id === prId)
+      if (idx === -1) return prev
+
+      const oldPr = prev.pullRequests[idx]
+      const updatedPrs = [...prev.pullRequests]
+      updatedPrs[idx] = { ...oldPr, status: newStatus }
+
+      const newActivity: ActivityLog = {
+        id: `act_${Date.now()}`,
+        userId: 'user_cto_01',
+        action: `pr_${newStatus}`,
+        entityType: 'pull_request',
+        entityId: prId,
+        entityTitle: oldPr.title,
+        description: `CTO Arthur Sterling set PR #${prId} status to ${newStatus.replace('_', ' ')}`,
+        timestamp: 'Just now',
+        category: 'git',
+        badgeColor: newStatus === 'merged' ? 'purple' : newStatus === 'approved' ? 'emerald' : 'amber',
+      }
+
+      return {
+        ...prev,
+        pullRequests: updatedPrs,
+        activityLogs: [newActivity, ...prev.activityLogs],
+      }
+    })
+
+    showToast(`Pull request ${newStatus.replace('_', ' ')}`, 'success')
+  }, [showToast])
+
+  const handleCreateSecurityIssue = useCallback((issue: {
+    title: string
+    projectId: string
+    severity: 'critical' | 'high' | 'medium' | 'low'
+    category: 'dependency' | 'auth' | 'injection' | 'encryption' | 'infrastructure'
+    assignedPmId?: string
+    description: string
+    recommendation: string
+    cveOrPackage?: string
+  }) => {
+    const newAlert: any = {
+      id: `sec_${Date.now()}`,
+      title: issue.title,
+      projectId: issue.projectId,
+      severity: issue.severity,
+      category: issue.category,
+      status: 'open',
+      detectedAt: new Date().toISOString(),
+      assignedPmId: issue.assignedPmId,
+      cveOrPackage: issue.cveOrPackage || 'Manual Security Finding',
+      description: issue.description,
+      recommendation: issue.recommendation,
+    }
+
+    const newActivity: ActivityLog = {
+      id: `act_${Date.now()}`,
+      userId: 'user_cto_01',
+      action: 'security_alert_logged',
+      entityType: 'security',
+      entityId: newAlert.id,
+      entityTitle: newAlert.title,
+      description: `CTO logged ${issue.severity.toUpperCase()} security alert on project ${issue.projectId}`,
+      timestamp: 'Just now',
+      category: 'git',
+      badgeColor: 'rose',
+    }
+
+    setData((prev) => ({
+      ...prev,
+      securityAlerts: [newAlert, ...prev.securityAlerts],
+      activityLogs: [newActivity, ...prev.activityLogs],
+    }))
+
+    showToast(`Security issue logged and escalated to squad PM`, 'success')
+  }, [showToast])
+
+  const handleUpdateSecurityIssueStatus = useCallback((issueId: string, newStatus: 'open' | 'investigating' | 'patch_in_progress' | 'resolved') => {
+    setData((prev) => {
+      const idx = prev.securityAlerts.findIndex((s) => s.id === issueId)
+      if (idx === -1) return prev
+
+      const oldAlert = prev.securityAlerts[idx]
+      const updatedAlerts = [...prev.securityAlerts]
+      updatedAlerts[idx] = {
+        ...oldAlert,
+        status: newStatus,
+        resolvedAt: newStatus === 'resolved' ? new Date().toISOString() : oldAlert.resolvedAt,
+      }
+
+      return {
+        ...prev,
+        securityAlerts: updatedAlerts,
+      }
+    })
+
+    showToast(`Security issue status set to ${newStatus.replace('_', ' ')}`, 'info')
+  }, [showToast])
+
+  const handleUpdateConsultancyStatus = useCallback((requestId: string, updates: {
+    status: 'submitted' | 'under_review' | 'accepted' | 'assigned' | 'in_progress' | 'completed' | 'rejected'
+    assignedConsultantName?: string
+    feeUSD?: number
+    targetDate?: string
+    ctoNotes?: string
+  }) => {
+    setData((prev) => {
+      const idx = prev.consultancyRequests.findIndex((c) => c.id === requestId)
+      if (idx === -1) return prev
+
+      const oldReq = prev.consultancyRequests[idx]
+      const updatedReqs = [...prev.consultancyRequests]
+      updatedReqs[idx] = {
+        ...oldReq,
+        ...updates,
+        completedAt: updates.status === 'completed' ? new Date().toISOString() : oldReq.completedAt,
+      }
+
+      const newActivity: ActivityLog = {
+        id: `act_${Date.now()}`,
+        userId: 'user_cto_01',
+        action: 'consultancy_status_updated',
+        entityType: 'consultancy',
+        entityId: requestId,
+        entityTitle: oldReq.title,
+        description: `CTO updated consultancy request status to ${updates.status}`,
+        timestamp: 'Just now',
+        category: 'task',
+        badgeColor: 'purple',
+      }
+
+      return {
+        ...prev,
+        consultancyRequests: updatedReqs,
+        activityLogs: [newActivity, ...prev.activityLogs],
+      }
+    })
+
+    showToast(`Consultancy request updated to "${updates.status}"`, 'success')
+  }, [showToast])
+
+  const handleSubmitCtoReport = useCallback((report: {
+    category: string
+    recipient: string
+    title: string
+    description: string
+    projectId?: string
+    docsUrl?: string
+  }) => {
+    const newReport: Report = {
+      id: `rep_cto_${Date.now()}`,
+      userId: 'user_cto_01',
+      type: 'cto_report',
+      category: report.category,
+      recipient: report.recipient,
+      title: report.title,
+      description: report.description,
+      projectId: report.projectId,
+      docsUrl: report.docsUrl || '',
+      date: new Date().toISOString().split('T')[0],
+      status: 'under_review',
+      submittedAt: new Date().toISOString(),
+    }
+
+    const newActivity: ActivityLog = {
+      id: `act_${Date.now()}`,
+      userId: 'user_cto_01',
+      action: 'report_submitted',
+      entityType: 'report',
+      entityId: newReport.id,
+      entityTitle: newReport.title,
+      description: `CTO submitted ${report.category} to ${report.recipient}`,
+      timestamp: 'Just now',
+      category: 'comment',
+      badgeColor: 'indigo',
+    }
+
+    setData((prev) => ({
+      ...prev,
+      reports: [newReport, ...prev.reports],
+      activityLogs: [newActivity, ...prev.activityLogs],
+    }))
+
+    showToast(`Executive engineering report submitted to ${report.recipient}`, 'success')
+  }, [showToast])
+
+  const handleUpdateIncomingReportStatus = useCallback((reportId: string, newStatus: string, feedback?: string, forwardTo?: string) => {
+    setData((prev) => {
+      const idx = prev.reports.findIndex((r) => r.id === reportId)
+      if (idx === -1) return prev
+
+      const oldRep = prev.reports[idx]
+      const updatedReports = [...prev.reports]
+      updatedReports[idx] = {
+        ...oldRep,
+        status: newStatus as any,
+        feedback: feedback ? `[CTO Note]: ${feedback}` : oldRep.feedback,
+        forwardedTo: forwardTo || oldRep.forwardedTo,
+        forwardedBy: forwardTo ? 'Dr. Arthur Sterling (CTO)' : oldRep.forwardedBy,
+        forwardedAt: forwardTo ? new Date().toISOString() : oldRep.forwardedAt,
+      }
+
+      return {
+        ...prev,
+        reports: updatedReports,
+      }
+    })
+
+    showToast(`Report updated: "${newStatus.replace('_', ' ')}"`, 'success')
+  }, [showToast])
+
+  const handleUpdateCtoProfile = useCallback((updatedFields: Partial<User>) => {
+    setData((prev) => {
+      const idx = prev.users.findIndex((u) => u.id === 'user_cto_01')
+      if (idx === -1) return prev
+
+      const updatedUsers = [...prev.users]
+      updatedUsers[idx] = { ...updatedUsers[idx], ...updatedFields }
+
+      return {
+        ...prev,
+        users: updatedUsers,
+      }
+    })
+
+    showToast('CTO profile updated successfully', 'success')
+  }, [showToast])
+
   // Context value
   const value: AppContextType = {
     // State
@@ -714,6 +1137,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     updateMilestoneStatus: handleUpdateMilestoneStatus,
     updatePmProfile: handleUpdatePmProfile,
     updateComplaintStatus: handleUpdateComplaintStatus,
+
+    // CTO Workspace Handlers
+    createCtoEngineeringTask: handleCreateCtoEngineeringTask,
+    reviewCtoTaskSubmission: handleReviewCtoTaskSubmission,
+    updateCtoPersonalTaskStatus: handleUpdateCtoPersonalTaskStatus,
+    updateRepoConfig: handleUpdateRepoConfig,
+    reviewPullRequest: handleReviewPullRequest,
+    createSecurityIssue: handleCreateSecurityIssue,
+    updateSecurityIssueStatus: handleUpdateSecurityIssueStatus,
+    updateConsultancyStatus: handleUpdateConsultancyStatus,
+    submitCtoReport: handleSubmitCtoReport,
+    updateIncomingReportStatus: handleUpdateIncomingReportStatus,
+    updateCtoProfile: handleUpdateCtoProfile,
   }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

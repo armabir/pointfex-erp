@@ -111,7 +111,27 @@ export const USERS: User[] = [
   { id: 'user_pm_06', name: 'Oliver Wright', email: 'oliver.w@pointfex.internal', role: 'pm', title: 'Media & Streaming PM', teamId: 'team_06', initials: 'OW', status: 'offline' },
 
   // --- C-SUITE EXECUTIVES ---
-  { id: 'user_cto_01', name: 'Dr. Arthur Sterling', email: 'arthur.sterling@pointfex.internal', role: 'cto', title: 'Chief Technology Officer', initials: 'AS', status: 'online' },
+  {
+    id: 'user_cto_01',
+    name: 'Dr. Arthur Sterling',
+    email: 'arthur.sterling@pointfex.internal',
+    role: 'cto',
+    title: 'Chief Technology Officer',
+    initials: 'AS',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    status: 'online',
+    skills: [
+      'Distributed Systems Architecture',
+      'Kubernetes & Cloud Infrastructure',
+      'Zero-Trust Security & Cryptography',
+      'High-Throughput Telemetry',
+      'AI & Machine Learning Governance',
+      'Engineering Velocity & Quality Gates',
+    ],
+    timezone: 'UTC-5 (EST)',
+    github: 'github.com/dr-arthur-sterling',
+    bio: 'Chief Technology Officer overseeing architectural standards, cross-team tech stacks, engineering quality, and infrastructure across all 6 Pointfex engineering squads.',
+  },
   { id: 'user_cpo_01', name: 'Amara Okafor', email: 'amara.okafor@pointfex.internal', role: 'cpo', title: 'Chief People Officer', initials: 'AO', status: 'online' },
   { id: 'user_cfo_01', name: 'Vincent Gallagher', email: 'vincent.g@pointfex.internal', role: 'cfo', title: 'Chief Financial Officer', initials: 'VG', status: 'online' },
   { id: 'user_ceo_01', name: 'Victoria Sterling-Fox', email: 'victoria.fox@pointfex.internal', role: 'ceo', title: 'Chief Executive Officer', initials: 'VF', status: 'online' },
@@ -121,4 +141,6 @@ export const CURRENT_DEV_ID = 'user_dev_01'
 export const getCurrentDeveloper = (): User | undefined => USERS.find((u) => u.id === CURRENT_DEV_ID)
 export const CURRENT_PM_ID = 'user_pm_01'
 export const getCurrentPm = (): User | undefined => USERS.find((u) => u.id === CURRENT_PM_ID)
+export const CURRENT_CTO_ID = 'user_cto_01'
+export const getCurrentCto = (): User | undefined => USERS.find((u) => u.id === CURRENT_CTO_ID)
 

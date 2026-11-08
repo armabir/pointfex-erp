@@ -16,6 +16,22 @@ import { PmBudgetFinancePage } from './pages/pm/PmBudgetFinancePage'
 import { PmEarningsPage } from './pages/pm/PmEarningsPage'
 import { PmReportsPage } from './pages/pm/PmReportsPage'
 import { PmSettingsPage } from './pages/pm/PmSettingsPage'
+
+// Phase 3: CTO Workspace Pages (13 panels)
+import { CtoDashboard } from './pages/cto/CtoDashboard'
+import { CtoTasksPage } from './pages/cto/CtoTasksPage'
+import { CtoTaskManagementPage } from './pages/cto/CtoTaskManagementPage'
+import { CtoTeamManagementPage } from './pages/cto/CtoTeamManagementPage'
+import { CtoAuditLogPage } from './pages/cto/CtoAuditLogPage'
+import { CtoPeoplePage } from './pages/cto/CtoPeoplePage'
+import { CtoProjectsReposPage } from './pages/cto/CtoProjectsReposPage'
+import { CtoCodeQualityPage } from './pages/cto/CtoCodeQualityPage'
+import { CtoSecurityTestingPage } from './pages/cto/CtoSecurityTestingPage'
+import { CtoConsultancyPage } from './pages/cto/CtoConsultancyPage'
+import { CtoEarningsPage } from './pages/cto/CtoEarningsPage'
+import { CtoReportsPage } from './pages/cto/CtoReportsPage'
+import { CtoSettingsPage } from './pages/cto/CtoSettingsPage'
+
 import { RolePlaceholderPage } from './pages/placeholders/RolePlaceholderPage'
 
 function MainContentRouter() {
@@ -69,7 +85,41 @@ function MainContentRouter() {
     }
   }
 
-  // 3. Other non-implemented roles show role placeholder screen
+  // 3. Chief Technology Officer (CTO) workspace route switcher (13 panels)
+  if (currentRole === 'cto') {
+    switch (currentRoute) {
+      case 'dashboard':
+        return <CtoDashboard />
+      case 'tasks':
+        return <CtoTasksPage />
+      case 'task-management':
+        return <CtoTaskManagementPage />
+      case 'team-management':
+        return <CtoTeamManagementPage />
+      case 'audit-log':
+        return <CtoAuditLogPage />
+      case 'people':
+        return <CtoPeoplePage />
+      case 'projects-repos':
+        return <CtoProjectsReposPage />
+      case 'code-quality':
+        return <CtoCodeQualityPage />
+      case 'security-testing':
+        return <CtoSecurityTestingPage />
+      case 'consultancy':
+        return <CtoConsultancyPage />
+      case 'earnings':
+        return <CtoEarningsPage />
+      case 'reports':
+        return <CtoReportsPage />
+      case 'settings':
+        return <CtoSettingsPage />
+      default:
+        return <CtoDashboard />
+    }
+  }
+
+  // 4. Other non-implemented roles show role placeholder screen
   return <RolePlaceholderPage />
 }
 
@@ -82,4 +132,3 @@ export default function App() {
     </AppProvider>
   )
 }
-

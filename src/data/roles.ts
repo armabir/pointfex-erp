@@ -20,7 +20,7 @@ export const ROLES: Record<string, Role> = {
     name: 'Chief Technology Officer (CTO)',
     badge: 'Executive',
     description: 'Oversee architectural standards, cross-team tech stacks, code quality, and engineering velocity.',
-    isImplemented: false,
+    isImplemented: true,
   },
   CPO: {
     id: 'cpo',

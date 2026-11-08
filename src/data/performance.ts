@@ -71,5 +71,36 @@ export const PERFORMANCE_RECORDS: PerformanceRecord[] = [
     strengths: ['Cross-functional coordination', 'Risk mitigation', 'Milestone pacing'],
     improvementAreas: ['Earlier documentation synchronization with QA squads'],
   },
+  {
+    userId: 'user_cto_01', // Dr. Arthur Sterling
+    overallScore: 98,
+    completionRate: 95,
+    onTimeDeliveryRate: 97,
+    codeQualityScore: 98,
+    peerReviewScore: 4.98,
+    velocityPointsSprint3: 240,
+    targetVelocityPoints: 235,
+    sprintWeek: 3,
+    recentRewards: [
+      {
+        id: 'rew_cto_01',
+        title: 'Executive Architectural Vision',
+        description: 'Awarded by CEO for modular service mesh topology delivering sub-10ms inter-service latency across all squads.',
+        date: '2026-10-31',
+        icon: 'Award',
+        bonusValue: '$1,500',
+      },
+      {
+        id: 'rew_cto_02',
+        title: 'Zero High-Severity Security Regressions',
+        description: 'Clean automated penetration test results and zero CVE regressions across 12 production repos.',
+        date: '2026-10-25',
+        icon: 'ShieldCheck',
+        bonusValue: '$900',
+      },
+    ],
+    strengths: ['Enterprise distributed architectures', 'Cross-squad engineering velocity', 'Zero-trust cryptographic governance'],
+    improvementAreas: ['Continue mentoring mid-level engineers on microservice tracing'],
+  },
 ]
 
