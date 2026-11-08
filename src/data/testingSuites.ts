@@ -80,3 +80,4 @@ export const TESTING_SUITES: TestingSuite[] = [
     status: 'passed',
   },
 ]
+

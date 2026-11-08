@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Card } from '../../components/common/Card'
 import { Badge } from '../../components/common/Badge'
 import { Button } from '../../components/common/Button'
+import { AvatarPickerModal } from '../../components/common/AvatarPickerModal'
 import { useCtoData } from '../../hooks/useCtoData'
 import { useApp } from '../../context/AppContext'
 import {
@@ -14,6 +15,7 @@ import {
   Plus,
   ShieldCheck,
   Crown,
+  Camera,
 } from 'lucide-react'
 
 export function CtoSettingsPage() {
@@ -21,6 +23,7 @@ export function CtoSettingsPage() {
   const { resetDemoData, updateCtoProfile, showToast } = useApp()
 
   const [newSkillInput, setNewSkillInput] = useState('')
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false)
 
   const currentSkills = cto?.skills || [
     'System Architecture',
@@ -67,14 +70,34 @@ export function CtoSettingsPage() {
       </div>
 
       {/* Identity Card (Read-only, matching Dev & PM) */}
-      <Card title="Chief Technology Officer Identity" icon={User}>
+      <Card
+        title="Chief Technology Officer Identity"
+        icon={User}
+        action={
+          <Button
+            variant="secondary"
+            size="xs"
+            icon={Camera}
+            onClick={() => setIsAvatarModalOpen(true)}
+          >
+            Change Picture
+          </Button>
+        }
+      >
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
-          <div className="relative">
+          <div
+            className="relative group cursor-pointer shrink-0"
+            onClick={() => setIsAvatarModalOpen(true)}
+            title="Click to change profile picture"
+          >
             <img
               src={cto?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200'}
               alt={cto?.name || 'Dr. Arthur Sterling'}
-              className="w-20 h-20 rounded-3xl object-cover border-2 border-slate-200 dark:border-slate-700 shadow-sm"
+              className="w-20 h-20 rounded-3xl object-cover border-2 border-slate-200 dark:border-slate-700 shadow-sm group-hover:opacity-80 transition-opacity"
             />
+            <div className="absolute inset-0 bg-black/40 rounded-3xl opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+              <Camera className="w-5 h-5 text-white" />
+            </div>
             <span
               className="w-4 h-4 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900 absolute -bottom-0.5 -right-0.5"
               title="Online"
@@ -229,6 +252,14 @@ export function CtoSettingsPage() {
           </div>
         </div>
       </Card>
+
+      <AvatarPickerModal
+        isOpen={isAvatarModalOpen}
+        onClose={() => setIsAvatarModalOpen(false)}
+        currentAvatar={cto?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200'}
+        onSave={(avatar) => updateCtoProfile({ avatar })}
+        userName={cto?.name || 'Chief Technology Officer'}
+      />
     </div>
   )
 }

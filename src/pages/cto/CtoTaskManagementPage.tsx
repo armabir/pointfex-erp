@@ -337,22 +337,23 @@ export function CtoTaskManagementPage() {
           </div>
 
           {/* Kanban Board */}
-          <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-3.5 items-start">
-            {columns.map((col) => {
-              const colTasks = filteredTasks.filter((t) => t.status === col.id)
-              const isOver = dragOverColId === col.id
+          <div className="overflow-x-auto pb-4">
+            <div className="flex gap-4 items-start min-w-[1150px]">
+              {columns.map((col) => {
+                const colTasks = filteredTasks.filter((t) => t.status === col.id)
+                const isOver = dragOverColId === col.id
 
-              return (
-                <div
-                  key={col.id}
-                  onDragOver={(e) => handleDragOver(e, col.id)}
-                  onDrop={(e) => handleDrop(e, col.id)}
-                  className={`rounded-2xl p-3 border transition-colors min-h-[500px] flex flex-col ${
-                    isOver
-                      ? 'border-lime-500 bg-lime-50/20 dark:bg-lime-950/20'
-                      : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40'
-                  }`}
-                >
+                return (
+                  <div
+                    key={col.id}
+                    onDragOver={(e) => handleDragOver(e, col.id)}
+                    onDrop={(e) => handleDrop(e, col.id)}
+                    className={`flex-1 min-w-[220px] rounded-2xl p-3.5 border transition-colors min-h-[500px] flex flex-col ${
+                      isOver
+                        ? 'border-lime-500 bg-lime-50/20 dark:bg-lime-950/20'
+                        : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40'
+                    }`}
+                  >
                   {/* Column Header */}
                   <div className="flex items-center justify-between mb-3 px-1">
                     <div className="flex items-center gap-1.5">
@@ -435,24 +436,26 @@ export function CtoTaskManagementPage() {
                               className="pt-2 border-t border-purple-100 dark:border-purple-900/40 flex items-center gap-1.5"
                             >
                               <button
+                                type="button"
                                 onClick={() => {
                                   reviewCtoTaskSubmission(task.id, true)
                                   showToast('Directive deliverable approved & verified.', 'success')
                                 }}
-                                className="flex-1 py-1 px-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors"
+                                className="flex-1 py-1.5 px-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors whitespace-nowrap cursor-pointer shadow-2xs"
                               >
-                                <CheckCircle2 className="w-3 h-3" />
-                                Approve
+                                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                                <span>Approve</span>
                               </button>
                               <button
+                                type="button"
                                 onClick={() => {
                                   setReviewingTask(task)
                                   setFeedbackNotes('')
                                 }}
-                                className="flex-1 py-1 px-2 rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors"
+                                className="flex-1 py-1.5 px-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/40 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors whitespace-nowrap cursor-pointer shadow-2xs"
                               >
-                                <XCircle className="w-3 h-3" />
-                                Changes
+                                <XCircle className="w-3.5 h-3.5 shrink-0" />
+                                <span>Changes</span>
                               </button>
                             </div>
                           )}
@@ -472,6 +475,7 @@ export function CtoTaskManagementPage() {
                 </div>
               )
             })}
+            </div>
           </div>
         </div>
       </div>

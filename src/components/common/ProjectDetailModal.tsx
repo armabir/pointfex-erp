@@ -8,7 +8,6 @@ import {
   FileCode,
   ExternalLink,
   Clock,
-  CheckCircle2,
   GitBranch,
 } from 'lucide-react'
 import type { Project, EnrichedProject } from '../../types'
@@ -141,24 +140,24 @@ export function ProjectDetailModal({ project, isOpen, onClose }: ProjectDetailMo
           <p className="text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed bg-white dark:bg-[#0b101b] p-3 rounded-xl border border-slate-200/60 dark:border-slate-800">
             {srs.overview}
           </p>
-
-          <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1">
-            <span className="flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-              {srs.requirementsCount} functional requirements specified
-            </span>
-            <span className="font-mono text-slate-400 dark:text-slate-500">{srs.documentTitle}</span>
-          </div>
         </div>
 
-        {/* Repository & Branch info if available */}
-        {project.repo && (
+        {/* Clean Repository Link */}
+        {(project.repositoryUrl || project.repo) && (
           <div className="p-3 bg-slate-50 dark:bg-[#131a2b] rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between text-slate-600 dark:text-slate-400 font-mono text-[11px]">
-            <div className="flex items-center gap-2">
+            <a
+              href={project.repositoryUrl || `https://github.com/pointfex/${project.code.toLowerCase()}-core`}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 text-sky-600 dark:text-sky-400 hover:underline"
+            >
               <GitBranch className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>{project.repo.activeBranch}</span>
-            </div>
-            <span>{project.repo.openPRsCount} open pull requests</span>
+              <span>{project.repositoryUrl || `github.com/pointfex/${project.code.toLowerCase()}-core`}</span>
+              <ExternalLink className="w-3 h-3 ml-0.5 opacity-70" />
+            </a>
+            <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">
+              {project.repo?.activeBranch || 'main'}
+            </span>
           </div>
         )}
       </div>

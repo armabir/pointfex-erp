@@ -348,77 +348,58 @@ All 13 CTO panels are fully functional, interactive, and powered by reactive sta
    - **Engineering Activity Log:** Live git, task, and architectural events.
 
 2. **My Tasks (`CtoTasksPage.tsx`):**
-   - **Executive Strategic Directives:** Tasks assigned directly to the CTO by CEO Victoria Sterling-Fox and the Board.
-   - **Strategic Pillar Filter Sidebar:** "All Strategic Directives" card with overall completion bar, plus category filters (`System Architecture`, `Security & Compliance`, `AI & Data Platforms`).
-   - **5-Column Kanban Board:** `todo`, `in_progress`, `in_review`, `completed`, `blocked`.
-   - **Permission Rule:** CTO cannot drag strategic directives directly to `Completed`. The `completed` column is locked with a lock icon. Attempting to drop into Completed triggers an executive permission toast: *"Permission denied: CTO strategic directives require CEO verification & Board sign-off to be completed. Please move to 'In Review' for review."*
+   - **Full-Width Kanban Board:** Left strategy tabs removed for maximum workspace width; responsive 5-column layout with horizontal overflow.
+   - **Personal Task Creation:** "+ Add Task" button and modal allowing the CTO to create personal directives (Title, Description, Priority, Due Date, Project, Tags).
+   - **Task Completion:** CTO can drag tasks directly to the `Completed` column or click "Mark Done" (unlocked).
 
 3. **Task Management (`CtoTaskManagementPage.tsx`):**
    - **PM Directive Assignment Desk:** CTO assigns technical architecture mandates and sprint directives to Project Managers.
-   - **PM Summary Cards Sidebar:** Shows all 6 PMs with active directive counts, in-review indicators, and completion bars.
-   - **Directive Kanban Board:** 5-column board (`Assigned`, `In Progress`, `Deliverable Review`, `Verified & Merged`, `Escalated/Blocked`).
-   - **Inline Verification & Changes:** In the `in_review` column, CTO can click **Approve** (marks deliverable verified & merged) or **Request Changes** (opens modal to write technical feedback, returning the task to in_progress).
-   - **"Assign Directive" Modal:** Form allowing CTO to specify title, target project, assignee PM, priority (`urgent`, `high`, `medium`, `low`), deadline, technical specification / acceptance criteria, and tech tags.
+   - **Wide Responsive Kanban Board:** Horizontally scrollable container with wide flex columns (`min-w-[220px]`).
+   - **Clean Action Buttons:** Approve and Changes buttons in the `in_review` column are formatted with generous padding and icons so they never clip or overflow card borders.
+   - **"Assign Directive" Modal:** Form allowing CTO to specify title, target project, assignee PM, priority, deadline, technical specification, and tech tags.
 
 4. **Team Management (`CtoTeamManagementPage.tsx`):**
-   - **6 Autonomous Squads:** Squad Alpha, Squad Beta, Squad Gamma, Squad Delta, Squad Epsilon, Squad Zeta.
-   - **Top Metric Cards:** 6 Squads, 24 Active Engineers, Avg Weekly Velocity (40 pts), Squad Health Index (98.2%).
-   - **Squad Cards Grid:** Shows squad focus, weekly velocity badge, PM & Tech Lead avatars, assigned project tags with sprint progress, developer roster avatars, and task completion progress bars.
-   - **Squad Inspection Modal:** Detailed view of all 4 developers in the squad, lead engineer badge, and managed projects.
+   - **6 Autonomous Squads:** Squad Alpha through Squad Zeta.
+   - **Squad Creation & Editing:** CTO can create new squads and edit existing squads (reassign PM, reassign Tech Lead, change member roster, toggle assigned projects, and tune weekly velocity).
+   - **Top Metrics:** Total squads, active engineers, average weekly velocity, and total engineering capacity.
 
-5. **Audit Log (`CtoAuditLogPage.tsx`):**
-   - **Company-Wide Immutable Audit Trail:** Tracks all git merges, PR reviews, task status mutations, security advisories, and financial allocations.
-   - **Filters:** Search by description, action, or actor; category filters (`All`, `Git & PRs`, `Tasks & Directives`, `Financial & Budget`, `Security & Auth`, `Milestones`).
-   - **Export Feature:** "Export Audit (JSON)" button downloads formatted audit JSON logs.
-   - **Audit Record Inspection Modal:** Displays actor ID, timestamp, full description, target entity, and cryptographic sha256 verification hash.
+5. **People (`CtoPeoplePage.tsx`):**
+   - **Reactive Personnel Directory:** Directory of developers, project managers, and C-Suite executives powered directly by `data.users`.
+   - **Edit Member Capability:** Modal allowing CTO to change role (e.g. switch PM to Dev or vice-versa), reassign squad, update job title, and edit technical skills.
+   - **Personnel Inspection Modal:** Displays biography, core competencies list, and currently assigned deliverables.
 
-6. **People (`CtoPeoplePage.tsx`):**
-   - **Engineering Directory:** 24 software engineers, 6 project managers, and 4 C-Level executives (34 total users).
-   - **Search & Role Tabs:** Instant search by name, title, or competency tags; filter tabs (`All`, `Engineers`, `PMs`, `Leadership`).
-   - **Engineer Cards:** Shows avatar, online indicator, role badge, title, squad association, competency tags, active task count, and direct inspect button.
-   - **Personnel Inspection Modal:** Displays biography, core competencies list, and currently assigned deliverables with real-time statuses.
+6. **Projects & Repos (`CtoProjectsReposPage.tsx`):**
+   - **Full Project CRUD:** CTO can create new engineering projects (Name, Code, Squad, Budget, Deadline, Repo URL, SRS link) and edit existing projects.
+   - **Simplified Project Cards:** Clean presentation featuring Code Badge and Status Pill on row 1, non-wrapping title on row 2, sprint progress bar, and a direct repository link (no cluttered PR counts or dense text). This simplification is also applied to PM and Developer project cards.
 
-7. **Projects & Repos (`CtoProjectsReposPage.tsx`):**
-   - **12 Code Repositories:** Full architecture oversight of all company projects (`repo_01` to `repo_12`).
-   - **Repository Overview Cards:** Displays project code badge, status pill, name, description, progress bar, GitHub repository name, default branch (`main`), star count, fork count, open PR count, tech stack tags, and SRS link.
-   - **"Configure Repository" Modal:** CTO can update GitHub repo URL, change default production branch, update SRS documentation link, and add/edit tech stack tags. Calls `updateRepoConfig` with activity log recording.
-   - **Project Details:** Links directly to `ProjectDetailModal`.
+7. **Code Review & Quality (`CtoCodeQualityPage.tsx`):**
+   - **Pull Requests Review Center:** List of active PRs showing branch source/target, author, project code, diff line stats, Sonar score pill, and PR status. "Review PR" modal allows CTO to Approve & Merge, Approve, or Request Changes.
+   - **Sonar Quality Gates:** Detailed scorecard table for all 12 projects showing compliance score, test coverage bar, bugs detected, code smells, vulnerabilities, tech debt hours, and gate pass status.
 
-8. **Code Review & Quality (`CtoCodeQualityPage.tsx`):**
-   - **Top Metrics:** Average Quality Score (95%), Unit Test Coverage (88%), Open Pull Requests (6), Technical Debt Hours (18.4 hrs).
-   - **Tab 1: Pull Requests Review Center:** List of active PRs (`pr_01` to `pr_06`) showing branch source/target, author, project code, diff line stats (`+420 / -35`), automated Sonar score pill, and PR status. "Review PR" modal allows CTO to **Approve & Merge**, **Approve**, or **Request Changes** with review notes.
-   - **Tab 2: Sonar Quality Gates:** Detailed scorecard table for all 12 projects showing compliance score, test coverage bar, bugs detected, code smells, vulnerabilities, tech debt hours, and gate pass status (`passed`, `warning`, `failed`).
+8. **Security & Testing (`CtoSecurityTestingPage.tsx`):**
+   - **Coming Soon Portal:** Starline-styled "In Development" card previewing upcoming CVE vulnerability triaging, SAST code analysis hooks, bug bounty pipelines, and SOC2 compliance monitoring.
 
-9. **Security & Testing (`CtoSecurityTestingPage.tsx`):**
-   - **Cybersecurity Posture:** Tracks active CVEs and security advisories (`sec_01` to `sec_04`).
-   - **"Log Security Advisory" Modal:** Form allowing CTO to log critical vulnerabilities with target project, severity (`critical`, `high`, `medium`, `low`), category (`dependency`, `auth`, `injection`, `encryption`, `infrastructure`), CVE ID, description, and remediation advice.
-   - **Status Updates:** Dropdown allowing status transitions between `open`, `investigating`, `patch_in_progress`, and `resolved`.
-   - **Automated Test Suites:** 6 CI/CD testing suites (Unit, E2E Cypress, Penetration DAST, Microservice Contract, Load Chaos, Static Secret Scanner) with test counts, execution durations, pass rates, and an interactive "Run Suite" simulation trigger.
-   - **Bug Bounty Hall of Fame:** HackerOne vulnerability disclosure log showing researcher handle, vulnerability title, target project, bounty reward payout, status, and disclosure date.
+9. **Consultancy (`CtoConsultancyPage.tsx`):**
+   - **Coming Soon Portal:** Starline-styled "In Development" card previewing upcoming client technical advisory billing, architecture audit bookings, and cross-organization consulting requests.
 
-10. **Consultancy (`CtoConsultancyPage.tsx`):**
-    - **Internal Architecture Advisory Requests:** Manages specialized consulting requests from squads (`cons_01` to `cons_04`).
-    - **Top Metrics:** Total Engagements (4), Advisory Hours (36 hrs), Internal Billed Allocation ($6,800), Squad Satisfaction (100%).
-    - **Engagement Cards:** Displays requesting squad, status pill, title, scope description, lead advisor, estimated hours, and internal fee.
-    - **"Manage Advisory" Modal:** CTO can update advisory status (`submitted`, `under_review`, `assigned`, `in_progress`, `completed`), assign principal architect/advisor, set advisory fee, and add architecture guidance notes.
+10. **Reports (`CtoReportsPage.tsx`):**
+    - **Panel 1 — Submit Complaint to C-Level:** Form allowing CTO to file confidential escalations to CEO Victoria Sterling-Fox, CFO Vincent Gallagher, or CPO Amara Okafor, with history tracking and status indicators.
+    - **Panel 2 — Review & Update Complaints from PM & Dev:** Adjudication center for developer and PM complaints with ability to update status (`pending`, `under_investigation`, `resolved`) and submit CTO feedback notes.
+    - **Panel 3 — Review & Select Project Ideas:** Innovation pipeline to review candidate project proposals submitted by PMs and developers, inspect SRS documentation links, and approve or reject ideas for upcoming sprints.
 
 11. **Earnings & Performance (`CtoEarningsPage.tsx`):**
-    - **Exact Match with Dev & PM Layout:**
-      - **Top 4 Metric Cards:** Balance ($9,400.00), Total Earned ($26,800.00), Penalty ($0.00), Spendings ($0.00).
-      - **Ledger & Transactions Table:** Filter tabs (`All`, `Payouts`, `Penalties`), transaction descriptions, types, dates, status pills, and amounts.
-      - **Performance & Delivery Metrics:** Card below table displaying Overall Quality (98/100, Executive Top Tier), Architecture SLA (100%), Division Velocity (240 pts across 6 squads), and PR Turnaround (3.8 hrs).
+    - **Exact Match with Dev & PM Layout:** Top 4 Metric Cards (Balance $9,400.00, Total Earned $26,800.00, Penalty $0.00, Spendings $0.00), Ledger Transactions table, and Performance Metrics scorecard.
 
-12. **Reports (`CtoReportsPage.tsx`):**
-    - **Unified Reporting & Escalation Center:**
-      - **Tab 1: Incoming PM Escalations:** Lists technical blockers and architecture proposals submitted by PMs. CTO can update status (`pending`, `under_investigation`, `resolved`) or **Forward to C-Level** (modal to select CEO, CFO, or CPO with CTO executive endorsement).
-      - **Tab 2: Author Executive Engineering Brief:** Form allowing CTO to submit formal technical briefs to CEO Victoria Sterling-Fox, Board of Directors, CFO, or CPO with category, project selection, architecture spec URL, and executive summary.
-      - **Tab 3: CTO Outgoing Briefs Log:** Full history of all executive briefs submitted by the CTO with status tracking and spec document links.
+12. **Profile & Settings (`CtoSettingsPage.tsx`):**
+    - **Profile Picture Upload / Change:** Integrated `AvatarPickerModal` supporting 12 modern avatar presets and custom image upload from computer (also integrated into PM and Developer settings).
+    - **Technical Competencies:** Interactive management of CTO domain competency tags with immediate reactive persistence.
+    - **Prototype Controls:** "Reset Demo Data" button.
 
-13. **Profile & Settings (`CtoSettingsPage.tsx`):**
-    - **Exact Match with Dev & PM Layout:**
-      - **Chief Technology Officer Identity (View-Only):** Dr. Arthur Sterling, avatar, role badge (`CTO`), ID (`user_cto_01`), title, email, timezone, and executive committee badge.
-      - **Technical Competencies & Domains:** Interactive management of skill tags (System Architecture, Distributed Systems, Microservices, Kubernetes, Rust, TypeScript, Zero-Trust Security, SOC2 Compliance, LLM Ops). CTO can add new domain competencies or remove existing tags with immediate reactive persistence.
-      - **Engineering Workspace Preferences:** Enforced default production branch policy, automated quality gate blocking status, and "Reset Demo Data" button.
+13. **Audit Log (`CtoAuditLogPage.tsx`):**
+    - **Moved to Last Sidebar Position:** Positioned at the very end of the CTO navigation menu.
+    - **Company-Wide Immutable Audit Trail:** Records all actions taken inside Pointfex ERP by all personnel (projects, tasks, users, teams, finances, security).
+    - **Interactive Sorting:** Instant sorting buttons for "Newest First", "Oldest First", "Sort by Actor", and "Sort by Category".
+    - **JSON Export & Inspection Modal:** Detailed metadata display and one-click JSON audit log export.
 
 ---
 

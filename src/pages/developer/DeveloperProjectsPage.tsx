@@ -4,7 +4,7 @@ import { Button } from '../../components/common/Button'
 import { useDeveloperData } from '../../hooks/useDeveloperData'
 import { useApp } from '../../context/AppContext'
 import { formatCurrency, formatDate } from '../../utils/formatters'
-import { FolderGit2, GitBranch } from 'lucide-react'
+import { FolderGit2, GitBranch, ExternalLink } from 'lucide-react'
 
 export function DeveloperProjectsPage() {
   const { devProjects } = useDeveloperData()
@@ -76,13 +76,21 @@ export function DeveloperProjectsPage() {
                 </div>
               </div>
 
-              {project.repo && (
-                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex items-center justify-between text-slate-600 dark:text-slate-300 font-mono text-[11px]">
-                  <div className="flex items-center gap-1.5 truncate">
-                    <GitBranch className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                    <span className="truncate">{project.repo.activeBranch}</span>
-                  </div>
-                  <span className="text-slate-400">{project.repo.openPRsCount} PRs</span>
+              {(project.repositoryUrl || project.repo) && (
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex items-center justify-between text-slate-600 dark:text-slate-300 font-mono text-[11px]">
+                  <a
+                    href={project.repositoryUrl || `https://github.com/pointfex/${project.code?.toLowerCase() || 'core'}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1.5 text-sky-600 dark:text-sky-400 hover:underline truncate"
+                  >
+                    <GitBranch className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span className="truncate">{project.repositoryUrl ? project.repositoryUrl.replace('https://', '') : `github.com/pointfex/${project.code?.toLowerCase() || 'core'}`}</span>
+                    <ExternalLink className="w-3 h-3 ml-0.5 opacity-70 shrink-0" />
+                  </a>
+                  <span className="text-[10px] text-slate-400 shrink-0 ml-2">
+                    {project.repo?.activeBranch || 'main'}
+                  </span>
                 </div>
               )}
             </div>

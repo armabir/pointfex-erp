@@ -2,6 +2,7 @@ import type { ComponentType } from 'react'
 
 // --- ROLES ---
 export type RoleId = 'developer' | 'pm' | 'cto' | 'cpo' | 'cfo' | 'ceo' | string
+export type UserRole = RoleId
 
 export interface Role {
   id: RoleId
@@ -65,6 +66,7 @@ export interface ProjectSRS {
   lastUpdated: string
   overview: string
   requirementsCount: number
+  approvedBy?: string
 }
 
 export interface Project {
@@ -208,6 +210,7 @@ export interface PerformanceRecord {
 
 // --- REPORTS & SUBMISSIONS ---
 export type ReportType = 'project_submission' | 'complaint' | 'pm_report' | string
+export type ReportStatus = 'pending' | 'under_review' | 'approved' | 'rejected' | 'under_investigation' | 'resolved' | 'forwarded_to_c_level' | string
 
 export interface Report {
   id: string
@@ -217,8 +220,14 @@ export interface Report {
   title: string
   description: string
   date: string
-  status: 'under_review' | 'approved' | 'rejected' | 'under_investigation' | 'forwarded_to_c_level' | string
+  status: ReportStatus
   submittedAt: string
+  createdAt?: string
+  authorId?: string
+  authorName?: string
+  authorRole?: string
+  targetUserId?: string
+  targetUserName?: string
   docsUrl?: string
   feedback?: string
   complainTo?: string
@@ -290,6 +299,7 @@ export interface CommitInfo {
   message: string
   author: string
   timestamp: string
+  date?: string
 }
 
 export interface Repository {
@@ -589,6 +599,14 @@ export interface AppContextType {
   updateComplaintStatus: (complaintId: string, newStatus: string, pmComment?: string) => void
 
   // CTO State Handlers
+  createCtoPersonalTask: (taskData: {
+    title: string
+    description?: string
+    priority?: TaskPriority
+    dueDate?: string
+    tags?: string[]
+    projectId?: string
+  }) => Task
   createCtoEngineeringTask: (taskData: {
     title: string
     description?: string
@@ -601,6 +619,34 @@ export interface AppContextType {
   }) => Task
   reviewCtoTaskSubmission: (taskId: string, approved: boolean, feedback?: string) => void
   updateCtoPersonalTaskStatus: (taskId: string, newStatus: TaskStatus) => void
+  createProject: (projectData: {
+    name: string
+    code: string
+    teamId?: string
+    budget?: number
+    deadline?: string
+    description?: string
+    repositoryUrl?: string
+    srsUrl?: string
+    status?: string
+    progress?: number
+    tags?: string[]
+  }) => Project
+  updateProject: (projectId: string, updates: Partial<Project> & { repositoryUrl?: string; srsUrl?: string }) => void
+  updateUser: (userId: string, updates: Partial<User>) => void
+  createTeam: (teamData: {
+    name: string
+    code: string
+    focus: string
+    pmId?: string
+    leadDevId?: string
+    memberIds?: string[]
+    projectIds?: string[]
+    weeklyVelocity?: number
+  }) => Team
+  updateTeam: (teamId: string, updates: Partial<Team>) => void
+  reviewProjectIdea: (ideaId: string, status: string, feedback?: string) => void
+  updateComplaintStatusGeneral: (complaintId: string, status: string, feedback?: string) => void
   updateRepoConfig: (projectId: string, updates: {
     repositoryUrl?: string
     defaultBranch?: string

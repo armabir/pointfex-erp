@@ -72,3 +72,4 @@ export const CONSULTANCY_REQUESTS: ConsultancyRequest[] = [
     ctoNotes: 'Delivered algorithmic state machine specification. Deployed in Pulse Media Sprint 2 release.',
   },
 ]
+

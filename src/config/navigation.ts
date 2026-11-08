@@ -58,7 +58,6 @@ export const ROLE_NAVIGATION: Record<string, RoleNavigation> = {
       { id: 'tasks', label: 'My Tasks', icon: CheckSquare, isImplemented: true },
       { id: 'task-management', label: 'Task Management', icon: Layers, isImplemented: true },
       { id: 'team-management', label: 'Team Management', icon: Users, isImplemented: true },
-      { id: 'audit-log', label: 'Audit Log', icon: ScrollText, isImplemented: true },
       { id: 'people', label: 'People', icon: UserCheck, isImplemented: true },
       { id: 'projects-repos', label: 'Projects & Repos', icon: GitBranch, isImplemented: true },
       { id: 'code-quality', label: 'Code Review & Quality', icon: GitPullRequest, isImplemented: true },
@@ -67,6 +66,7 @@ export const ROLE_NAVIGATION: Record<string, RoleNavigation> = {
       { id: 'earnings', label: 'Earnings & Performance', icon: Wallet, isImplemented: true },
       { id: 'reports', label: 'Reports', icon: FileText, isImplemented: true },
       { id: 'settings', label: 'Profile & Settings', icon: Settings, isImplemented: true },
+      { id: 'audit-log', label: 'Audit Log', icon: ScrollText, isImplemented: true },
     ],
   },
   cpo: {

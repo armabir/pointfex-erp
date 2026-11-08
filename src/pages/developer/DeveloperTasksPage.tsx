@@ -233,23 +233,24 @@ export function DeveloperTasksPage() {
 
         {/* Right Side: 5-Column Kanban Board */}
         <div className="lg:col-span-9">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3.5">
-            {columns.map((col) => {
-              const colTasks = filteredTasks.filter((t) => t.status === col.id)
-              const isDragOver = dragOverColId === col.id
+          <div className="overflow-x-auto pb-4">
+            <div className="flex gap-4 items-start min-w-[1150px]">
+              {columns.map((col) => {
+                const colTasks = filteredTasks.filter((t) => t.status === col.id)
+                const isDragOver = dragOverColId === col.id
 
-              return (
-                <div
-                  key={col.id}
-                  onDragOver={(e) => handleDragOver(e, col.id)}
-                  onDragLeave={(e) => handleDragLeave(e, col.id)}
-                  onDrop={(e) => handleDrop(e, col.id)}
-                  className={`rounded-3xl p-3 flex flex-col min-h-[500px] border transition-all ${
-                    isDragOver
-                      ? 'bg-lime-50/60 dark:bg-lime-950/30 border-lime-400 dark:border-lime-500 ring-2 ring-lime-300 dark:ring-lime-700'
-                      : 'bg-slate-100/70 dark:bg-[#0f1422] border-slate-200/50 dark:border-slate-800'
-                  }`}
-                >
+                return (
+                  <div
+                    key={col.id}
+                    onDragOver={(e) => handleDragOver(e, col.id)}
+                    onDragLeave={(e) => handleDragLeave(e, col.id)}
+                    onDrop={(e) => handleDrop(e, col.id)}
+                    className={`flex-1 min-w-[220px] rounded-3xl p-3 flex flex-col min-h-[500px] border transition-all ${
+                      isDragOver
+                        ? 'bg-lime-50/60 dark:bg-lime-950/30 border-lime-400 dark:border-lime-500 ring-2 ring-lime-300 dark:ring-lime-700'
+                        : 'bg-slate-100/70 dark:bg-[#0f1422] border-slate-200/50 dark:border-slate-800'
+                    }`}
+                  >
                   {/* Column Header */}
                   <div className="flex items-center justify-between pb-2.5 mb-2 px-1 border-b border-slate-200/50 dark:border-slate-800">
                     <div className="flex items-center gap-1.5 min-w-0">
@@ -341,6 +342,7 @@ export function DeveloperTasksPage() {
                 </div>
               )
             })}
+            </div>
           </div>
         </div>
       </div>

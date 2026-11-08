@@ -94,3 +94,4 @@ export const BUG_BOUNTIES: BugBountyItem[] = [
     description: 'Prometheus metrics endpoint on port 9090 was accessible without mTLS client cert validation.',
   },
 ]
+

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Card } from '../../components/common/Card'
 import { Badge } from '../../components/common/Badge'
 import { Button } from '../../components/common/Button'
@@ -7,90 +7,118 @@ import { StatusPill } from '../../components/common/StatusPill'
 import { useCtoData } from '../../hooks/useCtoData'
 import { useApp } from '../../context/AppContext'
 import { formatDate } from '../../utils/formatters'
-import type { Report } from '../../types'
+import type { Report, ReportStatus } from '../../types'
 import {
   Send,
-  FileText,
+  AlertTriangle,
+  Lightbulb,
+  CheckCircle2,
+  XCircle,
   ExternalLink,
-  Share2,
-  Inbox,
+  MessageSquare,
+  UserCheck,
+  Building,
 } from 'lucide-react'
 
 export function CtoReportsPage() {
-  const { incomingReports, ctoReports, projects } = useCtoData()
-  const { submitCtoReport, updateIncomingReportStatus, showToast } = useApp()
+  const { cto, ctoReports, allReports } = useCtoData()
+  const {
+    addComplaint,
+    updateComplaintStatusGeneral,
+    reviewProjectIdea,
+    showToast,
+  } = useApp()
 
-  const [activeTab, setActiveTab] = useState<'incoming' | 'create' | 'history'>('incoming')
+  const [activeTab, setActiveTab] = useState<'submit_c_level' | 'review_complaints' | 'review_project_ideas'>('submit_c_level')
 
-  // Create Report Form State
-  const [recipient, setRecipient] = useState('CEO — Victoria Sterling-Fox')
-  const [category, setCategory] = useState('Architecture & Infrastructure Proposal')
-  const [reportTitle, setReportTitle] = useState('')
-  const [selectedProjectId, setSelectedProjectId] = useState(projects[0]?.id || '')
-  const [docsUrl, setDocsUrl] = useState('')
-  const [reportDesc, setReportDesc] = useState('')
+  // Submit Complain to C-Level Form State
+  const [complainTo, setComplainTo] = useState('CEO — Victoria Sterling-Fox')
+  const [complainTitle, setComplainTitle] = useState('')
+  const [complainDesc, setComplainDesc] = useState('')
 
-  // Forward Modal State
-  const [forwardingReport, setForwardingReport] = useState<Report | null>(null)
-  const [forwardTo, setForwardTo] = useState('CEO — Victoria Sterling-Fox')
-  const [forwardNotes, setForwardNotes] = useState('')
+  // Review Complaint Modal State
+  const [selectedComplaint, setSelectedComplaint] = useState<Report | null>(null)
+  const [complaintStatus, setComplaintStatus] = useState<ReportStatus>('under_investigation')
+  const [complaintFeedback, setComplaintFeedback] = useState('')
 
-  // Review Incoming Modal State
-  const [reviewingReport, setReviewingReport] = useState<Report | null>(null)
-  const [newStatus, setNewStatus] = useState<string>('under_investigation')
-  const [feedback, setFeedback] = useState('')
+  // Review Project Idea Modal State
+  const [selectedIdea, setSelectedIdea] = useState<Report | null>(null)
+  const [ideaStatus, setIdeaStatus] = useState<'approved' | 'rejected' | 'under_review'>('approved')
+  const [ideaFeedback, setIdeaFeedback] = useState('')
 
-  const handleCreateSubmit = (e: React.FormEvent) => {
+  // Filter CTO's submitted complaints
+  const myComplaints = ctoReports.filter(
+    (r) => r.type === 'complaint' || r.category?.includes('Complain') || r.category?.includes('Escalation')
+  )
+
+  // Filter complaints from PM & Dev
+  const teamComplaints = allReports.filter(
+    (r) => r.type === 'complaint' && r.authorRole !== 'cto'
+  )
+
+  // Filter project proposals from PM & Dev
+  const projectIdeas = allReports.filter(
+    (r) => r.type === 'project_submission'
+  )
+
+  const handleSubmitComplaint = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!reportTitle.trim() || !reportDesc.trim()) {
-      showToast('Please provide a title and executive summary.', 'error')
+    if (!complainTitle.trim() || !complainDesc.trim()) {
+      showToast('Please provide a complaint title and detailed description.', 'error')
       return
     }
 
-    submitCtoReport({
-      recipient,
-      category,
-      title: reportTitle.trim(),
-      description: reportDesc.trim(),
-      projectId: selectedProjectId || undefined,
-      docsUrl: docsUrl.trim() || undefined,
-    })
+    const newComplaint: Report = {
+      id: `report_cto_${Date.now()}`,
+      userId: cto?.id || 'user_cto_01',
+      date: new Date().toISOString(),
+      submittedAt: new Date().toISOString(),
+      authorId: cto?.id || 'user_cto_01',
+      authorName: cto?.name || 'Dr. Arthur Sterling',
+      authorRole: 'cto',
+      targetUserName: complainTo,
+      type: 'complaint',
+      title: complainTitle.trim(),
+      description: complainDesc.trim(),
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      category: 'Executive Grievance / C-Level Escalation',
+    }
 
-    setReportTitle('')
-    setReportDesc('')
-    setDocsUrl('')
-    setActiveTab('history')
+    addComplaint(newComplaint)
+    setComplainTitle('')
+    setComplainDesc('')
+    showToast(`Complaint submitted directly to ${complainTo}`, 'success')
   }
 
-  const handleForwardSubmit = (e: React.FormEvent) => {
+  const handleSaveComplaintReview = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!forwardingReport) return
+    if (!selectedComplaint) return
 
-    updateIncomingReportStatus(
-      forwardingReport.id,
-      'under_investigation',
-      forwardNotes.trim() || 'Forwarded with CTO executive recommendation',
-      forwardTo
+    updateComplaintStatusGeneral(
+      selectedComplaint.id,
+      complaintStatus,
+      complaintFeedback.trim() || undefined
     )
 
-    showToast(`Escalation forwarded to ${forwardTo}`, 'success')
-    setForwardingReport(null)
-    setForwardNotes('')
+    showToast(`Complaint status updated to ${complaintStatus.replace('_', ' ')}`, 'success')
+    setSelectedComplaint(null)
+    setComplaintFeedback('')
   }
 
-  const handleReviewSubmit = (e: React.FormEvent) => {
+  const handleSaveIdeaReview = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!reviewingReport) return
+    if (!selectedIdea) return
 
-    updateIncomingReportStatus(
-      reviewingReport.id,
-      newStatus,
-      feedback.trim() || undefined
+    reviewProjectIdea(
+      selectedIdea.id,
+      ideaStatus,
+      ideaFeedback.trim() || undefined
     )
 
-    showToast(`Report status updated to ${newStatus.replace('_', ' ')}`, 'success')
-    setReviewingReport(null)
-    setFeedback('')
+    showToast(`Project idea status updated to ${ideaStatus.replace('_', ' ')}`, 'success')
+    setSelectedIdea(null)
+    setIdeaFeedback('')
   }
 
   return (
@@ -99,411 +127,506 @@ export function CtoReportsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">
-            Executive Reports & Escalation Center
+            Reports & Governance
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Review incoming technical blockers from PMs, forward to C-Level, and submit strategic engineering briefs
+            C-Suite complaints, developer & PM grievance adjudication, and project idea selection
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          {incomingReports.length > 0 && (
-            <Badge variant="purple" size="sm">
-              <Inbox className="w-3.5 h-3.5 mr-1" />
-              {incomingReports.length} Incoming PM Escalation{incomingReports.length > 1 ? 's' : ''}
-            </Badge>
-          )}
+
+        {/* 3 Tab Navigation Buttons */}
+        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 overflow-x-auto text-xs">
+          <button
+            type="button"
+            onClick={() => setActiveTab('submit_c_level')}
+            className={`px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === 'submit_c_level'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            Submit Complaint to C-Level
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('review_complaints')}
+            className={`px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'review_complaints'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            Review PM & Dev Complaints
+            {teamComplaints.filter((c) => c.status === 'pending').length > 0 && (
+              <span className="w-2 h-2 rounded-full bg-rose-500" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('review_project_ideas')}
+            className={`px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'review_project_ideas'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            Review & Select Project Ideas
+            {projectIdeas.filter((p) => p.status === 'pending').length > 0 && (
+              <span className="w-2 h-2 rounded-full bg-lime-500" />
+            )}
+          </button>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
-        <button
-          onClick={() => setActiveTab('incoming')}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
-            activeTab === 'incoming'
-              ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
-              : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-100'
-          }`}
-        >
-          <Inbox className="w-3.5 h-3.5" />
-          Incoming PM Escalations ({incomingReports.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('create')}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
-            activeTab === 'create'
-              ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
-              : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-100'
-          }`}
-        >
-          <Send className="w-3.5 h-3.5" />
-          New Strategic Report
-        </button>
-        <button
-          onClick={() => setActiveTab('history')}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
-            activeTab === 'history'
-              ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
-              : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-100'
-          }`}
-        >
-          <FileText className="w-3.5 h-3.5" />
-          CTO Outgoing Briefs ({ctoReports.length})
-        </button>
-      </div>
+      {/* PANEL 1: Submit Complaint to other C-levels */}
+      {activeTab === 'submit_c_level' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Submission Form */}
+          <div className="lg:col-span-5">
+            <Card
+              title="File C-Level Complaint / Escalation"
+              subtitle="Submit confidential executive grievance to peer C-Suite executives"
+              icon={AlertTriangle}
+            >
+              <form onSubmit={handleSubmitComplaint} className="space-y-4 text-xs">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                    Complain To (C-Level Executive)
+                  </label>
+                  <select
+                    value={complainTo}
+                    onChange={(e) => setComplainTo(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
+                  >
+                    <option value="CEO — Victoria Sterling-Fox">CEO — Victoria Sterling-Fox (Strategy & Resource Allocation)</option>
+                    <option value="CFO — Vincent Gallagher">CFO — Vincent Gallagher (Budgetary & Capital Approval)</option>
+                    <option value="CPO — Amara Okafor">CPO — Amara Okafor (People, Talent & Culture)</option>
+                  </select>
+                </div>
 
-      {/* Tab 1: Incoming PM Escalations */}
-      {activeTab === 'incoming' && (
-        <div className="space-y-4">
-          {incomingReports.length === 0 ? (
-            <Card title="Incoming Reports" icon={Inbox}>
-              <div className="py-10 text-center text-xs text-slate-400">
-                No active incoming escalations from Project Managers.
-              </div>
-            </Card>
-          ) : (
-            <div className="space-y-3">
-              {incomingReports.map((report) => (
-                <div
-                  key={report.id}
-                  className="p-4 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-150 flex flex-col justify-between shadow-2xs space-y-3"
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                    Complaint Subject / Title
+                  </label>
+                  <input
+                    type="text"
+                    value={complainTitle}
+                    onChange={(e) => setComplainTitle(e.target.value)}
+                    placeholder="e.g., Delay in Q4 infrastructure capital allocation sign-off"
+                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400 placeholder:text-slate-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                    Executive Statement & Context
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={complainDesc}
+                    onChange={(e) => setComplainDesc(e.target.value)}
+                    placeholder="Explain the background, operational blockage, cross-departmental impact, and desired executive remedy..."
+                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400 placeholder:text-slate-400 leading-relaxed resize-none"
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  variant="lime"
+                  size="sm"
+                  className="w-full"
+                  icon={Send}
                 >
-                  <div>
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="indigo" size="xs">
-                          {report.category || 'TECHNICAL'}
-                        </Badge>
-                        <span className="font-semibold text-xs text-slate-900 dark:text-slate-100">
-                          {report.title}
+                  Submit Complaint
+                </Button>
+              </form>
+            </Card>
+          </div>
+
+          {/* Submitted Complaints History */}
+          <div className="lg:col-span-7">
+            <Card
+              title="My Filed C-Level Complaints"
+              subtitle="Status tracking for complaints submitted by CTO to fellow executives"
+              icon={Building}
+            >
+              {myComplaints.length === 0 ? (
+                <div className="py-12 text-center text-slate-400 text-xs">
+                  No complaints filed yet by the CTO office.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {myComplaints.map((item) => (
+                    <div
+                      key={item.id}
+                      className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-2 text-xs"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-slate-900 dark:text-slate-100">
+                          {item.title}
                         </span>
+                        <StatusPill status={item.status} size="sm" />
                       </div>
-                      <StatusPill status={report.status} size="sm" />
-                    </div>
 
-                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-100 dark:border-slate-700/60 mb-2">
-                      {report.description}
-                    </p>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                        {item.description}
+                      </p>
 
-                    <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
-                      <span>Submitted by: <strong className="text-slate-700 dark:text-slate-300">{report.userId}</strong></span>
-                      <span>Target: {report.recipient}</span>
-                      <span>Date: {formatDate(report.date || report.submittedAt, 'short')}</span>
-                      {report.forwardedTo && (
-                        <span className="text-purple-600 dark:text-purple-400 font-semibold flex items-center gap-1">
-                          <Share2 className="w-3 h-3" />
-                          Forwarded to {report.forwardedTo}
-                        </span>
+                      <div className="flex flex-wrap items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800/60 text-[10px] text-slate-400 gap-2">
+                        <span>Submitted to: <strong className="text-slate-700 dark:text-slate-300">{item.targetUserName || 'Executive Office'}</strong></span>
+                        <span>{formatDate(item.createdAt, 'short')}</span>
+                      </div>
+
+                      {item.feedback && (
+                        <div className="p-2.5 rounded-xl bg-lime-50/60 dark:bg-lime-950/20 border border-lime-200/50 dark:border-lime-900/40 text-[11px] text-slate-700 dark:text-slate-300">
+                          <strong className="text-lime-700 dark:text-lime-400 block mb-0.5">Executive Response:</strong>
+                          {item.feedback}
+                        </div>
                       )}
                     </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* PANEL 2: Review & update submitted complaints from PM & Dev */}
+      {activeTab === 'review_complaints' && (
+        <Card
+          title="Submitted Complaints from PM & Engineering Teams"
+          subtitle="Review grievances, provide mediation feedback, and update resolution status"
+          icon={UserCheck}
+        >
+          {teamComplaints.length === 0 ? (
+            <div className="py-12 text-center text-slate-400 text-xs">
+              No pending complaints filed by developers or project managers.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              {teamComplaints.map((item) => (
+                <div
+                  key={item.id}
+                  className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between space-y-3"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <Badge
+                        variant={item.authorRole === 'pm' ? 'purple' : 'sky'}
+                        size="xs"
+                      >
+                        From {item.authorRole?.toUpperCase() || 'ENGINEER'}
+                      </Badge>
+                      <StatusPill status={item.status} size="sm" />
+                    </div>
+
+                    <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-xs">
+                      {item.title}
+                    </h4>
+
+                    <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-3">
+                      {item.description}
+                    </p>
+
+                    <div className="flex items-center gap-3 text-[10px] text-slate-400 pt-1">
+                      <span>Author: <strong className="text-slate-700 dark:text-slate-300">{item.authorName}</strong></span>
+                      <span>•</span>
+                      <span>Target: {item.targetUserName || 'CTO Office'}</span>
+                      <span>•</span>
+                      <span>{formatDate(item.createdAt, 'short')}</span>
+                    </div>
+
+                    {item.feedback && (
+                      <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-100 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400">
+                        <strong className="text-slate-900 dark:text-slate-200 block mb-0.5">CTO Feedback:</strong>
+                        {item.feedback}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Actions: Review / Update Status + Forward to C-Level */}
-                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2 text-xs">
-                    <Button
-                      variant="ghost"
-                      size="xs"
-                      onClick={() => {
-                        setReviewingReport(report)
-                        setNewStatus(report.status)
-                      }}
-                    >
-                      Update Status
-                    </Button>
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-end">
                     <Button
                       variant="secondary"
                       size="xs"
-                      icon={Share2}
-                      onClick={() => setForwardingReport(report)}
+                      icon={MessageSquare}
+                      onClick={() => {
+                        setSelectedComplaint(item)
+                        setComplaintStatus(item.status as ReportStatus)
+                        setComplaintFeedback(item.feedback || '')
+                      }}
                     >
-                      Forward to C-Level
+                      Update Status & Feedback
                     </Button>
                   </div>
                 </div>
               ))}
             </div>
           )}
-        </div>
+        </Card>
       )}
 
-      {/* Tab 2: Create Strategic CTO Report */}
-      {activeTab === 'create' && (
+      {/* PANEL 3: Review & select project ideas from PM & Dev */}
+      {activeTab === 'review_project_ideas' && (
         <Card
-          title="Author Executive Engineering Brief"
-          subtitle="Submit formal technical proposals, infrastructure CapEx requests, or security briefings to the Executive Committee"
-          icon={Send}
+          title="Project Proposals & Innovation Submissions"
+          subtitle="Review candidate project ideas submitted by developers and project managers for sprint roadmap selection"
+          icon={Lightbulb}
         >
-          <form onSubmit={handleCreateSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Recipient *
-                </label>
-                <select
-                  value={recipient}
-                  onChange={(e) => setRecipient(e.target.value)}
-                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-lime-500"
+          {projectIdeas.length === 0 ? (
+            <div className="py-12 text-center text-slate-400 text-xs">
+              No project ideas submitted yet.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              {projectIdeas.map((idea) => (
+                <div
+                  key={idea.id}
+                  className="p-4 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between space-y-3 shadow-2xs group"
                 >
-                  <option value="CEO — Victoria Sterling-Fox">CEO — Victoria Sterling-Fox</option>
-                  <option value="Board of Directors">Board of Directors</option>
-                  <option value="CFO — Vincent Gallagher">CFO — Vincent Gallagher (CapEx / Budget)</option>
-                  <option value="CPO — Amara Okafor">CPO — Amara Okafor (Headcount / Talent)</option>
-                </select>
-              </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <Badge
+                        variant={idea.authorRole === 'pm' ? 'purple' : 'emerald'}
+                        size="xs"
+                      >
+                        {idea.authorRole === 'pm' ? 'PM Proposal' : 'Dev Proposal'}
+                      </Badge>
+                      <StatusPill status={idea.status} size="sm" />
+                    </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Report Category *
-                </label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-lime-500"
-                >
-                  <option value="Architecture & Infrastructure Proposal">Architecture & Infrastructure Proposal</option>
-                  <option value="Quarterly Engineering Health Brief">Quarterly Engineering Health Brief</option>
-                  <option value="Cloud Infrastructure CapEx Request">Cloud Infrastructure CapEx Request</option>
-                  <option value="Security Posture & Compliance Report">Security Posture & Compliance Report</option>
-                  <option value="Sprint Velocity Post-Mortem">Sprint Velocity Post-Mortem</option>
-                </select>
+                    <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-xs group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">
+                      {idea.title}
+                    </h4>
+
+                    <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                      {idea.description}
+                    </p>
+
+                    {/* Docs / SRS link */}
+                    {idea.docsUrl && (
+                      <div className="pt-1">
+                        <a
+                          href={idea.docsUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/80 border border-indigo-200/60 dark:border-indigo-800/60 text-[11px] font-medium transition-colors"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          <span>View SRS / Concept Docs</span>
+                        </a>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-3 text-[10px] text-slate-400 pt-1">
+                      <span>Proposer: <strong className="text-slate-700 dark:text-slate-300">{idea.authorName}</strong></span>
+                      <span>•</span>
+                      <span>{formatDate(idea.createdAt, 'short')}</span>
+                    </div>
+
+                    {idea.feedback && (
+                      <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400">
+                        <strong className="text-slate-900 dark:text-slate-200 block mb-0.5">CTO Adjudication:</strong>
+                        {idea.feedback}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
+                    <Button
+                      variant="secondary"
+                      size="xs"
+                      onClick={() => {
+                        setSelectedIdea(idea)
+                        setIdeaStatus(idea.status === 'approved' ? 'approved' : idea.status === 'rejected' ? 'rejected' : 'under_review')
+                        setIdeaFeedback(idea.feedback || '')
+                      }}
+                    >
+                      Review & Comment
+                    </Button>
+
+                    <div className="flex items-center gap-1.5">
+                      {idea.status !== 'rejected' && (
+                        <Button
+                          variant="ghost"
+                          size="xs"
+                          className="text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                          icon={XCircle}
+                          onClick={() => {
+                            reviewProjectIdea(idea.id, 'rejected', 'Archived by CTO')
+                            showToast('Project idea archived/rejected', 'info')
+                          }}
+                        >
+                          Reject
+                        </Button>
+                      )}
+
+                      {idea.status !== 'approved' && (
+                        <Button
+                          variant="lime"
+                          size="xs"
+                          icon={CheckCircle2}
+                          onClick={() => {
+                            reviewProjectIdea(idea.id, 'approved', 'Selected by CTO for upcoming development sprint')
+                            showToast('Project idea approved and selected!', 'success')
+                          }}
+                        >
+                          Select Idea
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
+
+      {/* Review Complaint Modal */}
+      {selectedComplaint && (
+        <Modal
+          isOpen={!!selectedComplaint}
+          onClose={() => setSelectedComplaint(null)}
+          title="Review Team Complaint / Grievance"
+        >
+          <form onSubmit={handleSaveComplaintReview} className="space-y-4 text-xs">
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-1">
+              <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">
+                Complaint Subject
+              </span>
+              <div className="font-bold text-slate-900 dark:text-white">
+                {selectedComplaint.title}
+              </div>
+              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed pt-1">
+                {selectedComplaint.description}
+              </p>
+              <div className="text-[10px] text-slate-400 pt-1">
+                Filer: <strong className="text-slate-700 dark:text-slate-300">{selectedComplaint.authorName}</strong> ({selectedComplaint.authorRole?.toUpperCase()})
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Report Title *
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                Investigation / Resolution Status
               </label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Q4 Migration to Multi-Region PostgreSQL & Redis Cache Clustering"
-                value={reportTitle}
-                onChange={(e) => setReportTitle(e.target.value)}
-                className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-lime-500"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Target Project (Optional)
-                </label>
-                <select
-                  value={selectedProjectId}
-                  onChange={(e) => setSelectedProjectId(e.target.value)}
-                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-lime-500"
-                >
-                  <option value="">Company-Wide / Core Platform</option>
-                  {projects.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.code} — {p.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Architecture Documentation / Spec URL
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://docs.pointfex.com/architecture/rfc-042"
-                  value={docsUrl}
-                  onChange={(e) => setDocsUrl(e.target.value)}
-                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-lime-500"
-                />
-              </div>
+              <select
+                value={complaintStatus}
+                onChange={(e) => setComplaintStatus(e.target.value as ReportStatus)}
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
+              >
+                <option value="pending">Pending</option>
+                <option value="under_investigation">Under Investigation</option>
+                <option value="resolved">Resolved</option>
+              </select>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Executive Summary & Technical Recommendations *
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                CTO Feedback & Resolution Notes
               </label>
               <textarea
-                rows={5}
-                required
-                placeholder="Detail the technical rationale, projected return on investment, engineering resource allocation, and key milestones..."
-                value={reportDesc}
-                onChange={(e) => setReportDesc(e.target.value)}
-                className="w-full text-xs p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-lime-500 resize-none"
+                rows={3}
+                value={complaintFeedback}
+                onChange={(e) => setComplaintFeedback(e.target.value)}
+                placeholder="Enter actions taken, meeting summaries, or resolution guidance..."
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400 resize-none"
               />
             </div>
 
-            <div className="flex justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
-              <Button variant="primary" size="sm" type="submit" icon={Send}>
-                Submit to Executive Committee
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setSelectedComplaint(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="lime"
+                size="sm"
+                icon={CheckCircle2}
+              >
+                Save Status
               </Button>
             </div>
           </form>
-        </Card>
+        </Modal>
       )}
 
-      {/* Tab 3: CTO Outgoing Reports Log */}
-      {activeTab === 'history' && (
-        <Card title={`CTO Outgoing Briefs (${ctoReports.length})`} icon={FileText}>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 font-semibold text-[11px]">
-                  <th className="py-2.5 px-3">Date</th>
-                  <th className="py-2.5 px-3">Title</th>
-                  <th className="py-2.5 px-3">Category</th>
-                  <th className="py-2.5 px-3">Recipient</th>
-                  <th className="py-2.5 px-3">Status</th>
-                  <th className="py-2.5 px-3">Spec Docs</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
-                {ctoReports.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="py-8 text-center text-slate-400">
-                      No outgoing briefs submitted yet.
-                    </td>
-                  </tr>
-                ) : (
-                  ctoReports.map((rep) => (
-                    <tr
-                      key={rep.id}
-                      className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
-                    >
-                      <td className="py-3 px-3 whitespace-nowrap text-slate-400 font-mono text-[11px]">
-                        {formatDate(rep.date || rep.submittedAt, 'short')}
-                      </td>
-                      <td className="py-3 px-3 font-semibold text-slate-900 dark:text-slate-100">
-                        {rep.title}
-                      </td>
-                      <td className="py-3 px-3">
-                        <Badge variant="indigo" size="xs">
-                          {rep.category}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-3 text-slate-600 dark:text-slate-300">
-                        {rep.recipient}
-                      </td>
-                      <td className="py-3 px-3">
-                        <StatusPill status={rep.status} size="sm" />
-                      </td>
-                      <td className="py-3 px-3">
-                        {rep.docsUrl ? (
-                          <a
-                            href={rep.docsUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1"
-                          >
-                            <ExternalLink className="w-3 h-3" />
-                            Link
-                          </a>
-                        ) : (
-                          <span className="text-slate-400">—</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+      {/* Review Project Idea Modal */}
+      {selectedIdea && (
+        <Modal
+          isOpen={!!selectedIdea}
+          onClose={() => setSelectedIdea(null)}
+          title="Review & Adjudicate Project Idea"
+        >
+          <form onSubmit={handleSaveIdeaReview} className="space-y-4 text-xs">
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-1">
+              <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">
+                Idea Title
+              </span>
+              <div className="font-bold text-slate-900 dark:text-white">
+                {selectedIdea.title}
+              </div>
+              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed pt-1">
+                {selectedIdea.description}
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                CTO Decision
+              </label>
+              <select
+                value={ideaStatus}
+                onChange={(e) => setIdeaStatus(e.target.value as 'approved' | 'rejected' | 'under_review')}
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
+              >
+                <option value="under_review">Under Review</option>
+                <option value="approved">Approved / Selected for Roadmap</option>
+                <option value="rejected">Rejected / Archived</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                Technical Feedback for Author
+              </label>
+              <textarea
+                rows={3}
+                value={ideaFeedback}
+                onChange={(e) => setIdeaFeedback(e.target.value)}
+                placeholder="Notes on feasibility, architecture alignment, or required changes..."
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400 resize-none"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setSelectedIdea(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="lime"
+                size="sm"
+                icon={CheckCircle2}
+              >
+                Save Decision
+              </Button>
+            </div>
+          </form>
+        </Modal>
       )}
-
-      {/* Modal: Forward to C-Level */}
-      <Modal
-        isOpen={!!forwardingReport}
-        onClose={() => setForwardingReport(null)}
-        title="Forward Escalation to Executive Committee"
-      >
-        <form onSubmit={handleForwardSubmit} className="space-y-4">
-          <p className="text-xs text-slate-500">
-            Forwarding <strong className="text-slate-800 dark:text-slate-200">{forwardingReport?.title}</strong> to C-Suite leadership with CTO executive backing.
-          </p>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Select Executive Recipient *
-            </label>
-            <select
-              value={forwardTo}
-              onChange={(e) => setForwardTo(e.target.value)}
-              className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-lime-500"
-            >
-              <option value="CEO — Victoria Sterling-Fox">CEO — Victoria Sterling-Fox</option>
-              <option value="CFO — Vincent Gallagher">CFO — Vincent Gallagher (Financial / Budget)</option>
-              <option value="CPO — Amara Okafor">CPO — Amara Okafor (People & Squad Health)</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              CTO Endorsement & Executive Recommendation Notes
-            </label>
-            <textarea
-              rows={3}
-              placeholder="Outline why this technical request requires executive intervention or budget clearance..."
-              value={forwardNotes}
-              onChange={(e) => setForwardNotes(e.target.value)}
-              className="w-full text-xs p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-lime-500 resize-none"
-            />
-          </div>
-
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
-            <Button variant="ghost" size="sm" onClick={() => setForwardingReport(null)}>
-              Cancel
-            </Button>
-            <Button variant="primary" size="sm" type="submit" icon={Share2}>
-              Forward Report
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Modal: Review / Update Status */}
-      <Modal
-        isOpen={!!reviewingReport}
-        onClose={() => setReviewingReport(null)}
-        title="Update Escalation Status"
-      >
-        <form onSubmit={handleReviewSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Status *
-            </label>
-            <select
-              value={newStatus}
-              onChange={(e) => setNewStatus(e.target.value)}
-              className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-lime-500"
-            >
-              <option value="pending">Pending</option>
-              <option value="under_investigation">Under Investigation / Review</option>
-              <option value="resolved">Resolved</option>
-              <option value="rejected">Rejected / Closed</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              CTO Feedback / Resolution Notes
-            </label>
-            <textarea
-              rows={3}
-              placeholder="Add guidance or state how the blocker was resolved..."
-              value={feedback}
-              onChange={(e) => setFeedback(e.target.value)}
-              className="w-full text-xs p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-lime-500 resize-none"
-            />
-          </div>
-
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
-            <Button variant="ghost" size="sm" onClick={() => setReviewingReport(null)}>
-              Cancel
-            </Button>
-            <Button variant="primary" size="sm" type="submit">
-              Save Status
-            </Button>
-          </div>
-        </form>
-      </Modal>
     </div>
   )
 }

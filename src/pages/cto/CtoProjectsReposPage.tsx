@@ -1,34 +1,49 @@
-import { useState, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import { Badge } from '../../components/common/Badge'
 import { Button } from '../../components/common/Button'
 import { Modal } from '../../components/common/Modal'
 import { StatusPill } from '../../components/common/StatusPill'
 import { useCtoData } from '../../hooks/useCtoData'
 import { useApp } from '../../context/AppContext'
+import { formatCurrency } from '../../utils/formatters'
 import type { EnrichedProject } from '../../types'
 import {
   Search,
-  Settings2,
-  Star,
-  GitFork,
-  GitPullRequest,
-  FileText,
-  Save,
+  Plus,
+  Edit2,
+  GitBranch,
+  ExternalLink,
+  CheckCircle2,
 } from 'lucide-react'
 
 export function CtoProjectsReposPage() {
-  const { projects, repositories } = useCtoData()
-  const { setSelectedProjectModal, updateRepoConfig, showToast } = useApp()
+  const { projects, teams } = useCtoData()
+  const { setSelectedProjectModal, createProject, updateProject, showToast } = useApp()
 
   const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'planning'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'planning' | 'completed'>('all')
 
-  // Config Modal State
+  // Create Project Modal State
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [newCode, setNewCode] = useState('')
+  const [newDesc, setNewDesc] = useState('')
+  const [newTeamId, setNewTeamId] = useState(teams[0]?.id || '')
+  const [newBudget, setNewBudget] = useState(45000)
+  const [newDeadline, setNewDeadline] = useState('2026-12-15')
+  const [newRepoUrl, setNewRepoUrl] = useState('')
+  const [newSrsUrl, setNewSrsUrl] = useState('')
+
+  // Edit Project Modal State
   const [editingProject, setEditingProject] = useState<EnrichedProject | null>(null)
-  const [repoUrl, setRepoUrl] = useState('')
-  const [defaultBranch, setDefaultBranch] = useState('main')
-  const [srsUrl, setSrsUrl] = useState('')
-  const [tagsInput, setTagsInput] = useState('')
+  const [editName, setEditName] = useState('')
+  const [editTeamId, setEditTeamId] = useState('')
+  const [editStatus, setEditStatus] = useState<any>('active')
+  const [editProgress, setEditProgress] = useState(0)
+  const [editBudget, setEditBudget] = useState(0)
+  const [editDeadline, setEditDeadline] = useState('')
+  const [editRepoUrl, setEditRepoUrl] = useState('')
+  const [editSrsUrl, setEditSrsUrl] = useState('')
 
   const filteredProjects = useMemo(() => {
     return projects.filter((p) => {
@@ -45,37 +60,63 @@ export function CtoProjectsReposPage() {
     })
   }, [projects, statusFilter, searchQuery])
 
-  const openConfigModal = (p: EnrichedProject) => {
-    const repo = repositories.find((r) => r.projectId === p.id)
+  const handleOpenEditModal = (p: EnrichedProject) => {
     setEditingProject(p)
-    setRepoUrl(repo?.url || p.repositoryUrl || '')
-    setDefaultBranch(repo?.defaultBranch || 'main')
-    setSrsUrl(p.srs?.documentUrl || '')
-    setTagsInput(p.tags?.join(', ') || '')
+    setEditName(p.name)
+    setEditTeamId(p.teamId || '')
+    setEditStatus(p.status)
+    setEditProgress(p.progress || 0)
+    setEditBudget(p.budget || 0)
+    setEditDeadline(p.deadline ? p.deadline.split('T')[0] : '2026-11-30')
+    setEditRepoUrl(p.repositoryUrl || '')
+    setEditSrsUrl(p.srs?.documentUrl || '')
   }
 
-  const handleSaveConfig = (e: React.FormEvent) => {
+  const handleSaveCreate = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newName.trim() || !newCode.trim()) {
+      showToast('Project name and code are required.', 'error')
+      return
+    }
+
+    createProject({
+      name: newName.trim(),
+      code: newCode.trim().toUpperCase(),
+      description: newDesc.trim() || 'Internal engineering initiative.',
+      teamId: newTeamId || undefined,
+      budget: Number(newBudget),
+      deadline: newDeadline,
+      status: 'active',
+      progress: 0,
+      repositoryUrl: newRepoUrl.trim() || `https://github.com/pointfex/${newCode.toLowerCase()}-core`,
+      srsUrl: newSrsUrl.trim() || `https://docs.pointfex.internal/srs/${newCode.toUpperCase()}-SRS.pdf`,
+    })
+
+    setIsCreateModalOpen(false)
+    setNewName('')
+    setNewCode('')
+    setNewDesc('')
+    setNewRepoUrl('')
+    setNewSrsUrl('')
+  }
+
+  const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingProject) return
 
-    const tags = tagsInput
-      .split(',')
-      .map((t) => t.trim())
-      .filter(Boolean)
-
-    updateRepoConfig(editingProject.id, {
-      repositoryUrl: repoUrl.trim(),
-      defaultBranch: defaultBranch.trim(),
-      srsUrl: srsUrl.trim(),
-      tags,
+    updateProject(editingProject.id, {
+      name: editName.trim(),
+      teamId: editTeamId || undefined,
+      status: editStatus,
+      progress: Number(editProgress),
+      budget: Number(editBudget),
+      deadline: editDeadline,
+      repositoryUrl: editRepoUrl.trim() || undefined,
+      srsUrl: editSrsUrl.trim() || undefined,
     })
 
-    showToast('Repository and architecture configuration saved.', 'success')
     setEditingProject(null)
   }
-
-  const totalOpenPRs = repositories.reduce((acc, r) => acc + (r.openPRsCount || 0), 0)
-  const totalStars = repositories.reduce((acc, r) => acc + (r.stars || 0), 0)
 
   return (
     <div className="space-y-6">
@@ -86,18 +127,19 @@ export function CtoProjectsReposPage() {
             Projects & Code Repositories
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Architecture overview, GitHub repositories, default branches, and SRS documentation across all 12 projects
+            Architecture overview, assigned engineering squads, and source repositories across all {projects.length} projects
           </p>
         </div>
+
         <div className="flex items-center gap-2">
-          <Badge variant="purple" size="sm">
-            <GitPullRequest className="w-3.5 h-3.5 mr-1" />
-            {totalOpenPRs} Open PRs
-          </Badge>
-          <Badge variant="amber" size="sm">
-            <Star className="w-3.5 h-3.5 mr-1" />
-            {totalStars} GitHub Stars
-          </Badge>
+          <Button
+            variant="lime"
+            size="sm"
+            icon={Plus}
+            onClick={() => setIsCreateModalOpen(true)}
+          >
+            Create New Project
+          </Button>
         </div>
       </div>
 
@@ -115,36 +157,50 @@ export function CtoProjectsReposPage() {
         </div>
 
         {/* Status Filters */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 overflow-x-auto text-xs">
           <button
+            type="button"
             onClick={() => setStatusFilter('all')}
-            className={`px-3 py-1 rounded-xl text-xs font-medium whitespace-nowrap transition-colors ${
+            className={`px-3 py-1 rounded-xl font-medium whitespace-nowrap transition-colors cursor-pointer ${
               statusFilter === 'all'
                 ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             All ({projects.length})
           </button>
           <button
+            type="button"
             onClick={() => setStatusFilter('active')}
-            className={`px-3 py-1 rounded-xl text-xs font-medium whitespace-nowrap transition-colors ${
+            className={`px-3 py-1 rounded-xl font-medium whitespace-nowrap transition-colors cursor-pointer ${
               statusFilter === 'active'
                 ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             Active Sprints
           </button>
           <button
+            type="button"
             onClick={() => setStatusFilter('planning')}
-            className={`px-3 py-1 rounded-xl text-xs font-medium whitespace-nowrap transition-colors ${
+            className={`px-3 py-1 rounded-xl font-medium whitespace-nowrap transition-colors cursor-pointer ${
               statusFilter === 'planning'
                 ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             Planning
+          </button>
+          <button
+            type="button"
+            onClick={() => setStatusFilter('completed')}
+            className={`px-3 py-1 rounded-xl font-medium whitespace-nowrap transition-colors cursor-pointer ${
+              statusFilter === 'completed'
+                ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            Completed
           </button>
         </div>
       </div>
@@ -152,7 +208,7 @@ export function CtoProjectsReposPage() {
       {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {filteredProjects.map((project) => {
-          const repo = repositories.find((r) => r.projectId === project.id)
+          const assignedTeam = teams.find((t) => t.id === project.teamId)
 
           return (
             <div
@@ -196,79 +252,50 @@ export function CtoProjectsReposPage() {
                   </div>
                 </div>
 
-                {/* Repository Details Box */}
-                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 space-y-2 text-xs">
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="font-mono text-slate-600 dark:text-slate-300 truncate max-w-[160px]">
-                      {repo?.name || `${project.code.toLowerCase()}-core`}
-                    </span>
-                    <span className="font-mono text-[10px] bg-slate-200/80 dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-700 dark:text-slate-300">
-                      {repo?.defaultBranch || 'main'}
-                    </span>
+                {/* Simplified Repo Link Box */}
+                {(project.repositoryUrl || project.repo) && (
+                  <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-xs">
+                    <a
+                      href={project.repositoryUrl || `https://github.com/pointfex/${project.code.toLowerCase()}-core`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1.5 font-mono text-[11px] text-sky-600 dark:text-sky-400 hover:underline truncate"
+                    >
+                      <GitBranch className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <span className="truncate">
+                        {project.repositoryUrl
+                          ? project.repositoryUrl.replace('https://', '')
+                          : `github.com/pointfex/${project.code.toLowerCase()}-core`}
+                      </span>
+                      <ExternalLink className="w-3 h-3 opacity-70 shrink-0" />
+                    </a>
                   </div>
-
-                  <div className="flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400">
-                    <span className="flex items-center gap-1">
-                      <Star className="w-3 h-3 text-amber-500" />
-                      {repo?.stars || 128}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <GitFork className="w-3 h-3 text-slate-400" />
-                      {repo?.forks || 24}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <GitPullRequest className="w-3 h-3 text-purple-500" />
-                      {repo?.openPRsCount || 1} PRs
-                    </span>
-                  </div>
-
-                  {/* Tech Tags */}
-                  {project.tags && project.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 pt-1">
-                      {project.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="text-[10px] px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
 
               {/* Actions Footer */}
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                {project.srs ? (
-                  <a
-                    href={project.srs.documentUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-1 text-[11px] text-sky-600 dark:text-sky-400 hover:underline"
-                  >
-                    <FileText className="w-3 h-3" />
-                    SRS Docs
-                  </a>
-                ) : (
-                  <span className="text-[11px] text-slate-400">No SRS linked</span>
-                )}
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                <div className="flex items-center gap-2">
+                  <span>{assignedTeam?.name?.split('—')[0]?.trim() || 'Unassigned'}</span>
+                  <span>•</span>
+                  <span>{formatCurrency(project.budget)}</span>
+                </div>
 
                 <div className="flex items-center gap-1.5">
                   <Button
                     variant="ghost"
                     size="xs"
-                    icon={Settings2}
-                    onClick={() => openConfigModal(project)}
+                    icon={Edit2}
+                    onClick={() => handleOpenEditModal(project)}
                   >
-                    Configure
+                    Edit
                   </Button>
                   <Button
                     variant="secondary"
                     size="xs"
                     onClick={() => setSelectedProjectModal(project)}
                   >
-                    Details
+                    Inspect
                   </Button>
                 </div>
               </div>
@@ -277,79 +304,270 @@ export function CtoProjectsReposPage() {
         })}
       </div>
 
-      {/* Configure Repository Modal */}
-      <Modal
-        isOpen={!!editingProject}
-        onClose={() => setEditingProject(null)}
-        title={editingProject ? `Configure Repository: ${editingProject.name}` : 'Configure'}
-      >
-        <form onSubmit={handleSaveConfig} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Repository URL
-            </label>
-            <input
-              type="url"
-              required
-              placeholder="https://github.com/pointfex/repo"
-              value={repoUrl}
-              onChange={(e) => setRepoUrl(e.target.value)}
-              className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-lime-500"
-            />
-          </div>
+      {/* Create Project Modal */}
+      {isCreateModalOpen && (
+        <Modal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          title="Create New Engineering Project"
+        >
+          <form onSubmit={handleSaveCreate} className="space-y-4 text-xs">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  Project Name *
+                </label>
+                <input
+                  type="text"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="e.g., Aether Quantum Bridge"
+                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
+                  required
+                />
+              </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  Project Code *
+                </label>
+                <input
+                  type="text"
+                  value={newCode}
+                  onChange={(e) => setNewCode(e.target.value)}
+                  placeholder="e.g., AQB-01"
+                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400 uppercase"
+                  required
+                />
+              </div>
+            </div>
+
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Default Production Branch
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                Description
+              </label>
+              <textarea
+                rows={2}
+                value={newDesc}
+                onChange={(e) => setNewDesc(e.target.value)}
+                placeholder="High-level engineering purpose and system objectives..."
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400 resize-none"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  Assigned Squad
+                </label>
+                <select
+                  value={newTeamId}
+                  onChange={(e) => setNewTeamId(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
+                >
+                  <option value="">Unassigned</option>
+                  {teams.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  Allocated Budget ($ USD)
+                </label>
+                <input
+                  type="number"
+                  value={newBudget}
+                  onChange={(e) => setNewBudget(Number(e.target.value))}
+                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  Target Sprint Deadline
+                </label>
+                <input
+                  type="date"
+                  value={newDeadline}
+                  onChange={(e) => setNewDeadline(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  GitHub Repository URL
+                </label>
+                <input
+                  type="url"
+                  value={newRepoUrl}
+                  onChange={(e) => setNewRepoUrl(e.target.value)}
+                  placeholder="https://github.com/pointfex/repo"
+                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsCreateModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="lime"
+                size="sm"
+                icon={Plus}
+              >
+                Create Project
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* Edit Project Modal */}
+      {editingProject && (
+        <Modal
+          isOpen={!!editingProject}
+          onClose={() => setEditingProject(null)}
+          title={`Edit Project — ${editingProject.code}`}
+        >
+          <form onSubmit={handleSaveEdit} className="space-y-4 text-xs">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                Project Name
               </label>
               <input
                 type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
                 required
-                placeholder="main"
-                value={defaultBranch}
-                onChange={(e) => setDefaultBranch(e.target.value)}
-                className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-lime-500"
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                SRS Document URL
-              </label>
-              <input
-                type="url"
-                placeholder="https://docs.pointfex.com/srs"
-                value={srsUrl}
-                onChange={(e) => setSrsUrl(e.target.value)}
-                className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-lime-500"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  Assigned Squad
+                </label>
+                <select
+                  value={editTeamId}
+                  onChange={(e) => setEditTeamId(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
+                >
+                  <option value="">Unassigned</option>
+                  {teams.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  Project Status
+                </label>
+                <select
+                  value={editStatus}
+                  onChange={(e) => setEditStatus(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
+                >
+                  <option value="active">Active Sprint</option>
+                  <option value="planning">Planning Phase</option>
+                  <option value="completed">Completed</option>
+                  <option value="on_hold">On Hold</option>
+                </select>
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Tech Stack Tags (comma separated)
-            </label>
-            <input
-              type="text"
-              placeholder="React, TypeScript, Go, Redis, Docker"
-              value={tagsInput}
-              onChange={(e) => setTagsInput(e.target.value)}
-              className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-lime-500"
-            />
-          </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  Sprint Progress ({editProgress}%)
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={editProgress}
+                  onChange={(e) => setEditProgress(Number(e.target.value))}
+                  className="w-full accent-lime-500 cursor-pointer"
+                />
+              </div>
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
-            <Button variant="ghost" size="sm" onClick={() => setEditingProject(null)}>
-              Cancel
-            </Button>
-            <Button variant="primary" size="sm" type="submit" icon={Save}>
-              Save Configuration
-            </Button>
-          </div>
-        </form>
-      </Modal>
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  Budget ($ USD)
+                </label>
+                <input
+                  type="number"
+                  value={editBudget}
+                  onChange={(e) => setEditBudget(Number(e.target.value))}
+                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  Deadline
+                </label>
+                <input
+                  type="date"
+                  value={editDeadline}
+                  onChange={(e) => setEditDeadline(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  Repository URL
+                </label>
+                <input
+                  type="url"
+                  value={editRepoUrl}
+                  onChange={(e) => setEditRepoUrl(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setEditingProject(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="lime"
+                size="sm"
+                icon={CheckCircle2}
+              >
+                Save Changes
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   )
 }

@@ -416,22 +416,23 @@ export function PmTaskManagementPage() {
           </div>
 
           {/* 5-Column Kanban Board */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-3.5 items-start">
-            {columns.map((col) => {
-              const colTasks = filteredTasks.filter((t) => t.status === col.id)
-              const isDragOver = dragOverColId === col.id
+          <div className="overflow-x-auto pb-4">
+            <div className="flex gap-4 items-start min-w-[1150px]">
+              {columns.map((col) => {
+                const colTasks = filteredTasks.filter((t) => t.status === col.id)
+                const isDragOver = dragOverColId === col.id
 
-              return (
-                <div
-                  key={col.id}
-                  onDragOver={(e) => handleDragOver(e, col.id)}
-                  onDrop={(e) => handleDrop(e, col.id)}
-                  className={`rounded-2xl p-3 min-h-[500px] flex flex-col transition-colors border ${
-                    isDragOver
-                      ? 'bg-lime-50/50 dark:bg-lime-950/20 border-lime-400'
-                      : 'bg-slate-50/80 dark:bg-slate-900/40 border-slate-200/60 dark:border-slate-800/60'
-                  }`}
-                >
+                return (
+                  <div
+                    key={col.id}
+                    onDragOver={(e) => handleDragOver(e, col.id)}
+                    onDrop={(e) => handleDrop(e, col.id)}
+                    className={`flex-1 min-w-[220px] rounded-2xl p-3.5 min-h-[500px] flex flex-col transition-colors border ${
+                      isDragOver
+                        ? 'bg-lime-50/50 dark:bg-lime-950/20 border-lime-400'
+                        : 'bg-slate-50/80 dark:bg-slate-900/40 border-slate-200/60 dark:border-slate-800/60'
+                    }`}
+                  >
                   {/* Column Header */}
                   <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-200/60 dark:border-slate-800/80">
                     <div className="flex items-center gap-2">
@@ -507,15 +508,16 @@ export function PmTaskManagementPage() {
                             {/* In-Review PM Action Buttons */}
                             {col.id === 'in_review' && (
                               <div
-                                className="flex items-center gap-1 pt-1 border-t border-slate-100 dark:border-slate-800"
+                                className="flex items-center gap-1.5 pt-1.5 border-t border-slate-100 dark:border-slate-800"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <button
                                   type="button"
                                   onClick={() => approveTask(task.id, 'Approved via PM Kanban board')}
-                                  className="flex-1 py-1 px-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-semibold flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                                  className="flex-1 py-1.5 px-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] font-semibold flex items-center justify-center gap-1 cursor-pointer transition-colors whitespace-nowrap shadow-2xs"
                                 >
-                                  <CheckCircle2 className="w-3 h-3" /> Approve
+                                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                                  <span>Approve</span>
                                 </button>
                                 <button
                                   type="button"
@@ -523,9 +525,10 @@ export function PmTaskManagementPage() {
                                     setRejectingTask(task)
                                     setRejectFeedback('')
                                   }}
-                                  className="flex-1 py-1 px-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 dark:text-rose-400 text-[10px] font-semibold flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                                  className="flex-1 py-1.5 px-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/40 text-[11px] font-semibold flex items-center justify-center gap-1 cursor-pointer transition-colors whitespace-nowrap shadow-2xs"
                                 >
-                                  <XCircle className="w-3 h-3" /> Reject
+                                  <XCircle className="w-3.5 h-3.5 shrink-0" />
+                                  <span>Reject</span>
                                 </button>
                               </div>
                             )}
@@ -537,6 +540,7 @@ export function PmTaskManagementPage() {
                 </div>
               )
             })}
+            </div>
           </div>
         </div>
       </div>

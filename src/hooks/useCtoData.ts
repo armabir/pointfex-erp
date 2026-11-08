@@ -20,8 +20,6 @@ import type {
   Repository,
 } from '../types'
 
-export type { DeveloperWorkload } from '../types'
-
 export interface TeamWithDetails extends Team {
   pm?: User | null
   leadDev?: User | null
@@ -48,6 +46,7 @@ export interface CtoData {
   consultancyRequests: ConsultancyRequest[]
   incomingReports: Report[]
   ctoReports: Report[]
+  allReports: Report[]
   auditLogs: ActivityLog[]
   ctoWallet: Wallet
   ctoTransactions: Transaction[]
@@ -298,6 +297,7 @@ export function useCtoData(): CtoData {
     consultancyRequests: data.consultancyRequests,
     incomingReports,
     ctoReports,
+    allReports: data.reports,
     auditLogs,
     ctoWallet,
     ctoTransactions,
@@ -307,3 +307,4 @@ export function useCtoData(): CtoData {
     companyStats,
   }
 }
+

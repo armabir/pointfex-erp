@@ -8,6 +8,8 @@ import type {
   Team,
   Task,
   Report,
+  Project,
+  Repository,
   TaskStatus,
   TaskPriority,
   TaskChecklistItem,
@@ -732,7 +734,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         status: approved ? 'completed' : 'in_progress',
       }
 
-      const note = feedback || (approved ? 'Verified and approved by CTO' : 'Revisions requested by CTO')
       const newActivity: ActivityLog = {
         id: `act_${Date.now()}`,
         userId: 'user_cto_01',
@@ -740,7 +741,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         entityType: 'task',
         entityId: taskId,
         entityTitle: oldTask.title,
-        description: `CTO Arthur Sterling: ${note}`,
+        description: approved
+          ? `CTO Arthur Sterling verified deliverable and approved task: "${feedback}"`
+          : `CTO Arthur Sterling requested revisions: "${feedback}"`,
         timestamp: 'Just now',
         category: 'task',
         badgeColor: approved ? 'emerald' : 'amber',
@@ -760,15 +763,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [showToast])
 
   const handleUpdateCtoPersonalTaskStatus = useCallback((taskId: string, newStatus: TaskStatus) => {
-    // Permission constraint: CTO personal tasks assigned by CEO require CEO sign-off
-    if (newStatus === 'completed') {
-      showToast(
-        'Permission required: Executive initiatives require CEO verification to be marked Completed. Please move to "In Review" for CEO sign-off.',
-        'error'
-      )
-      return
-    }
-
     setData((prev) => {
       const idx = prev.tasks.findIndex((t) => t.id === taskId)
       if (idx === -1) return prev
@@ -798,6 +792,395 @@ export function AppProvider({ children }: { children: ReactNode }) {
     })
 
     showToast(`Task moved to ${newStatus.replace('_', ' ')}`, 'info')
+  }, [showToast])
+
+  const handleCreateCtoPersonalTask = useCallback((taskData: {
+    title: string
+    description?: string
+    priority?: TaskPriority
+    dueDate?: string
+    tags?: string[]
+    projectId?: string
+  }) => {
+    const newTask: Task = {
+      id: `task_cto_${Date.now()}`,
+      title: taskData.title,
+      description: taskData.description || '',
+      projectId: taskData.projectId || 'proj_01',
+      assigneeId: 'user_cto_01',
+      creatorId: 'user_cto_01',
+      status: 'todo',
+      priority: taskData.priority || 'medium',
+      dueDate: taskData.dueDate || new Date(Date.now() + 7 * 86400000).toISOString(),
+      estimatedHours: 8,
+      loggedHours: 0,
+      tags: taskData.tags || ['Personal', 'Architecture'],
+      createdAt: new Date().toISOString(),
+    }
+
+    setData((prev) => ({
+      ...prev,
+      tasks: [newTask, ...prev.tasks],
+      activityLogs: [
+        {
+          id: `act_${Date.now()}`,
+          userId: 'user_cto_01',
+          action: 'task_created',
+          entityType: 'task',
+          entityId: newTask.id,
+          entityTitle: newTask.title,
+          description: `CTO Arthur Sterling created personal task "${newTask.title}"`,
+          timestamp: 'Just now',
+          category: 'task',
+          badgeColor: 'sky',
+        },
+        ...prev.activityLogs,
+      ],
+    }))
+
+    showToast('Personal task added to board', 'success')
+    return newTask
+  }, [showToast])
+
+  const handleCreateProject = useCallback((projectData: {
+    name: string
+    code: string
+    teamId?: string
+    budget?: number
+    deadline?: string
+    description?: string
+    repositoryUrl?: string
+    srsUrl?: string
+    tags?: string[]
+  }) => {
+    const newId = `proj_${Date.now()}`
+    const repoId = `repo_${Date.now()}`
+    const newProject: Project = {
+      id: newId,
+      name: projectData.name,
+      code: projectData.code,
+      teamId: projectData.teamId || 'team_01',
+      pmId: 'user_pm_01',
+      leadDevId: 'user_dev_01',
+      repoId,
+      progress: 0,
+      health: 'on_track',
+      totalWeeks: 5,
+      currentWeek: 3,
+      assignedDevIds: [],
+      budget: projectData.budget || 35000,
+      startDate: new Date().toISOString().split('T')[0],
+      deadline: projectData.deadline || new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
+      status: 'active',
+      tags: projectData.tags || ['React', 'TypeScript'],
+      description: projectData.description || 'New strategic engineering project',
+      repositoryUrl: projectData.repositoryUrl || `https://github.com/pointfex/${projectData.code.toLowerCase()}`,
+      srs: projectData.srsUrl ? {
+        documentTitle: `${projectData.code}-SRS-v1.0.pdf`,
+        documentUrl: projectData.srsUrl,
+        version: 'v1.0 Draft',
+        lastUpdated: new Date().toISOString().split('T')[0],
+        overview: projectData.description || 'Software Requirements Specification',
+        requirementsCount: 10,
+        approvedBy: 'Dr. Arthur Sterling',
+      } : undefined,
+    }
+
+    const newRepo: Repository = {
+      id: repoId,
+      projectId: newId,
+      name: projectData.code.toLowerCase(),
+      url: projectData.repositoryUrl || `https://github.com/pointfex/${projectData.code.toLowerCase()}`,
+      defaultBranch: 'main',
+      activeBranch: 'main',
+      openPRsCount: 0,
+      lastCommit: {
+        hash: 'b1c2d3e',
+        message: 'Initial project repository configuration',
+        author: 'Dr. Arthur Sterling',
+        timestamp: 'Just now',
+        date: 'Just now',
+      },
+      stars: 0,
+      forks: 0,
+      openIssues: 0,
+    }
+
+    setData((prev) => ({
+      ...prev,
+      projects: [newProject, ...prev.projects],
+      repositories: [newRepo, ...prev.repositories],
+      activityLogs: [
+        {
+          id: `act_${Date.now()}`,
+          userId: 'user_cto_01',
+          action: 'project_created',
+          entityType: 'project',
+          entityId: newId,
+          entityTitle: newProject.name,
+          description: `CTO Arthur Sterling created project ${newProject.code} — ${newProject.name}`,
+          timestamp: 'Just now',
+          category: 'project',
+          badgeColor: 'lime',
+        },
+        ...prev.activityLogs,
+      ],
+    }))
+
+    showToast(`Project ${newProject.code} created successfully`, 'success')
+    return newProject
+  }, [showToast])
+
+  const handleUpdateProject = useCallback((projectId: string, updates: Partial<Project> & { repositoryUrl?: string; srsUrl?: string }) => {
+    setData((prev) => {
+      const idx = prev.projects.findIndex((p) => p.id === projectId)
+      if (idx === -1) return prev
+
+      const oldProj = prev.projects[idx]
+      const updatedProjects = [...prev.projects]
+      updatedProjects[idx] = {
+        ...oldProj,
+        ...updates,
+        srs: updates.srsUrl ? {
+          documentTitle: oldProj.srs?.documentTitle || `${oldProj.code}-SRS-v1.0.pdf`,
+          documentUrl: updates.srsUrl,
+          version: oldProj.srs?.version || 'v1.0',
+          lastUpdated: new Date().toISOString().split('T')[0],
+          overview: oldProj.srs?.overview || oldProj.description || 'Software Requirements Specification',
+          requirementsCount: oldProj.srs?.requirementsCount || 10,
+          approvedBy: 'Dr. Arthur Sterling',
+        } : oldProj.srs,
+      }
+
+      let updatedRepos = prev.repositories
+      if (updates.repositoryUrl) {
+        updatedRepos = prev.repositories.map((r) =>
+          r.projectId === projectId ? { ...r, url: updates.repositoryUrl! } : r
+        )
+      }
+
+      const newActivity: ActivityLog = {
+        id: `act_${Date.now()}`,
+        userId: 'user_cto_01',
+        action: 'project_updated',
+        entityType: 'project',
+        entityId: projectId,
+        entityTitle: updatedProjects[idx].name,
+        description: `CTO Arthur Sterling modified project details for ${oldProj.code}`,
+        timestamp: 'Just now',
+        category: 'project',
+        badgeColor: 'sky',
+      }
+
+      return {
+        ...prev,
+        projects: updatedProjects,
+        repositories: updatedRepos,
+        activityLogs: [newActivity, ...prev.activityLogs],
+      }
+    })
+
+    showToast('Project updated successfully', 'success')
+  }, [showToast])
+
+  const handleUpdateUser = useCallback((userId: string, updates: Partial<User>) => {
+    setData((prev) => {
+      const idx = prev.users.findIndex((u) => u.id === userId)
+      if (idx === -1) return prev
+
+      const oldUser = prev.users[idx]
+      const updatedUsers = [...prev.users]
+      updatedUsers[idx] = { ...oldUser, ...updates }
+
+      let updatedTeams = prev.teams
+      if (updates.teamId !== undefined && updates.teamId !== oldUser.teamId) {
+        updatedTeams = prev.teams.map((t) => {
+          let memberIds = t.memberIds.filter((id) => id !== userId)
+          let pmId = t.pmId === userId ? '' : t.pmId
+          if (t.id === updates.teamId) {
+            if (updates.role === 'pm') {
+              pmId = userId
+            } else {
+              memberIds = [...memberIds, userId]
+            }
+          }
+          return { ...t, memberIds, pmId }
+        })
+      }
+
+      const newActivity: ActivityLog = {
+        id: `act_${Date.now()}`,
+        userId: 'user_cto_01',
+        action: 'user_updated',
+        entityType: 'user',
+        entityId: userId,
+        entityTitle: oldUser.name,
+        description: `CTO Arthur Sterling updated role/team for ${oldUser.name}`,
+        timestamp: 'Just now',
+        category: 'user',
+        badgeColor: 'purple',
+      }
+
+      return {
+        ...prev,
+        users: updatedUsers,
+        teams: updatedTeams,
+        activityLogs: [newActivity, ...prev.activityLogs],
+      }
+    })
+
+    showToast('Member profile updated', 'success')
+  }, [showToast])
+
+  const handleCreateTeam = useCallback((teamData: {
+    name: string
+    code: string
+    focus: string
+    pmId?: string
+    leadDevId?: string
+    memberIds?: string[]
+    projectIds?: string[]
+    weeklyVelocity?: number
+  }) => {
+    const newId = `team_${Date.now()}`
+    const newTeam: Team = {
+      id: newId,
+      name: teamData.name,
+      code: teamData.code,
+      focus: teamData.focus,
+      pmId: teamData.pmId || '',
+      leadDevId: teamData.leadDevId || '',
+      memberIds: teamData.memberIds || [],
+      projectIds: teamData.projectIds || [],
+      weeklyVelocity: teamData.weeklyVelocity || 40,
+    }
+
+    setData((prev) => ({
+      ...prev,
+      teams: [...prev.teams, newTeam],
+      activityLogs: [
+        {
+          id: `act_${Date.now()}`,
+          userId: 'user_cto_01',
+          action: 'team_created',
+          entityType: 'team',
+          entityId: newId,
+          entityTitle: newTeam.name,
+          description: `CTO Arthur Sterling created squad ${newTeam.name} (${newTeam.code})`,
+          timestamp: 'Just now',
+          category: 'team',
+          badgeColor: 'emerald',
+        },
+        ...prev.activityLogs,
+      ],
+    }))
+
+    showToast(`Squad ${newTeam.name} created`, 'success')
+    return newTeam
+  }, [showToast])
+
+  const handleUpdateTeam = useCallback((teamId: string, updates: Partial<Team>) => {
+    setData((prev) => {
+      const idx = prev.teams.findIndex((t) => t.id === teamId)
+      if (idx === -1) return prev
+
+      const oldTeam = prev.teams[idx]
+      const updatedTeams = [...prev.teams]
+      updatedTeams[idx] = { ...oldTeam, ...updates }
+
+      const newActivity: ActivityLog = {
+        id: `act_${Date.now()}`,
+        userId: 'user_cto_01',
+        action: 'team_updated',
+        entityType: 'team',
+        entityId: teamId,
+        entityTitle: updatedTeams[idx].name,
+        description: `CTO Arthur Sterling updated squad ${oldTeam.name}`,
+        timestamp: 'Just now',
+        category: 'team',
+        badgeColor: 'indigo',
+      }
+
+      return {
+        ...prev,
+        teams: updatedTeams,
+        activityLogs: [newActivity, ...prev.activityLogs],
+      }
+    })
+
+    showToast('Squad updated successfully', 'success')
+  }, [showToast])
+
+  const handleReviewProjectIdea = useCallback((ideaId: string, status: string, feedback?: string) => {
+    setData((prev) => {
+      const idx = prev.reports.findIndex((r) => r.id === ideaId)
+      if (idx === -1) return prev
+
+      const old = prev.reports[idx]
+      const updatedReports = [...prev.reports]
+      updatedReports[idx] = {
+        ...old,
+        status: status as any,
+        feedback: feedback ? `[CTO Review]: ${feedback}` : old.feedback,
+      }
+
+      const newActivity: ActivityLog = {
+        id: `act_${Date.now()}`,
+        userId: 'user_cto_01',
+        action: 'idea_reviewed',
+        entityType: 'report',
+        entityId: ideaId,
+        entityTitle: old.title,
+        description: `CTO Arthur Sterling reviewed project idea "${old.title}": ${status}`,
+        timestamp: 'Just now',
+        category: 'report',
+        badgeColor: status === 'approved' ? 'emerald' : 'amber',
+      }
+
+      return {
+        ...prev,
+        reports: updatedReports,
+        activityLogs: [newActivity, ...prev.activityLogs],
+      }
+    })
+
+    showToast(`Project idea status set to "${status.replace('_', ' ')}"`, 'success')
+  }, [showToast])
+
+  const handleUpdateComplaintStatusGeneral = useCallback((complaintId: string, status: string, feedback?: string) => {
+    setData((prev) => {
+      const idx = prev.reports.findIndex((r) => r.id === complaintId)
+      if (idx === -1) return prev
+
+      const old = prev.reports[idx]
+      const updatedReports = [...prev.reports]
+      updatedReports[idx] = {
+        ...old,
+        status: status as any,
+        feedback: feedback ? `[CTO Note]: ${feedback}` : old.feedback,
+      }
+
+      const newActivity: ActivityLog = {
+        id: `act_${Date.now()}`,
+        userId: 'user_cto_01',
+        action: 'complaint_updated',
+        entityType: 'report',
+        entityId: complaintId,
+        entityTitle: old.title,
+        description: `CTO Arthur Sterling updated complaint: ${status}`,
+        timestamp: 'Just now',
+        category: 'report',
+        badgeColor: 'purple',
+      }
+
+      return {
+        ...prev,
+        reports: updatedReports,
+        activityLogs: [newActivity, ...prev.activityLogs],
+      }
+    })
+
+    showToast(`Complaint updated to "${status.replace('_', ' ')}"`, 'success')
   }, [showToast])
 
   const handleUpdateRepoConfig = useCallback((projectId: string, updates: {
@@ -1139,9 +1522,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     updateComplaintStatus: handleUpdateComplaintStatus,
 
     // CTO Workspace Handlers
+    createCtoPersonalTask: handleCreateCtoPersonalTask,
     createCtoEngineeringTask: handleCreateCtoEngineeringTask,
     reviewCtoTaskSubmission: handleReviewCtoTaskSubmission,
     updateCtoPersonalTaskStatus: handleUpdateCtoPersonalTaskStatus,
+    createProject: handleCreateProject,
+    updateProject: handleUpdateProject,
+    updateUser: handleUpdateUser,
+    createTeam: handleCreateTeam,
+    updateTeam: handleUpdateTeam,
+    reviewProjectIdea: handleReviewProjectIdea,
+    updateComplaintStatusGeneral: handleUpdateComplaintStatusGeneral,
     updateRepoConfig: handleUpdateRepoConfig,
     reviewPullRequest: handleReviewPullRequest,
     createSecurityIssue: handleCreateSecurityIssue,

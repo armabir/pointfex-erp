@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Card } from '../../components/common/Card'
 import { Badge } from '../../components/common/Badge'
 import { Button } from '../../components/common/Button'
+import { AvatarPickerModal } from '../../components/common/AvatarPickerModal'
 import { usePmData } from '../../hooks/usePmData'
 import { useApp } from '../../context/AppContext'
 import {
@@ -13,6 +14,7 @@ import {
   X,
   Plus,
   Users,
+  Camera,
 } from 'lucide-react'
 
 export function PmSettingsPage() {
@@ -20,6 +22,7 @@ export function PmSettingsPage() {
   const { resetDemoData, updatePmProfile, showToast } = useApp()
 
   const [newSkillInput, setNewSkillInput] = useState('')
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false)
 
   const currentSkills = pm?.skills || [
     'Agile Delivery',
@@ -63,10 +66,44 @@ export function PmSettingsPage() {
       </div>
 
       {/* Profile Information Card - View-only */}
-      <Card title="Management Identity" icon={User}>
+      <Card
+        title="Management Identity"
+        icon={User}
+        action={
+          <Button
+            variant="secondary"
+            size="xs"
+            icon={Camera}
+            onClick={() => setIsAvatarModalOpen(true)}
+          >
+            Change Picture
+          </Button>
+        }
+      >
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 text-xs">
-          <div className="w-16 h-16 rounded-2xl bg-slate-900 text-white dark:bg-lime-400 dark:text-slate-950 flex items-center justify-center font-bold text-xl shrink-0 shadow-sm">
-            {pm?.initials || 'SJ'}
+          <div
+            className="relative group cursor-pointer shrink-0"
+            onClick={() => setIsAvatarModalOpen(true)}
+            title="Click to change profile picture"
+          >
+            {pm?.avatar ? (
+              <img
+                src={pm.avatar}
+                alt={pm?.name || 'Project Manager'}
+                className="w-16 h-16 rounded-2xl object-cover border-2 border-slate-200 dark:border-slate-700 shadow-sm group-hover:opacity-80 transition-opacity"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-2xl bg-slate-900 text-white dark:bg-lime-400 dark:text-slate-950 flex items-center justify-center font-bold text-xl shadow-sm">
+                {pm?.initials || 'SJ'}
+              </div>
+            )}
+            <div className="absolute inset-0 bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+              <Camera className="w-5 h-5 text-white" />
+            </div>
+            <span
+              className="w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900 absolute -bottom-0.5 -right-0.5"
+              title="Online"
+            />
           </div>
 
           <div className="space-y-1.5 min-w-0 flex-1">
@@ -93,6 +130,14 @@ export function PmSettingsPage() {
           </div>
         </div>
       </Card>
+
+      <AvatarPickerModal
+        isOpen={isAvatarModalOpen}
+        onClose={() => setIsAvatarModalOpen(false)}
+        currentAvatar={pm?.avatar || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200'}
+        onSave={(avatar) => updatePmProfile({ avatar })}
+        userName={pm?.name || 'Project Manager'}
+      />
 
       {/* Skills & Expertise - Skills can be added or removed */}
       <Card
