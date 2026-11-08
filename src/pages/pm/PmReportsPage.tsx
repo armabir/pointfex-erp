@@ -223,7 +223,6 @@ export function PmReportsPage() {
             /* New Project Idea Form - Exactly same as Dev */
             <Card
               title="Submit New Project Idea"
-              subtitle="Pitch a new project proposal with specification documentation"
               icon={Lightbulb}
             >
               <form onSubmit={handleProjectSubmit} className="space-y-4 text-xs">
@@ -287,7 +286,6 @@ export function PmReportsPage() {
             /* General Complaint Form - Exactly same as Dev */
             <Card
               title="File General Complaint"
-              subtitle="Submit issues regarding workload, inter-departmental friction, or company blockers"
               icon={AlertTriangle}
             >
               <form onSubmit={handleComplaintSubmit} className="space-y-4 text-xs">
@@ -354,7 +352,6 @@ export function PmReportsPage() {
             /* Review Developer Submissions & Option to Forward to C-Level */
             <Card
               title="Review Developer Submissions & Forward to C-Level"
-              subtitle="Evaluate project ideas submitted by developers and endorse high-impact proposals to executive leadership"
               icon={Sparkles}
             >
               <div className="space-y-4">
@@ -513,7 +510,6 @@ export function PmReportsPage() {
             /* Developer Complaints to PM: PM can Comment & Change Status */
             <Card
               title="Manage Developer Complaints"
-              subtitle="Review grievances filed by developers to PM, provide resolution notes, and update status"
               icon={MessageSquare}
             >
               <div className="space-y-4">

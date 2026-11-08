@@ -144,9 +144,6 @@ export function CtoTasksPage() {
           <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">
             My Tasks & Directives
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            CTO technical initiatives, architecture milestones, and operational tasks
-          </p>
         </div>
 
         <div className="flex items-center gap-2">

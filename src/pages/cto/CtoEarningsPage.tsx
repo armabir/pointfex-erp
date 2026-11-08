@@ -39,9 +39,6 @@ export function CtoEarningsPage() {
         <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">
           Earnings & Virtual Wallet
         </h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-          Executive compensation balance, architecture advisory stipends, and performance indicators
-        </p>
       </div>
 
       {/* Top 4 Metric Cards: Balance, Total Earned, Penalty, Spendings (Matching Dev & PM) */}
@@ -223,7 +220,6 @@ export function CtoEarningsPage() {
       {/* Performance Section below table */}
       <Card
         title="Performance & Engineering Oversight Metrics"
-        subtitle="Key architecture quality indicators tied to executive compensation and board reviews"
         icon={Award}
       >
         <div className="space-y-4">

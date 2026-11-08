@@ -224,7 +224,6 @@ export function DeveloperEarningsPage() {
       {/* Performance Section below table */}
       <Card
         title="Performance & Delivery Metrics"
-        subtitle="Key engineering quality indicators tied to sprint payouts and bonuses"
         icon={Award}
       >
         <div className="space-y-4">

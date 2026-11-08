@@ -142,7 +142,6 @@ export function PmSettingsPage() {
       {/* Skills & Expertise - Skills can be added or removed */}
       <Card
         title="Management Skills & Competencies"
-        subtitle="Add or remove competencies in your management skillset"
         icon={Tag}
       >
         <div className="space-y-4">

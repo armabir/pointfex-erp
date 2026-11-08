@@ -126,9 +126,6 @@ export function CtoProjectsReposPage() {
           <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">
             Projects & Code Repositories
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Architecture overview, assigned engineering squads, and source repositories across all {projects.length} projects
-          </p>
         </div>
 
         <div className="flex items-center gap-2">

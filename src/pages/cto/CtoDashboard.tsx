@@ -10,7 +10,6 @@ import {
   FolderGit2,
   ArrowUpRight,
   ArrowRight,
-  Layers,
   Award,
   GitPullRequest,
   ShieldAlert,
@@ -108,9 +107,6 @@ export function CtoDashboard() {
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white font-display tracking-tight flex items-center gap-2">
           Welcome, {cto?.name?.split(' ')[0] || 'Arthur'} <span className="inline-block animate-wiggle">👋</span>
         </h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-          Company-wide engineering health, architectural standards, repository telemetry, and squad velocity.
-        </p>
       </div>
 
       {/* 2. Key Metrics & Statistics - Soft Pastel Cards */}
@@ -318,10 +314,10 @@ export function CtoDashboard() {
                 <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
                   <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
-                    Weekly Velocity
+                    Active Squads
                   </div>
                   <div className="text-base font-bold font-display text-slate-900 dark:text-white mt-1">
-                    {companyStats.totalVelocity} pts
+                    {teams.length} Squads
                   </div>
                 </div>
               </div>
@@ -438,10 +434,10 @@ export function CtoDashboard() {
             </div>
           </Card>
 
-          {/* Squad Velocity Overview */}
+          {/* Engineering Squads Overview */}
           <Card
-            title="Squad Velocity Benchmarks"
-            icon={Layers}
+            title="Engineering Squads"
+            icon={Users}
             action={
               <Button
                 variant="ghost"
@@ -449,7 +445,7 @@ export function CtoDashboard() {
                 rightIcon={ArrowRight}
                 onClick={() => setRoute('team-management')}
               >
-                All 6 Squads
+                All {teams.length} Squads
               </Button>
             }
           >
@@ -464,16 +460,16 @@ export function CtoDashboard() {
                       {team.name}
                     </span>
                     <span className="text-[10px] text-slate-400 truncate block">
-                      PM: {team.pm?.name} • {team.members.length} Engineers
+                      PM: {team.pm?.name || 'Unassigned'} • {team.members.length} Engineers
                     </span>
                   </div>
 
                   <div className="text-right shrink-0">
-                    <span className="font-bold text-xs text-slate-900 dark:text-white font-display block">
-                      {team.weeklyVelocity || 40} pts
+                    <span className="font-semibold text-xs text-slate-800 dark:text-slate-200 block">
+                      {team.projectIds?.length || 0} Projects
                     </span>
-                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
-                      On Track
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                      Active
                     </span>
                   </div>
                 </div>

@@ -277,8 +277,14 @@ export interface ActivityLog {
   entityTitle: string
   description: string
   timestamp: string
-  category: 'task' | 'comment' | 'git' | 'financial' | 'milestone' | string
+  category: 'task' | 'comment' | 'git' | 'financial' | 'milestone' | 'security' | 'user' | 'project' | string
   badgeColor?: string
+  actorName?: string
+  actorEmail?: string
+  actorRole?: string
+  actionCode?: string
+  severity?: 'INFO' | 'WARNING' | 'CRITICAL' | 'SUCCESS' | string
+  payload?: Record<string, any>
 }
 
 // --- MILESTONES & REPOSITORIES ---

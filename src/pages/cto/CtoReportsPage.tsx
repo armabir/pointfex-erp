@@ -129,9 +129,6 @@ export function CtoReportsPage() {
           <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">
             Reports & Governance
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            C-Suite complaints, developer & PM grievance adjudication, and project idea selection
-          </p>
         </div>
 
         {/* 3 Tab Navigation Buttons */}
@@ -187,7 +184,6 @@ export function CtoReportsPage() {
           <div className="lg:col-span-5">
             <Card
               title="File C-Level Complaint / Escalation"
-              subtitle="Submit confidential executive grievance to peer C-Suite executives"
               icon={AlertTriangle}
             >
               <form onSubmit={handleSubmitComplaint} className="space-y-4 text-xs">
@@ -249,7 +245,6 @@ export function CtoReportsPage() {
           <div className="lg:col-span-7">
             <Card
               title="My Filed C-Level Complaints"
-              subtitle="Status tracking for complaints submitted by CTO to fellow executives"
               icon={Building}
             >
               {myComplaints.length === 0 ? (
@@ -298,7 +293,6 @@ export function CtoReportsPage() {
       {activeTab === 'review_complaints' && (
         <Card
           title="Submitted Complaints from PM & Engineering Teams"
-          subtitle="Review grievances, provide mediation feedback, and update resolution status"
           icon={UserCheck}
         >
           {teamComplaints.length === 0 ? (
@@ -372,7 +366,6 @@ export function CtoReportsPage() {
       {activeTab === 'review_project_ideas' && (
         <Card
           title="Project Proposals & Innovation Submissions"
-          subtitle="Review candidate project ideas submitted by developers and project managers for sprint roadmap selection"
           icon={Lightbulb}
         >
           {projectIdeas.length === 0 ? (

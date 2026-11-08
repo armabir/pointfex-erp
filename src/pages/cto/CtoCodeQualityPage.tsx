@@ -65,9 +65,6 @@ export function CtoCodeQualityPage() {
           <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">
             Code Review & Quality Gates
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Architecture standards, PR reviews, automated Sonar quality gates, and unit test coverage
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="emerald" size="sm" dot>

@@ -7,7 +7,6 @@ import { useApp } from '../../context/AppContext'
 import {
   Users,
   Search,
-  Zap,
   FolderGit2,
   ShieldCheck,
   UserCheck,
@@ -27,23 +26,17 @@ export function CtoTeamManagementPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [newSquadName, setNewSquadName] = useState('')
   const [newSquadCode, setNewSquadCode] = useState('')
-  const [newSquadFocus, setNewSquadFocus] = useState('')
   const [newPmId, setNewPmId] = useState('')
-  const [newLeadDevId, setNewLeadDevId] = useState('')
   const [newMemberIds, setNewMemberIds] = useState<string[]>([])
   const [newProjectIds, setNewProjectIds] = useState<string[]>([])
-  const [newVelocity, setNewVelocity] = useState(45)
 
   // Edit Squad Modal State
   const [editingSquad, setEditingSquad] = useState<TeamWithDetails | null>(null)
   const [editSquadName, setEditSquadName] = useState('')
   const [editSquadCode, setEditSquadCode] = useState('')
-  const [editSquadFocus, setEditSquadFocus] = useState('')
   const [editPmId, setEditPmId] = useState('')
-  const [editLeadDevId, setEditLeadDevId] = useState('')
   const [editMemberIds, setEditMemberIds] = useState<string[]>([])
   const [editProjectIds, setEditProjectIds] = useState<string[]>([])
-  const [editVelocity, setEditVelocity] = useState(45)
 
   const filteredTeams = useMemo(() => {
     return teams.filter((t) => {
@@ -51,25 +44,19 @@ export function CtoTeamManagementPage() {
       const q = searchQuery.toLowerCase()
       return (
         t.name.toLowerCase().includes(q) ||
-        (t.focus || '').toLowerCase().includes(q) ||
-        t.pm?.name.toLowerCase().includes(q) ||
-        t.leadDev?.name.toLowerCase().includes(q)
+        t.code.toLowerCase().includes(q) ||
+        (t.pm?.name || '').toLowerCase().includes(q)
       )
     })
   }, [teams, searchQuery])
-
-  const totalVelocity = teams.reduce((acc, t) => acc + (t.weeklyVelocity || 40), 0)
 
   const handleOpenEdit = (squad: TeamWithDetails) => {
     setEditingSquad(squad)
     setEditSquadName(squad.name)
     setEditSquadCode(squad.code)
-    setEditSquadFocus(squad.focus || '')
     setEditPmId(squad.pmId || '')
-    setEditLeadDevId(squad.leadDevId || '')
     setEditMemberIds(squad.memberIds || [])
     setEditProjectIds(squad.projectIds || [])
-    setEditVelocity(squad.weeklyVelocity || 45)
   }
 
   const handleSaveCreate = (e: React.FormEvent) => {
@@ -82,18 +69,16 @@ export function CtoTeamManagementPage() {
     createTeam({
       name: newSquadName.trim(),
       code: newSquadCode.trim().toUpperCase(),
-      focus: newSquadFocus.trim() || 'General software engineering and delivery',
+      focus: 'General software engineering and delivery',
       pmId: newPmId || undefined,
-      leadDevId: newLeadDevId || undefined,
       memberIds: newMemberIds,
       projectIds: newProjectIds,
-      weeklyVelocity: Number(newVelocity),
     })
 
     setIsCreateModalOpen(false)
     setNewSquadName('')
     setNewSquadCode('')
-    setNewSquadFocus('')
+    setNewPmId('')
     setNewMemberIds([])
     setNewProjectIds([])
   }
@@ -105,12 +90,9 @@ export function CtoTeamManagementPage() {
     updateTeam(editingSquad.id, {
       name: editSquadName.trim(),
       code: editSquadCode.trim().toUpperCase(),
-      focus: editSquadFocus.trim(),
       pmId: editPmId || undefined,
-      leadDevId: editLeadDevId || undefined,
       memberIds: editMemberIds,
       projectIds: editProjectIds,
-      weeklyVelocity: Number(editVelocity),
     })
 
     setEditingSquad(null)
@@ -148,9 +130,6 @@ export function CtoTeamManagementPage() {
           <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">
             Engineering Squads & Teams
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Company-wide engineering division: {teams.length} autonomous squads, {developers.length} developers, and {projectManagers.length} PMs
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -174,7 +153,7 @@ export function CtoTeamManagementPage() {
             <div className="text-base font-bold text-slate-900 dark:text-slate-100">
               {teams.length} Squads
             </div>
-            <div className="text-[11px] text-slate-400">Autonomous Units</div>
+            <div className="text-[11px] text-slate-400">Total Teams</div>
           </div>
         </div>
 
@@ -184,7 +163,7 @@ export function CtoTeamManagementPage() {
           </div>
           <div>
             <div className="text-base font-bold text-slate-900 dark:text-slate-100">
-              {developers.length}
+              {developers.length} Developers
             </div>
             <div className="text-[11px] text-slate-400">Active Engineers</div>
           </div>
@@ -192,25 +171,25 @@ export function CtoTeamManagementPage() {
 
         <div className="p-3 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-lime-50 dark:bg-lime-950/40 text-lime-600 dark:text-lime-400 flex items-center justify-center">
-            <Zap className="w-4 h-4" />
+            <ShieldCheck className="w-4 h-4" />
           </div>
           <div>
             <div className="text-base font-bold text-slate-900 dark:text-slate-100">
-              {Math.round(totalVelocity / (teams.length || 1))} pts
+              {projectManagers.length} PMs
             </div>
-            <div className="text-[11px] text-slate-400">Avg Velocity</div>
+            <div className="text-[11px] text-slate-400">Assigned Managers</div>
           </div>
         </div>
 
         <div className="p-3 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-            <ShieldCheck className="w-4 h-4" />
+            <FolderGit2 className="w-4 h-4" />
           </div>
           <div>
             <div className="text-base font-bold text-slate-900 dark:text-slate-100">
-              {totalVelocity} pts
+              {projects.length} Projects
             </div>
-            <div className="text-[11px] text-slate-400">Total Engineering Capacity</div>
+            <div className="text-[11px] text-slate-400">Active Deliverables</div>
           </div>
         </div>
       </div>
@@ -221,7 +200,7 @@ export function CtoTeamManagementPage() {
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search squads by name, technical focus, PM, or tech lead..."
+            placeholder="Search squads by name, code, or PM..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-lime-500"
@@ -242,93 +221,67 @@ export function CtoTeamManagementPage() {
               key={squad.id}
               className="p-5 rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200 flex flex-col justify-between shadow-2xs group space-y-4"
             >
-              <div>
-                {/* Header Row */}
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <div className="flex items-center gap-2">
+              <div className="space-y-3">
+                {/* Header Row: Code & Squad Name */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
                     <Badge variant="indigo" size="xs">
                       {squad.code}
                     </Badge>
-                    <span className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
+                    <span className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
                       {squad.name.split('—')[0]}
                     </span>
                   </div>
-                  <Badge variant="emerald" size="xs">
-                    {squad.weeklyVelocity || 45} pts/wk
+                  <Badge variant="slate" size="xs">
+                    {squad.members.length} Devs
                   </Badge>
                 </div>
 
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mb-3">
-                  {squad.focus}
-                </p>
-
-                {/* Leadership Box */}
-                <div className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 grid grid-cols-2 gap-2 text-xs mb-3">
-                  <div>
-                    <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-medium">
-                      Project Manager
+                {/* Assigned PM */}
+                <div className="flex items-center justify-between text-xs py-2 px-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                  <span className="text-[11px] text-slate-400 font-medium">Project Manager</span>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    {squad.pm?.avatar ? (
+                      <img
+                        src={squad.pm.avatar}
+                        alt={squad.pm.name}
+                        className="w-5 h-5 rounded-full object-cover shrink-0"
+                      />
+                    ) : (
+                      <div className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 text-[10px] flex items-center justify-center font-bold shrink-0">
+                        {squad.pm?.name?.charAt(0) || 'P'}
+                      </div>
+                    )}
+                    <span className="font-semibold text-slate-800 dark:text-slate-200 text-xs truncate">
+                      {squad.pm?.name || 'Unassigned'}
                     </span>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      {squad.pm?.avatar ? (
-                        <img
-                          src={squad.pm.avatar}
-                          alt={squad.pm.name}
-                          className="w-5 h-5 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 text-[10px] flex items-center justify-center font-bold">
-                          {squad.pm?.name?.charAt(0) || 'P'}
-                        </div>
-                      )}
-                      <span className="font-semibold text-slate-800 dark:text-slate-200 text-[11px] truncate">
-                        {squad.pm?.name || 'Unassigned'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-medium">
-                      Lead Engineer
-                    </span>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      {squad.leadDev?.avatar ? (
-                        <img
-                          src={squad.leadDev.avatar}
-                          alt={squad.leadDev.name}
-                          className="w-5 h-5 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-5 h-5 rounded-full bg-sky-100 text-sky-700 text-[10px] flex items-center justify-center font-bold">
-                          {squad.leadDev?.name?.charAt(0) || 'L'}
-                        </div>
-                      )}
-                      <span className="font-semibold text-slate-800 dark:text-slate-200 text-[11px] truncate">
-                        {squad.leadDev?.name || 'Unassigned'}
-                      </span>
-                    </div>
                   </div>
                 </div>
 
                 {/* Assigned Projects */}
-                <div className="space-y-1 mb-3">
+                <div className="space-y-1.5">
                   <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                     Assigned Projects ({squad.projects.length})
                   </span>
-                  <div className="flex flex-wrap gap-1.5 pt-0.5">
-                    {squad.projects.map((proj) => (
-                      <span
-                        key={proj.id}
-                        className="text-[10px] px-2 py-0.5 rounded-lg bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-mono flex items-center gap-1 border border-indigo-100 dark:border-indigo-800/40"
-                      >
-                        <FolderGit2 className="w-3 h-3" />
-                        {proj.code} ({proj.progress}%)
-                      </span>
-                    ))}
+                  <div className="flex flex-wrap gap-1.5">
+                    {squad.projects.length === 0 ? (
+                      <span className="text-[11px] text-slate-400 italic">No projects assigned</span>
+                    ) : (
+                      squad.projects.map((proj) => (
+                        <span
+                          key={proj.id}
+                          className="text-[10px] px-2 py-0.5 rounded-lg bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-mono flex items-center gap-1 border border-indigo-100 dark:border-indigo-800/40"
+                        >
+                          <FolderGit2 className="w-3 h-3" />
+                          {proj.code}
+                        </span>
+                      ))
+                    )}
                   </div>
                 </div>
 
-                {/* Sprint Progress Bar */}
-                <div className="space-y-1">
+                {/* Task Completion Progress Bar */}
+                <div className="space-y-1 pt-1">
                   <div className="flex items-center justify-between text-[11px]">
                     <span className="text-slate-400">Task Completion</span>
                     <span className="font-semibold text-slate-700 dark:text-slate-300">
@@ -347,7 +300,7 @@ export function CtoTeamManagementPage() {
               {/* Footer: Member avatars + Actions */}
               <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div className="flex items-center -space-x-1.5 overflow-hidden">
-                  {squad.members.map((member) => (
+                  {squad.members.slice(0, 5).map((member) => (
                     <img
                       key={member.id}
                       src={member.avatar}
@@ -356,9 +309,11 @@ export function CtoTeamManagementPage() {
                       className="inline-block w-6 h-6 rounded-full ring-2 ring-white dark:ring-slate-900 object-cover"
                     />
                   ))}
-                  <span className="pl-2 text-[11px] text-slate-400">
-                    {squad.members.length} Devs
-                  </span>
+                  {squad.members.length > 5 && (
+                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 text-[10px] font-bold text-slate-700 dark:text-slate-200 ring-2 ring-white dark:ring-slate-900">
+                      +{squad.members.length - 5}
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-1">
@@ -424,65 +379,20 @@ export function CtoTeamManagementPage() {
 
             <div>
               <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                Technical Focus & Architecture Responsibility
+                Assigned PM
               </label>
-              <textarea
-                rows={2}
-                value={newSquadFocus}
-                onChange={(e) => setNewSquadFocus(e.target.value)}
-                placeholder="Core mission and technology focus..."
-                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400 resize-none"
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                  Assigned PM
-                </label>
-                <select
-                  value={newPmId}
-                  onChange={(e) => setNewPmId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
-                >
-                  <option value="">Unassigned</option>
-                  {projectManagers.map((pm) => (
-                    <option key={pm.id} value={pm.id}>
-                      {pm.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                  Lead Engineer
-                </label>
-                <select
-                  value={newLeadDevId}
-                  onChange={(e) => setNewLeadDevId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
-                >
-                  <option value="">Unassigned</option>
-                  {developers.map((dev) => (
-                    <option key={dev.id} value={dev.id}>
-                      {dev.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                  Weekly Velocity
-                </label>
-                <input
-                  type="number"
-                  value={newVelocity}
-                  onChange={(e) => setNewVelocity(Number(e.target.value))}
-                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
-                />
-              </div>
+              <select
+                value={newPmId}
+                onChange={(e) => setNewPmId(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
+              >
+                <option value="">Unassigned</option>
+                {projectManagers.map((pm) => (
+                  <option key={pm.id} value={pm.id}>
+                    {pm.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -589,64 +499,20 @@ export function CtoTeamManagementPage() {
 
             <div>
               <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                Technical Focus & Scope
+                Assigned PM
               </label>
-              <textarea
-                rows={2}
-                value={editSquadFocus}
-                onChange={(e) => setEditSquadFocus(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400 resize-none"
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                  Assigned PM
-                </label>
-                <select
-                  value={editPmId}
-                  onChange={(e) => setEditPmId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
-                >
-                  <option value="">Unassigned</option>
-                  {projectManagers.map((pm) => (
-                    <option key={pm.id} value={pm.id}>
-                      {pm.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                  Lead Engineer
-                </label>
-                <select
-                  value={editLeadDevId}
-                  onChange={(e) => setEditLeadDevId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
-                >
-                  <option value="">Unassigned</option>
-                  {developers.map((dev) => (
-                    <option key={dev.id} value={dev.id}>
-                      {dev.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                  Velocity (pts/wk)
-                </label>
-                <input
-                  type="number"
-                  value={editVelocity}
-                  onChange={(e) => setEditVelocity(Number(e.target.value))}
-                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
-                />
-              </div>
+              <select
+                value={editPmId}
+                onChange={(e) => setEditPmId(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
+              >
+                <option value="">Unassigned</option>
+                {projectManagers.map((pm) => (
+                  <option key={pm.id} value={pm.id}>
+                    {pm.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -723,9 +589,25 @@ export function CtoTeamManagementPage() {
           title={selectedSquad ? `${selectedSquad.name} (${selectedSquad.code}) — Squad Overview` : 'Squad'}
         >
           <div className="space-y-4 text-xs">
-            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 text-xs">
-              <span className="font-semibold text-slate-800 dark:text-slate-200">Mission:</span>{' '}
-              <span className="text-slate-600 dark:text-slate-400">{selectedSquad.focus}</span>
+            {/* PM Card */}
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 flex items-center justify-between">
+              <span className="text-slate-400 font-medium">Assigned Project Manager</span>
+              <div className="flex items-center gap-2">
+                {selectedSquad.pm?.avatar ? (
+                  <img
+                    src={selectedSquad.pm.avatar}
+                    alt={selectedSquad.pm.name}
+                    className="w-6 h-6 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-xs flex items-center justify-center font-bold">
+                    {selectedSquad.pm?.name?.charAt(0) || 'P'}
+                  </div>
+                )}
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  {selectedSquad.pm?.name || 'Unassigned'}
+                </span>
+              </div>
             </div>
 
             {/* Members List */}
@@ -737,26 +619,19 @@ export function CtoTeamManagementPage() {
                 {selectedSquad.members.map((member) => (
                   <div
                     key={member.id}
-                    className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2"
+                    className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center gap-2"
                   >
-                    <div className="flex items-center gap-2">
-                      <img
-                        src={member.avatar}
-                        alt={member.name}
-                        className="w-8 h-8 rounded-full object-cover"
-                      />
-                      <div>
-                        <h5 className="font-semibold text-xs text-slate-900 dark:text-slate-100">
-                          {member.name}
-                        </h5>
-                        <span className="text-[10px] text-slate-400 block">{member.title}</span>
-                      </div>
+                    <img
+                      src={member.avatar}
+                      alt={member.name}
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                    <div>
+                      <h5 className="font-semibold text-xs text-slate-900 dark:text-slate-100">
+                        {member.name}
+                      </h5>
+                      <span className="text-[10px] text-slate-400 block">{member.title}</span>
                     </div>
-                    {member.id === selectedSquad.leadDev?.id && (
-                      <Badge variant="indigo" size="xs">
-                        Lead
-                      </Badge>
-                    )}
                   </div>
                 ))}
               </div>

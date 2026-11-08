@@ -227,7 +227,6 @@ export function PmEarningsPage() {
       {/* Performance Section below table (Identical to Dev) */}
       <Card
         title="Performance & Delivery Metrics"
-        subtitle="Key management indicators tied to sprint payouts and bonuses"
         icon={Award}
       >
         <div className="space-y-4">

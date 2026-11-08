@@ -139,7 +139,6 @@ export function DeveloperReportPage() {
             /* New Project Idea Form */
             <Card
               title="Submit New Project Idea"
-              subtitle="Pitch a new project proposal with specification documentation"
               icon={Lightbulb}
             >
               <form onSubmit={handleProjectSubmit} className="space-y-4 text-xs">
@@ -204,7 +203,6 @@ export function DeveloperReportPage() {
             /* General Complaint Form: complain to | title | desc */
             <Card
               title="File General Complaint"
-              subtitle="Submit issues regarding workload, team members, or work environment"
               icon={AlertTriangle}
             >
               <form onSubmit={handleComplaintSubmit} className="space-y-4 text-xs">

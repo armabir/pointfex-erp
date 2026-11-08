@@ -10,9 +10,6 @@ export function CtoSecurityTestingPage() {
         <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">
           Security & Compliance Posture
         </h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-          Vulnerability scans, SAST/DAST automation, bug bounty management, and compliance governance
-        </p>
       </div>
 
       {/* Coming Soon Card */}

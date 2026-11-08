@@ -135,7 +135,6 @@ export function DeveloperSettingsPage() {
       {/* Technical Skills & Expertise - Skills can be added or removed */}
       <Card
         title="Technical Skills"
-        subtitle="Add or remove technologies in your skillset"
         icon={Tag}
       >
         <div className="space-y-4">

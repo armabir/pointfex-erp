@@ -64,9 +64,6 @@ export function CtoSettingsPage() {
         <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">
           Profile & System Settings
         </h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-          Executive CTO credentials, technical competency tags, and workspace preferences
-        </p>
       </div>
 
       {/* Identity Card (Read-only, matching Dev & PM) */}
@@ -148,7 +145,6 @@ export function CtoSettingsPage() {
       {/* Skills & Competencies (Editable - Add / Remove tags only, matching Dev & PM) */}
       <Card
         title="Technical Competencies & Domains"
-        subtitle="Manage the engineering domains and architecture specialties associated with your executive profile"
         icon={Tag}
       >
         <div className="space-y-4">
@@ -195,7 +191,6 @@ export function CtoSettingsPage() {
       {/* System & Workspace Preferences */}
       <Card
         title="Engineering Workspace Preferences"
-        subtitle="Configure default branch conventions and environment defaults"
         icon={ShieldCheck}
       >
         <div className="space-y-4 text-xs">

@@ -93,9 +93,6 @@ export function CtoPeoplePage() {
           <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">
             Engineering & Personnel Directory
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Full directory of {allUsers.length} developers, project managers, and executive leadership with squad reassignments
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="indigo" size="sm">

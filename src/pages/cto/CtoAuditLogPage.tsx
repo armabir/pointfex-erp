@@ -1,132 +1,134 @@
 import { useState, useMemo, useCallback } from 'react'
-import { Card } from '../../components/common/Card'
-import { Badge } from '../../components/common/Badge'
-import { Button } from '../../components/common/Button'
 import { Modal } from '../../components/common/Modal'
+import { Button } from '../../components/common/Button'
 import { useCtoData } from '../../hooks/useCtoData'
 import { useApp } from '../../context/AppContext'
 import type { ActivityLog } from '../../types'
-import {
-  ScrollText,
-  Search,
-  Download,
-  ShieldCheck,
-  GitBranch,
-  CheckSquare,
-  Coins,
-  Layers,
-  ArrowUpDown,
-  User,
-} from 'lucide-react'
+import { Search, Download } from 'lucide-react'
 
 export function CtoAuditLogPage() {
   const { auditLogs } = useCtoData()
   const { data } = useApp()
 
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [severityFilter, setSeverityFilter] = useState<string>('all')
   const [selectedLog, setSelectedLog] = useState<ActivityLog | null>(null)
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'actor' | 'category'>('newest')
 
-  const categories = [
-    { id: 'all', label: 'All Activities' },
-    { id: 'project', label: 'Projects & Repos', icon: GitBranch },
-    { id: 'task', label: 'Tasks & Directives', icon: CheckSquare },
-    { id: 'financial', label: 'Finance & Budget', icon: Coins },
-    { id: 'user', label: 'Personnel & Teams', icon: User },
-    { id: 'security', label: 'Security & Auth', icon: ShieldCheck },
-    { id: 'milestone', label: 'Milestones', icon: Layers },
-  ]
-
-  // Map user ID to user name & role
-  const getUserInfo = useCallback((userId?: string) => {
-    if (!userId) return { name: 'System Event', role: 'System' }
+  // Map user ID to user name, email & role
+  const getUserInfo = useCallback((userId?: string, log?: ActivityLog) => {
+    if (log?.actorName && log?.actorEmail && log?.actorRole) {
+      return {
+        name: log.actorName,
+        email: log.actorEmail,
+        role: log.actorRole,
+      }
+    }
+    if (!userId) return { name: 'System Event', email: 'system@pointfex.internal', role: 'SYSTEM' }
     const found = data.users.find((u) => u.id === userId)
-    if (found) return { name: found.name, role: found.role.toUpperCase(), avatar: found.avatar }
-    if (userId.includes('cto')) return { name: 'Dr. Arthur Sterling', role: 'CTO' }
-    if (userId.includes('ceo')) return { name: 'Victoria Sterling-Fox', role: 'CEO' }
-    if (userId.includes('cfo')) return { name: 'Vincent Gallagher', role: 'CFO' }
-    if (userId.includes('cpo')) return { name: 'Amara Okafor', role: 'CPO' }
-    return { name: userId, role: 'Personnel' }
+    if (found) {
+      return {
+        name: found.name,
+        email: found.email,
+        role: found.role.toUpperCase(),
+      }
+    }
+    if (userId.includes('cto')) return { name: 'ARM Abir Hasan', email: '2023100000176@seu.edu.bd', role: 'CTO' }
+    if (userId.includes('ceo')) return { name: 'Chief Executive Officer', email: 'noon@seu.edu.bd', role: 'CEO' }
+    if (userId.includes('cfo')) return { name: 'Vincent Gallagher', email: 'vincent.gallagher@pointfex.com', role: 'CFO' }
+    if (userId.includes('cpo')) return { name: 'Amara Okafor', email: 'amara.okafor@pointfex.com', role: 'CPO' }
+    return { name: userId, email: `${userId}@pointfex.internal`, role: 'USER' }
   }, [data.users])
 
+  const getActionCode = (log: ActivityLog) => {
+    if (log.actionCode) return log.actionCode
+    return log.action.toUpperCase().replace(/\s+/g, '_')
+  }
+
+  const getSeverity = (log: ActivityLog): 'INFO' | 'CRITICAL' | 'WARNING' | 'SUCCESS' => {
+    if (log.severity) return log.severity as any
+    if (log.action.toLowerCase().includes('token') || log.action.toLowerCase().includes('critical') || log.action.toLowerCase().includes('security')) {
+      return 'CRITICAL'
+    }
+    if (log.action.toLowerCase().includes('warning') || log.action.toLowerCase().includes('reject')) {
+      return 'WARNING'
+    }
+    if (log.action.toLowerCase().includes('approved') || log.action.toLowerCase().includes('created') || log.action.toLowerCase().includes('completed')) {
+      return 'SUCCESS'
+    }
+    return 'INFO'
+  }
+
   const processedLogs = useMemo(() => {
-    let result = auditLogs.filter((log) => {
-      if (selectedCategory !== 'all' && log.category !== selectedCategory) {
+    return auditLogs.filter((log) => {
+      const severity = getSeverity(log)
+      if (severityFilter !== 'all' && severity !== severityFilter) {
         return false
       }
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase()
-        const matchTitle = log.entityTitle?.toLowerCase().includes(q)
+        const actor = getUserInfo(log.userId, log)
+        const matchActorName = actor.name.toLowerCase().includes(q)
+        const matchActorEmail = actor.email.toLowerCase().includes(q)
+        const matchAction = getActionCode(log).toLowerCase().includes(q)
         const matchDesc = log.description?.toLowerCase().includes(q)
-        const matchAction = log.action?.toLowerCase().includes(q)
-        const matchUser = log.userId?.toLowerCase().includes(q)
-        if (!matchTitle && !matchDesc && !matchAction && !matchUser) return false
+        const matchEntity = log.entityTitle?.toLowerCase().includes(q)
+        if (!matchActorName && !matchActorEmail && !matchAction && !matchDesc && !matchEntity) {
+          return false
+        }
       }
       return true
     })
-
-    return result.sort((a, b) => {
-      if (sortBy === 'newest') {
-        return (b.id || '').localeCompare(a.id || '')
-      }
-      if (sortBy === 'oldest') {
-        return (a.id || '').localeCompare(b.id || '')
-      }
-      if (sortBy === 'actor') {
-        const nameA = getUserInfo(a.userId).name
-        const nameB = getUserInfo(b.userId).name
-        return nameA.localeCompare(nameB)
-      }
-      if (sortBy === 'category') {
-        return (a.category || '').localeCompare(b.category || '')
-      }
-      return 0
-    })
-  }, [auditLogs, selectedCategory, searchQuery, sortBy, getUserInfo])
+  }, [auditLogs, severityFilter, searchQuery, getUserInfo])
 
   // Export audit log as JSON file
   const handleExportJson = () => {
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(processedLogs, null, 2))
     const downloadAnchor = document.createElement('a')
     downloadAnchor.setAttribute('href', dataStr)
-    downloadAnchor.setAttribute('download', `pointfex_audit_log_${new Date().toISOString().slice(0, 10)}.json`)
+    downloadAnchor.setAttribute('download', `executive_audit_log_${new Date().toISOString().slice(0, 10)}.json`)
     document.body.appendChild(downloadAnchor)
     downloadAnchor.click()
     downloadAnchor.remove()
   }
 
-  const getCategoryBadge = (cat: string) => {
-    switch (cat) {
-      case 'project':
-      case 'git':
-        return <Badge variant="purple" size="xs">PROJECT / GIT</Badge>
-      case 'task':
-        return <Badge variant="sky" size="xs">TASK</Badge>
-      case 'financial':
-        return <Badge variant="emerald" size="xs">FINANCE</Badge>
-      case 'user':
-        return <Badge variant="lime" size="xs">PERSONNEL</Badge>
-      case 'security':
-        return <Badge variant="rose" size="xs">SECURITY</Badge>
-      case 'milestone':
-        return <Badge variant="amber" size="xs">MILESTONE</Badge>
+  const getSeverityPill = (severity: string) => {
+    switch (severity) {
+      case 'CRITICAL':
+        return (
+          <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/40">
+            CRITICAL
+          </span>
+        )
+      case 'WARNING':
+        return (
+          <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200/60 dark:border-amber-900/40">
+            WARNING
+          </span>
+        )
+      case 'SUCCESS':
+        return (
+          <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900/40">
+            SUCCESS
+          </span>
+        )
+      case 'INFO':
       default:
-        return <Badge variant="slate" size="xs">{cat?.toUpperCase() || 'GENERAL'}</Badge>
+        return (
+          <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+            INFO
+          </span>
+        )
     }
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-4">
+      {/* Header bar without extra texts */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">
-            Company-Wide Audit Log
+            Audit Log
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Immutable system audit trail tracking all actions taken across Pointfex ERP by all personnel
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -135,249 +137,201 @@ export function CtoAuditLogPage() {
             icon={Download}
             onClick={handleExportJson}
           >
-            Export Audit (JSON)
+            Export JSON
           </Button>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white dark:bg-slate-900/60 p-3 rounded-2xl border border-slate-200 dark:border-slate-800">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-slate-900/60 p-3 rounded-2xl border border-slate-200 dark:border-slate-800">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search audit trail by action, description, entity, or actor..."
+            placeholder="Search by actor, action code, email, or payload..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-lime-500"
           />
         </div>
 
-        {/* Category Filter Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 text-xs">
-          {categories.map((cat) => (
+        {/* Severity Filter Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto text-xs">
+          {['all', 'INFO', 'CRITICAL', 'WARNING', 'SUCCESS'].map((sev) => (
             <button
               type="button"
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`px-2.5 py-1 rounded-xl font-medium whitespace-nowrap transition-colors cursor-pointer ${
-                selectedCategory === cat.id
+              key={sev}
+              onClick={() => setSeverityFilter(sev)}
+              className={`px-3 py-1 rounded-xl font-medium whitespace-nowrap transition-colors cursor-pointer ${
+                severityFilter === sev
                   ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              {cat.label}
+              {sev.toUpperCase()}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Sorting Control Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-1 text-xs">
-        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-medium">
-          <ArrowUpDown className="w-3.5 h-3.5 text-lime-600 dark:text-lime-400" />
-          <span>Sort Audit Log:</span>
-        </div>
-
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <button
-            type="button"
-            onClick={() => setSortBy('newest')}
-            className={`px-3 py-1 rounded-xl font-medium transition-colors cursor-pointer ${
-              sortBy === 'newest'
-                ? 'bg-lime-500 text-slate-950 font-bold shadow-2xs'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            Newest First
-          </button>
-          <button
-            type="button"
-            onClick={() => setSortBy('oldest')}
-            className={`px-3 py-1 rounded-xl font-medium transition-colors cursor-pointer ${
-              sortBy === 'oldest'
-                ? 'bg-lime-500 text-slate-950 font-bold shadow-2xs'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            Oldest First
-          </button>
-          <button
-            type="button"
-            onClick={() => setSortBy('actor')}
-            className={`px-3 py-1 rounded-xl font-medium transition-colors cursor-pointer ${
-              sortBy === 'actor'
-                ? 'bg-lime-500 text-slate-950 font-bold shadow-2xs'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            Sort by Actor
-          </button>
-          <button
-            type="button"
-            onClick={() => setSortBy('category')}
-            className={`px-3 py-1 rounded-xl font-medium transition-colors cursor-pointer ${
-              sortBy === 'category'
-                ? 'bg-lime-500 text-slate-950 font-bold shadow-2xs'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            Sort by Category
-          </button>
-        </div>
-      </div>
-
-      {/* Audit Log Table / Cards */}
-      <Card
-        title={`Audit Trail Records (${processedLogs.length})`}
-        icon={ScrollText}
-      >
-        {processedLogs.length === 0 ? (
-          <div className="py-12 text-center text-xs text-slate-400">
-            No audit records found matching your filters.
+      {/* Main Audit Log Card matching image1 */}
+      <div className="bg-white dark:bg-slate-900/80 rounded-3xl border border-slate-200/90 dark:border-slate-800 overflow-hidden shadow-2xs">
+        {/* Top Header Row */}
+        <div className="px-6 py-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 text-xs">
+          <div className="text-slate-600 dark:text-slate-300 font-medium">
+            Total executive audit logs: <strong className="text-slate-900 dark:text-white font-bold">{auditLogs.length}</strong>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 font-semibold text-[11px]">
-                  <th className="py-2.5 px-3">Time</th>
-                  <th className="py-2.5 px-3">Action By</th>
-                  <th className="py-2.5 px-3">Category</th>
-                  <th className="py-2.5 px-3">Action</th>
-                  <th className="py-2.5 px-3">Entity Target</th>
-                  <th className="py-2.5 px-3">Description</th>
-                  <th className="py-2.5 px-3 text-right">Inspect</th>
+          <div className="text-slate-400 text-[11px]">
+            Showing recent {processedLogs.length} entries
+          </div>
+        </div>
+
+        {/* Table matching image1 */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 font-semibold text-[11px] uppercase tracking-wider">
+                <th className="py-3 px-6">Timestamp</th>
+                <th className="py-3 px-6">Actor</th>
+                <th className="py-3 px-4">Role</th>
+                <th className="py-3 px-6">Action</th>
+                <th className="py-3 px-4">Severity</th>
+                <th className="py-3 px-6 text-right">Payload</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+              {processedLogs.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-slate-400 text-xs">
+                    No executive audit logs found matching criteria.
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
-                {processedLogs.map((log) => {
-                  const actor = getUserInfo(log.userId)
+              ) : (
+                processedLogs.map((log) => {
+                  const actor = getUserInfo(log.userId, log)
+                  const actionCode = getActionCode(log)
+                  const severity = getSeverity(log)
 
                   return (
                     <tr
                       key={log.id}
-                      className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
+                      className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors"
                     >
-                      <td className="py-3 px-3 whitespace-nowrap text-slate-500 dark:text-slate-400 font-mono text-[11px]">
-                        {log.timestamp || 'Just now'}
+                      {/* Timestamp */}
+                      <td className="py-4 px-6 whitespace-nowrap text-slate-600 dark:text-slate-300 font-mono text-[11px]">
+                        {log.timestamp}
                       </td>
-                      <td className="py-3 px-3 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          {actor.avatar && (
-                            <img
-                              src={actor.avatar}
-                              alt={actor.name}
-                              className="w-5 h-5 rounded-full object-cover border border-slate-200 dark:border-slate-700"
-                            />
-                          )}
-                          <div>
-                            <span className="font-semibold text-slate-800 dark:text-slate-200 block text-xs">
-                              {actor.name}
-                            </span>
-                            <span className="text-[10px] text-slate-400 font-mono">
-                              {actor.role}
-                            </span>
-                          </div>
+
+                      {/* Actor */}
+                      <td className="py-4 px-6 whitespace-nowrap">
+                        <div>
+                          <span className="font-bold text-slate-900 dark:text-white block text-xs">
+                            {actor.name}
+                          </span>
+                          <span className="text-[11px] text-slate-400 font-mono">
+                            {actor.email}
+                          </span>
                         </div>
                       </td>
-                      <td className="py-3 px-3 whitespace-nowrap">
-                        {getCategoryBadge(log.category)}
-                      </td>
-                      <td className="py-3 px-3 font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">
-                        {log.action}
-                      </td>
-                      <td className="py-3 px-3 font-medium text-slate-700 dark:text-slate-300">
-                        <span className="truncate max-w-[160px] block" title={log.entityTitle}>
-                          {log.entityTitle || log.entityId}
+
+                      {/* Role */}
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200/70 dark:border-slate-700">
+                          {actor.role}
                         </span>
                       </td>
-                      <td className="py-3 px-3 text-slate-500 dark:text-slate-400">
-                        <span className="line-clamp-1 max-w-[260px]" title={log.description}>
-                          {log.description}
+
+                      {/* Action Code */}
+                      <td className="py-4 px-6 whitespace-nowrap">
+                        <span className="font-mono text-xs font-semibold text-slate-800 dark:text-slate-200">
+                          {actionCode}
                         </span>
                       </td>
-                      <td className="py-3 px-3 text-right whitespace-nowrap">
-                        <Button
-                          variant="ghost"
-                          size="xs"
+
+                      {/* Severity */}
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        {getSeverityPill(severity)}
+                      </td>
+
+                      {/* Payload Inspect Button */}
+                      <td className="py-4 px-6 text-right whitespace-nowrap">
+                        <button
+                          type="button"
                           onClick={() => setSelectedLog(log)}
+                          className="px-3.5 py-1 text-xs font-medium rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
                         >
-                          View
-                        </Button>
+                          Inspect
+                        </button>
                       </td>
                     </tr>
                   )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-      {/* Log Detail Modal */}
+      {/* Inspect Modal */}
       {selectedLog && (
         <Modal
           isOpen={!!selectedLog}
           onClose={() => setSelectedLog(null)}
-          title={`Audit Record — ${selectedLog.id}`}
+          title={`Audit Payload & Execution — ${getActionCode(selectedLog)}`}
         >
           <div className="space-y-4 text-xs">
-            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-2">
+            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-slate-400 font-mono text-[11px]">{selectedLog.id}</span>
-                {getCategoryBadge(selectedLog.category)}
+                <span className="font-mono text-[11px] text-slate-400">{selectedLog.id}</span>
+                {getSeverityPill(getSeverity(selectedLog))}
               </div>
-              <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">
-                {selectedLog.action}
-              </h4>
-              <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
+              <div className="font-bold text-sm text-slate-900 dark:text-white">
                 {selectedLog.description}
-              </p>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
-                <span className="text-[10px] text-slate-400 block font-semibold uppercase tracking-wider">
-                  Action Taken By
-                </span>
-                <span className="font-semibold text-slate-900 dark:text-slate-100 block mt-1">
-                  {getUserInfo(selectedLog.userId).name}
+                <span className="text-[10px] text-slate-400 block font-semibold uppercase">Actor</span>
+                <span className="font-bold text-slate-900 dark:text-white block mt-0.5">
+                  {getUserInfo(selectedLog.userId, selectedLog).name}
                 </span>
                 <span className="text-[10px] text-slate-400 font-mono">
-                  {getUserInfo(selectedLog.userId).role} ({selectedLog.userId})
+                  {getUserInfo(selectedLog.userId, selectedLog).email}
                 </span>
               </div>
 
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
-                <span className="text-[10px] text-slate-400 block font-semibold uppercase tracking-wider">
-                  Timestamp
+                <span className="text-[10px] text-slate-400 block font-semibold uppercase">Timestamp</span>
+                <span className="font-bold text-slate-900 dark:text-white block mt-0.5 font-mono">
+                  {selectedLog.timestamp}
                 </span>
-                <span className="font-semibold text-slate-900 dark:text-slate-100 block mt-1">
-                  {selectedLog.timestamp || 'Just now'}
-                </span>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
-                <span className="text-[10px] text-slate-400 block font-semibold uppercase tracking-wider">
-                  Target Entity Type
-                </span>
-                <span className="font-mono text-slate-700 dark:text-slate-300 block mt-1 uppercase">
-                  {selectedLog.entityType || 'SYSTEM'}
-                </span>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
-                <span className="text-[10px] text-slate-400 block font-semibold uppercase tracking-wider">
-                  Target Entity Title
-                </span>
-                <span className="font-semibold text-slate-900 dark:text-slate-100 block mt-1 truncate">
-                  {selectedLog.entityTitle || selectedLog.entityId || 'N/A'}
-                </span>
+                <span className="text-[10px] text-slate-400">Recorded by Audit Gateway</span>
               </div>
             </div>
 
-            <div className="flex justify-end pt-3 border-t border-slate-200 dark:border-slate-800">
+            {/* Payload JSON Inspector */}
+            <div>
+              <span className="text-[10px] font-semibold uppercase text-slate-400 block mb-1.5">
+                Payload Parameters
+              </span>
+              <pre className="p-3.5 rounded-2xl bg-slate-900 text-slate-200 font-mono text-[11px] overflow-x-auto leading-relaxed border border-slate-800">
+                {JSON.stringify(
+                  selectedLog.payload || {
+                    id: selectedLog.id,
+                    action: getActionCode(selectedLog),
+                    entityType: selectedLog.entityType,
+                    entityId: selectedLog.entityId,
+                    entityTitle: selectedLog.entityTitle,
+                    description: selectedLog.description,
+                  },
+                  null,
+                  2
+                )}
+              </pre>
+            </div>
+
+            <div className="flex justify-end pt-2">
               <Button variant="ghost" size="sm" onClick={() => setSelectedLog(null)}>
                 Close
               </Button>
