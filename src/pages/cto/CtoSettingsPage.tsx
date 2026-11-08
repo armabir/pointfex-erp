@@ -20,21 +20,27 @@ import {
 
 export function CtoSettingsPage() {
   const { cto } = useCtoData()
-  const { resetDemoData, updateCtoProfile, showToast } = useApp()
+  const { currentRole, currentUser, resetDemoData, updateCtoProfile, updateExecutiveProfile, showToast } = useApp()
 
   const [newSkillInput, setNewSkillInput] = useState('')
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false)
 
-  const currentSkills = cto?.skills || [
-    'System Architecture',
-    'Distributed Systems',
-    'Microservices',
-    'Kubernetes',
-    'Rust',
-    'TypeScript',
-    'Zero-Trust Security',
-    'SOC2 Compliance',
-    'LLM Ops',
+  const activeUser = currentUser || cto
+
+  const handleUpdateProfile = (fields: any) => {
+    if (currentRole === 'cto') {
+      updateCtoProfile(fields)
+    } else {
+      updateExecutiveProfile(currentRole, fields)
+    }
+  }
+
+  const currentSkills = activeUser?.skills || [
+    'Executive Leadership',
+    'Strategic Planning',
+    'Cross-Functional Governance',
+    'Financial Modeling',
+    'Enterprise Architecture',
   ]
 
   const handleAddSkill = (e?: React.FormEvent) => {
@@ -46,14 +52,14 @@ export function CtoSettingsPage() {
       return
     }
     const updated = [...currentSkills, trimmed]
-    updateCtoProfile({ skills: updated })
+    handleUpdateProfile({ skills: updated })
     setNewSkillInput('')
     showToast(`Added competency: "${trimmed}"`, 'success')
   }
 
   const handleRemoveSkill = (skillToRemove: string) => {
     const updated = currentSkills.filter((s) => s !== skillToRemove)
-    updateCtoProfile({ skills: updated })
+    handleUpdateProfile({ skills: updated })
     showToast(`Removed competency: "${skillToRemove}"`, 'info')
   }
 
@@ -68,7 +74,7 @@ export function CtoSettingsPage() {
 
       {/* Identity Card (Read-only, matching Dev & PM) */}
       <Card
-        title="Chief Technology Officer Identity"
+        title={`${activeUser?.title || 'Executive'} Identity`}
         icon={User}
         action={
           <Button
@@ -88,8 +94,8 @@ export function CtoSettingsPage() {
             title="Click to change profile picture"
           >
             <img
-              src={cto?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200'}
-              alt={cto?.name || 'Dr. Arthur Sterling'}
+              src={activeUser?.avatarUrl || activeUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200'}
+              alt={activeUser?.name || 'Executive'}
               className="w-20 h-20 rounded-3xl object-cover border-2 border-slate-200 dark:border-slate-700 shadow-sm group-hover:opacity-80 transition-opacity"
             />
             <div className="absolute inset-0 bg-black/40 rounded-3xl opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
@@ -104,40 +110,40 @@ export function CtoSettingsPage() {
           <div className="space-y-1.5 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                {cto?.name || 'Dr. Arthur Sterling'}
+                {activeUser?.name || 'Executive'}
               </h3>
               <Badge variant="lime" size="xs">
-                {cto?.role?.toUpperCase() || 'CTO'}
+                {activeUser?.role?.toUpperCase() || 'EXECUTIVE'}
               </Badge>
               <Badge variant="indigo" size="xs">
-                ID: {cto?.id || 'user_cto_01'}
+                ID: {activeUser?.id || 'user_exec'}
               </Badge>
             </div>
 
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              {cto?.title || 'Chief Technology Officer & Head of Engineering'}
+              {activeUser?.title || 'Executive Leadership'}
             </p>
 
             <div className="flex flex-wrap items-center gap-4 pt-1 text-xs text-slate-500 dark:text-slate-400">
               <span className="flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5 text-slate-400" />
-                {cto?.email || 'arthur.sterling@pointfex.com'}
+                {activeUser?.email || 'executive@pointfex.internal'}
               </span>
               <span className="flex items-center gap-1.5">
                 <Globe className="w-3.5 h-3.5 text-slate-400" />
-                {cto?.timezone || 'America/New_York (UTC-5)'}
+                {activeUser?.timezone || 'America/New_York (UTC-5)'}
               </span>
               <span className="flex items-center gap-1.5">
                 <Crown className="w-3.5 h-3.5 text-purple-500" />
-                Engineering Executive Committee
+                Pointfex Executive Committee
               </span>
             </div>
           </div>
         </div>
 
-        {cto?.bio && (
+        {activeUser?.bio && (
           <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50/50 dark:bg-slate-850 p-3 rounded-2xl">
-            {cto.bio}
+            {activeUser.bio}
           </div>
         )}
       </Card>
@@ -251,9 +257,9 @@ export function CtoSettingsPage() {
       <AvatarPickerModal
         isOpen={isAvatarModalOpen}
         onClose={() => setIsAvatarModalOpen(false)}
-        currentAvatar={cto?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200'}
-        onSave={(avatar) => updateCtoProfile({ avatar })}
-        userName={cto?.name || 'Chief Technology Officer'}
+        currentAvatar={activeUser?.avatarUrl || activeUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200'}
+        onSave={(avatar) => handleUpdateProfile({ avatar, avatarUrl: avatar })}
+        userName={activeUser?.name || 'Executive'}
       />
     </div>
   )

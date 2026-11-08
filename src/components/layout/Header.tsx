@@ -59,43 +59,46 @@ export function Header() {
       }
     }
 
-    if (currentRole === 'cto') {
-      const ctoRouteMap: Record<string, { title: string; crumb: string }> = {
-        dashboard: { title: 'Executive Engineering Dashboard', crumb: 'Dashboard' },
+    if (currentRole === 'cto' || currentRole === 'cfo' || currentRole === 'cpo' || currentRole === 'chro' || currentRole === 'ceo') {
+      const executiveRoleLabels: Record<string, string> = {
+        cto: 'CTO Command',
+        cfo: 'CFO Desk',
+        cpo: 'CHRO Hub',
+        chro: 'CHRO Hub',
+        ceo: 'CEO Executive Suite',
+      }
+      const execRouteMap: Record<string, { title: string; crumb: string }> = {
+        dashboard: { title: 'Executive Radar & Dashboard', crumb: 'Dashboard' },
         tasks: { title: 'My Executive Tasks', crumb: 'My Tasks' },
-        'task-management': { title: 'Engineering Task Management', crumb: 'Task Management' },
+        'task-management': { title: 'Directives & Task Management', crumb: 'Task Management' },
         'team-management': { title: 'Squad Engineering Oversight', crumb: 'Team Management' },
-        'audit-log': { title: 'System & Engineering Audit Trail', crumb: 'Audit Log' },
-        people: { title: 'Engineering Directory', crumb: 'People' },
+        'audit-log': { title: 'System & Executive Audit Trail', crumb: 'Audit Log' },
+        people: { title: 'People & Engineering Directory', crumb: 'People' },
+        budget: { title: 'Treasury & Budget Management', crumb: 'Budget' },
+        performance: { title: 'Employee Performance & Culture', crumb: 'Performance' },
         'projects-repos': { title: 'Projects & Repositories', crumb: 'Projects & Repos' },
         'code-quality': { title: 'Code Review & Quality Gates', crumb: 'Code Review & Quality' },
         'security-testing': { title: 'Security Posture & Testing', crumb: 'Security & Testing' },
         consultancy: { title: 'Technical Consultancy Hub', crumb: 'Consultancy' },
         earnings: { title: 'Earnings & Performance', crumb: 'Earnings & Performance' },
-        reports: { title: 'Engineering Escalations & Reports', crumb: 'Reports' },
-        settings: { title: 'Profile & Technical Settings', crumb: 'Profile & Settings' },
+        reports: { title: 'Executive Reports & Governance', crumb: 'Reports' },
+        settings: { title: 'Profile & Executive Settings', crumb: 'Profile & Settings' },
       }
-      const curr = ctoRouteMap[currentRoute] || { title: 'Executive Engineering Dashboard', crumb: 'Dashboard' }
+      const curr = execRouteMap[currentRoute] || { title: 'Executive Dashboard', crumb: 'Dashboard' }
       return {
         title: curr.title,
         breadcrumbs: [
-          { label: 'CTO Command', onClick: () => setRoute('dashboard') },
+          { label: executiveRoleLabels[currentRole] || 'Executive', onClick: () => setRoute('dashboard') },
           { label: curr.crumb },
         ],
       }
     }
 
-    const roleMap: Record<string, string> = {
-      cto: 'CTO Workspace',
-      cpo: 'CPO Workspace',
-      cfo: 'CFO Workspace',
-      ceo: 'CEO Workspace',
-    }
     return {
-      title: roleMap[currentRole] || 'Workspace',
+      title: 'Workspace',
       breadcrumbs: [
         { label: 'Pointfex' },
-        { label: roleMap[currentRole] || currentRole },
+        { label: currentRole },
       ],
     }
   }

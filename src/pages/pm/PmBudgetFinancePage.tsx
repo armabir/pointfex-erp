@@ -76,8 +76,11 @@ export function PmBudgetFinancePage() {
 
     // Filtered by selected project
     const projBudget = Number(currentProject.budget) || 0
-    const projAllocated = Math.round(projBudget * 0.68)
     const projTransactions = financials.teamTransactions.filter((tx) => tx.projectId === currentProject.id)
+    const projTxAllocated = projTransactions
+      .filter((tx) => tx.type === 'budget_allocation')
+      .reduce((sum, tx) => sum + (tx.amount || 0), 0)
+    const projAllocated = Math.max(projTxAllocated, currentProject.allocatedBudget || 0)
     const projReleased = projTransactions
       .filter((tx) => tx.amount > 0 && tx.status === 'completed')
       .reduce((sum, tx) => sum + tx.amount, 0) || Math.round(projAllocated * 0.7)
@@ -97,7 +100,12 @@ export function PmBudgetFinancePage() {
 
   // Total summary stats for sidebar
   const totalApproved = teamProjects.reduce((sum, p) => sum + (Number(p.budget) || 0), 0)
-  const totalAllocatedAll = Math.round(totalApproved * 0.68)
+  const totalAllocatedAll = teamProjects.reduce((sum, p) => {
+    const pTxAlloc = financials.teamTransactions
+      .filter((tx) => tx.projectId === p.id && tx.type === 'budget_allocation')
+      .reduce((s, tx) => s + (tx.amount || 0), 0)
+    return sum + Math.max(pTxAlloc, p.allocatedBudget || 0)
+  }, 0)
   const overallUtilization = totalApproved > 0 ? Math.round((totalAllocatedAll / totalApproved) * 100) : 0
 
   const handleAllocateSubmit = (e: React.FormEvent) => {
@@ -242,7 +250,10 @@ export function PmBudgetFinancePage() {
           {teamProjects.map((proj) => {
             const isSelected = selectedProjectId === proj.id
             const pBudget = Number(proj.budget) || 0
-            const pAllocated = Math.round(pBudget * 0.68)
+            const pTxAlloc = financials.teamTransactions
+              .filter((tx) => tx.projectId === proj.id && tx.type === 'budget_allocation')
+              .reduce((s, tx) => s + (tx.amount || 0), 0)
+            const pAllocated = Math.max(pTxAlloc, proj.allocatedBudget || 0)
             const pUtilization = pBudget > 0 ? Math.round((pAllocated / pBudget) * 100) : 0
 
             return (

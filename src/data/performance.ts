@@ -11,6 +11,10 @@ export const PERFORMANCE_RECORDS: PerformanceRecord[] = [
     velocityPointsSprint3: 28,
     targetVelocityPoints: 30,
     sprintWeek: 3,
+    attendanceRate: 98,
+    satisfactionIndex: 4.8,
+    performanceTier: 'top_performer',
+    evaluationNotes: 'Exceptional technical depth in frontend and modular state systems. Dependable sprint execution.',
     recentRewards: [
       {
         id: 'rew_01',
@@ -50,6 +54,10 @@ export const PERFORMANCE_RECORDS: PerformanceRecord[] = [
     velocityPointsSprint3: 42,
     targetVelocityPoints: 40,
     sprintWeek: 3,
+    attendanceRate: 99,
+    satisfactionIndex: 4.9,
+    performanceTier: 'top_performer',
+    evaluationNotes: 'Outstanding team coordination, clear acceptance criteria, zero sprint blockers.',
     recentRewards: [
       {
         id: 'rew_pm_01',
@@ -81,6 +89,9 @@ export const PERFORMANCE_RECORDS: PerformanceRecord[] = [
     velocityPointsSprint3: 240,
     targetVelocityPoints: 235,
     sprintWeek: 3,
+    attendanceRate: 100,
+    satisfactionIndex: 4.9,
+    performanceTier: 'top_performer',
     recentRewards: [
       {
         id: 'rew_cto_01',
@@ -102,5 +113,65 @@ export const PERFORMANCE_RECORDS: PerformanceRecord[] = [
     strengths: ['Enterprise distributed architectures', 'Cross-squad engineering velocity', 'Zero-trust cryptographic governance'],
     improvementAreas: ['Continue mentoring mid-level engineers on microservice tracing'],
   },
+  // Remaining PMs (user_pm_02 to user_pm_06)
+  ...['user_pm_02', 'user_pm_03', 'user_pm_04', 'user_pm_05', 'user_pm_06'].map((id, idx) => ({
+    userId: id,
+    overallScore: 91 + (idx % 4),
+    completionRate: 88 + (idx % 5),
+    onTimeDeliveryRate: 90 + (idx % 6),
+    codeQualityScore: 92,
+    peerReviewScore: 4.75,
+    velocityPointsSprint3: 38 + idx,
+    targetVelocityPoints: 40,
+    sprintWeek: 3,
+    attendanceRate: 96 + (idx % 4),
+    satisfactionIndex: 4.6 + (idx * 0.05),
+    performanceTier: idx === 3 ? 'needs_support' : 'strong_contributor',
+    recentRewards: [
+      {
+        id: `rew_pm_${idx + 3}`,
+        title: 'Sprint Pacing Recognition',
+        description: 'Consistently kept backlog refined and burn-down velocity on target.',
+        date: '2026-10-28',
+        icon: 'Award',
+        bonusValue: '$350',
+      },
+    ],
+    strengths: ['Scrum velocity tracking', 'Stakeholder communication'],
+    improvementAreas: ['Proactive dependency management'],
+  })),
+  // Developers (user_dev_02 to user_dev_24)
+  ...Array.from({ length: 23 }, (_, i) => {
+    const num = String(i + 2).padStart(2, '0')
+    const id = `user_dev_${num}`
+    const score = 86 + ((i * 3) % 12)
+    const tier = score >= 93 ? 'top_performer' : score >= 88 ? 'strong_contributor' : 'needs_support'
+    return {
+      userId: id,
+      overallScore: score,
+      completionRate: 84 + (i % 12),
+      onTimeDeliveryRate: 87 + (i % 10),
+      codeQualityScore: 89 + (i % 8),
+      peerReviewScore: 4.6 + ((i % 4) * 0.1),
+      velocityPointsSprint3: 24 + (i % 8),
+      targetVelocityPoints: 28,
+      sprintWeek: 3,
+      attendanceRate: 94 + (i % 6),
+      satisfactionIndex: 4.4 + ((i % 5) * 0.1),
+      performanceTier: tier,
+      recentRewards: [
+        {
+          id: `rew_dev_${num}`,
+          title: 'Sprint Milestone Contributor',
+          description: 'High-quality unit testing and feature delivery for active squad sprint.',
+          date: '2026-10-27',
+          icon: 'ShieldCheck',
+          bonusValue: '$200',
+        },
+      ],
+      strengths: ['Core stack implementation', 'Reliable pull request turnaround'],
+      improvementAreas: ['Documentation depth'],
+    }
+  }),
 ]
 

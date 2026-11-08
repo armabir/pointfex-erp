@@ -74,7 +74,7 @@ export interface CtoData {
 }
 
 export function useCtoData(): CtoData {
-  const { data, resolvers } = useApp()
+  const { data, resolvers, currentUser } = useApp()
 
   // 1. CTO User
   const cto = useMemo<User>(() => {
@@ -144,10 +144,16 @@ export function useCtoData(): CtoData {
     })
   }, [data.tasks, data.projects, data.users])
 
-  // 5. CTO Personal Tasks (assigned by CEO or with assigneeId = cto.id)
+  // 5. Executive / CTO Personal Tasks (assigned by CEO or with assigneeId matching current user)
   const ctoPersonalTasks = useMemo(() => {
-    return tasks.filter((t) => t.assigneeId === cto.id || (t.creatorId === 'user_ceo_01' && t.assigneeId === cto.id))
-  }, [tasks, cto.id])
+    const targetId = currentUser?.id || cto.id
+    return tasks.filter(
+      (t) =>
+        t.assigneeId === targetId ||
+        t.assignedTo === targetId ||
+        (t.creatorId === 'user_ceo_01' && (t.assigneeId === targetId || t.assignedTo === targetId))
+    )
+  }, [tasks, currentUser?.id, cto.id])
 
   // 6. CTO Engineering Tasks (created by CTO and assigned to PMs)
   const ctoEngineeringTasks = useMemo(() => {

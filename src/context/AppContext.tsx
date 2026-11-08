@@ -71,6 +71,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('pointfex_pm_route', routeId)
     } else if (currentRole === 'cto') {
       localStorage.setItem('pointfex_cto_route', routeId)
+    } else if (currentRole === 'cfo') {
+      localStorage.setItem('pointfex_cfo_route', routeId)
+    } else if (currentRole === 'cpo' || currentRole === 'chro') {
+      localStorage.setItem('pointfex_cpo_route', routeId)
+    } else if (currentRole === 'ceo') {
+      localStorage.setItem('pointfex_ceo_route', routeId)
     } else {
       localStorage.setItem('pointfex_route', routeId)
     }
@@ -112,6 +118,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (currentRole === 'cto') {
       return data.users.find((u) => u.role === 'cto') || resolvers.getUser('user_cto_01')
     }
+    if (currentRole === 'cfo') {
+      return data.users.find((u) => u.role === 'cfo') || resolvers.getUser('user_cfo_01')
+    }
+    if (currentRole === 'cpo' || currentRole === 'chro') {
+      return data.users.find((u) => u.role === 'cpo') || resolvers.getUser('user_cpo_01')
+    }
+    if (currentRole === 'ceo') {
+      return data.users.find((u) => u.role === 'ceo') || resolvers.getUser('user_ceo_01')
+    }
     const roleUser = data.users.find((u) => u.role === currentRole)
     return roleUser || resolvers.getUser(currentDevId)
   }, [currentRole, currentDevId, currentPmId, resolvers, data.users])
@@ -127,23 +142,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Handler: Change Role (persisted)
   const handleSetRole = useCallback((roleId: string) => {
-    setCurrentRole(roleId)
-    localStorage.setItem('pointfex_role', roleId)
-    if (roleId === 'developer') {
+    const normalizedRole = roleId === 'chro' ? 'cpo' : roleId
+    setCurrentRole(normalizedRole)
+    localStorage.setItem('pointfex_role', normalizedRole)
+    if (normalizedRole === 'developer') {
       const target = localStorage.getItem('pointfex_route') || 'dashboard'
       setRoute(target)
       showToast('Switched to Developer Workspace', 'success')
-    } else if (roleId === 'pm') {
+    } else if (normalizedRole === 'pm') {
       const target = localStorage.getItem('pointfex_pm_route') || 'dashboard'
       setRoute(target)
       showToast('Switched to Project Manager Workspace', 'success')
-    } else if (roleId === 'cto') {
+    } else if (normalizedRole === 'cto') {
       const target = localStorage.getItem('pointfex_cto_route') || 'dashboard'
       setRoute(target)
       showToast('Switched to CTO Engineering Command', 'success')
+    } else if (normalizedRole === 'cfo') {
+      const target = localStorage.getItem('pointfex_cfo_route') || 'dashboard'
+      setRoute(target)
+      showToast('Switched to CFO Financial Desk', 'success')
+    } else if (normalizedRole === 'cpo') {
+      const target = localStorage.getItem('pointfex_cpo_route') || 'dashboard'
+      setRoute(target)
+      showToast('Switched to CHRO People & Culture Hub', 'success')
+    } else if (normalizedRole === 'ceo') {
+      const target = localStorage.getItem('pointfex_ceo_route') || 'dashboard'
+      setRoute(target)
+      showToast('Switched to CEO Executive Command Suite', 'success')
     } else {
       const targetRole = ROLES[roleId.toUpperCase()]?.name || roleId
-      showToast(`Switched to ${targetRole} (Preview)`, 'info')
+      showToast(`Switched to ${targetRole}`, 'info')
     }
   }, [setRoute, showToast])
 
@@ -442,7 +470,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     showToast(`Task reassigned to ${devName}`, 'success')
   }, [currentPmId, resolvers, showToast])
 
-  // PM Handler: Allocate Budget to Developer
+  // PM Handler: Allocate Budget to Developer with Budget Validation & Wallet Credit
   const handleAllocateBudget = useCallback((allocation: {
     developerId: string
     projectId: string
@@ -450,25 +478,117 @@ export function AppProvider({ children }: { children: ReactNode }) {
     description?: string
     week?: number | string
   }) => {
-    const newTx = {
+    const allocAmount = Number(allocation.amount)
+    if (isNaN(allocAmount) || allocAmount <= 0) {
+      showToast('Please enter a valid positive allocation amount', 'error')
+      return false
+    }
+
+    const project = data.projects.find((p) => p.id === allocation.projectId)
+    if (!project) {
+      showToast('Target project not found for budget allocation', 'error')
+      return false
+    }
+
+    // Calculate current allocations for this project
+    const currentAllocated = data.transactions
+      .filter((t) => t.projectId === allocation.projectId && t.type === 'budget_allocation')
+      .reduce((acc, t) => acc + (t.amount || 0), 0)
+
+    const remainingBudget = project.budget - currentAllocated
+
+    if (allocAmount > remainingBudget) {
+      showToast(
+        `Allocation rejected: Project has $${remainingBudget.toLocaleString()} remaining ($${allocAmount.toLocaleString()} requested)`,
+        'error'
+      )
+      return false
+    }
+
+    const newTx: any = {
       id: `alloc_${Date.now()}`,
       userId: allocation.developerId,
       projectId: allocation.projectId,
-      amount: Number(allocation.amount),
+      amount: allocAmount,
       type: 'budget_allocation',
       description: allocation.description || `Week ${allocation.week || 3} sprint allocation`,
       date: new Date().toISOString().split('T')[0],
       status: 'allocated',
     }
 
-    setData((prev) => ({
-      ...prev,
-      transactions: [newTx, ...prev.transactions],
-    }))
+    setData((prev) => {
+      // 1. Update Project allocatedBudget
+      const updatedProjects = prev.projects.map((p) => {
+        if (p.id === allocation.projectId) {
+          const currentAlloc = p.allocatedBudget || 0
+          return {
+            ...p,
+            allocatedBudget: currentAlloc + allocAmount,
+          }
+        }
+        return p
+      })
+
+      // 2. Update Developer's Wallet
+      const walletIdx = prev.wallets.findIndex((w) => w.userId === allocation.developerId)
+      let updatedWallets = [...prev.wallets]
+      if (walletIdx >= 0) {
+        const oldW = prev.wallets[walletIdx]
+        updatedWallets[walletIdx] = {
+          ...oldW,
+          balance: oldW.balance + allocAmount,
+          totalEarnedToDate: (oldW.totalEarnedToDate || 0) + allocAmount,
+        }
+      } else {
+        updatedWallets.push({
+          userId: allocation.developerId,
+          balance: allocAmount,
+          currency: 'USD',
+          pendingEscrow: 0,
+          totalEarnedToDate: allocAmount,
+        })
+      }
+
+      // 3. Update Treasury totalDistributedToDevs
+      const updatedTreasury = {
+        ...prev.treasury,
+        totalDistributedToDevs: (prev.treasury?.totalDistributedToDevs || 0) + allocAmount,
+      }
+
+      // 4. Create Activity & Audit Log
+      const dev = prev.users.find((u) => u.id === allocation.developerId)
+      const newActivity: ActivityLog = {
+        id: `act_${Date.now()}`,
+        userId: currentPmId,
+        action: 'budget_allocated',
+        actionCode: 'BUDGET_DISBURSED',
+        severity: 'INFO',
+        actorName: currentUser?.name || 'Project Manager',
+        actorEmail: currentUser?.email || 'pm@pointfex.internal',
+        actorRole: 'PM',
+        entityType: 'project',
+        entityId: allocation.projectId,
+        entityTitle: project.name,
+        description: `Disbursed $${allocAmount.toLocaleString()} to ${dev?.name || 'developer'} for ${project.name}`,
+        timestamp: 'Just now',
+        category: 'finance',
+        badgeColor: 'emerald',
+      }
+
+      return {
+        ...prev,
+        projects: updatedProjects,
+        wallets: updatedWallets,
+        treasury: updatedTreasury,
+        transactions: [newTx, ...prev.transactions],
+        activityLogs: [newActivity, ...prev.activityLogs],
+      }
+    })
 
     const devName = resolvers.getUser(allocation.developerId)?.name || 'developer'
-    showToast(`Allocated $${allocation.amount} to ${devName}`, 'success')
-  }, [resolvers, showToast])
+    showToast(`Successfully allocated $${allocAmount.toLocaleString()} to ${devName}`, 'success')
+    return true
+  }, [currentPmId, currentUser, data.projects, data.transactions, resolvers, showToast])
 
   // PM Handler: Request Budget Increase from CFO
   const handleRequestBudgetIncrease = useCallback((req: {
@@ -802,19 +922,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     tags?: string[]
     projectId?: string
   }) => {
+    const actorId = currentUser?.id || 'user_cto_01'
     const newTask: Task = {
-      id: `task_cto_${Date.now()}`,
+      id: `task_${currentRole}_${Date.now()}`,
       title: taskData.title,
       description: taskData.description || '',
       projectId: taskData.projectId || 'proj_01',
-      assigneeId: 'user_cto_01',
-      creatorId: 'user_cto_01',
+      assigneeId: actorId,
+      assignedTo: actorId,
+      creatorId: actorId,
       status: 'todo',
       priority: taskData.priority || 'medium',
       dueDate: taskData.dueDate || new Date(Date.now() + 7 * 86400000).toISOString(),
       estimatedHours: 8,
       loggedHours: 0,
-      tags: taskData.tags || ['Personal', 'Architecture'],
+      tags: taskData.tags || ['Personal', 'Executive'],
       createdAt: new Date().toISOString(),
     }
 
@@ -1467,6 +1589,600 @@ export function AppProvider({ children }: { children: ReactNode }) {
     showToast('CTO profile updated successfully', 'success')
   }, [showToast])
 
+  // CFO Financial State Handlers
+  const handleAllocateProjectBudget = useCallback((projectId: string, newBudget: number, reason?: string) => {
+    if (newBudget <= 0) {
+      showToast('Project budget must be greater than $0', 'error')
+      return
+    }
+
+    const project = data.projects.find((p) => p.id === projectId)
+    if (!project) {
+      showToast('Project not found', 'error')
+      return
+    }
+
+    const delta = newBudget - project.budget
+    if (delta > 0 && delta > (data.treasury?.unallocatedReserves || 0)) {
+      showToast(
+        `Treasury reserves insufficient: Only $${(data.treasury?.unallocatedReserves || 0).toLocaleString()} unallocated reserves available`,
+        'error'
+      )
+      return
+    }
+
+    setData((prev) => {
+      const updatedProjects = prev.projects.map((p) => (p.id === projectId ? { ...p, budget: newBudget } : p))
+      const updatedTreasury = {
+        ...prev.treasury,
+        totalApprovedBudgets: (prev.treasury?.totalApprovedBudgets || 0) + delta,
+        unallocatedReserves: Math.max(0, (prev.treasury?.unallocatedReserves || 0) - delta),
+      }
+
+      const tx: any = {
+        id: `tx_cfo_${Date.now()}`,
+        userId: currentUser?.id || 'user_cfo_01',
+        projectId,
+        amount: delta,
+        type: 'budget_allocation',
+        description: reason || `CFO budget adjustment for ${project.name}`,
+        date: new Date().toISOString().split('T')[0],
+        status: 'completed',
+      }
+
+      const log: ActivityLog = {
+        id: `act_${Date.now()}`,
+        userId: currentUser?.id || 'user_cfo_01',
+        action: 'cfo_budget_reallocated',
+        actionCode: 'CAPITAL_ALLOCATION_UPDATED',
+        severity: 'INFO',
+        actorName: currentUser?.name || 'Vincent Gallagher',
+        actorEmail: currentUser?.email || 'cfo@pointfex.internal',
+        actorRole: 'CFO',
+        entityType: 'project',
+        entityId: projectId,
+        entityTitle: project.name,
+        description: `Adjusted budget for ${project.name} to $${newBudget.toLocaleString()} (${delta >= 0 ? '+' : ''}$${delta.toLocaleString()})`,
+        timestamp: 'Just now',
+        category: 'finance',
+        badgeColor: 'emerald',
+      }
+
+      return {
+        ...prev,
+        projects: updatedProjects,
+        treasury: updatedTreasury,
+        transactions: [tx, ...prev.transactions],
+        activityLogs: [log, ...prev.activityLogs],
+      }
+    })
+
+    showToast(`Updated ${project.name} budget pool to $${newBudget.toLocaleString()}`, 'success')
+  }, [currentUser, data.projects, data.treasury, showToast])
+
+  const handleApproveBudgetRequest = useCallback((reportId: string, approvedAmount: number, feedback?: string) => {
+    const report = data.reports.find((r) => r.id === reportId)
+    if (!report) {
+      showToast('Budget request not found', 'error')
+      return
+    }
+
+    if (approvedAmount > (data.treasury?.unallocatedReserves || 0)) {
+      showToast(
+        `Approval exceeds unallocated reserves ($${(data.treasury?.unallocatedReserves || 0).toLocaleString()} available)`,
+        'error'
+      )
+      return
+    }
+
+    setData((prev) => {
+      // 1. Update Project budget if report has projectId
+      const updatedProjects = prev.projects.map((p) => {
+        if (p.id === report.projectId) {
+          return { ...p, budget: p.budget + approvedAmount }
+        }
+        return p
+      })
+
+      // 2. Update Treasury
+      const updatedTreasury = {
+        ...prev.treasury,
+        totalApprovedBudgets: (prev.treasury?.totalApprovedBudgets || 0) + approvedAmount,
+        unallocatedReserves: Math.max(0, (prev.treasury?.unallocatedReserves || 0) - approvedAmount),
+      }
+
+      // 3. Update Report status
+      const updatedReports = prev.reports.map((r) => {
+        if (r.id === reportId) {
+          return {
+            ...r,
+            status: 'resolved' as const,
+            feedback: feedback || `Approved by CFO in full: +$${approvedAmount.toLocaleString()} added to project budget.`,
+            resolvedAt: new Date().toISOString(),
+          }
+        }
+        return r
+      })
+
+      const log: ActivityLog = {
+        id: `act_${Date.now()}`,
+        userId: currentUser?.id || 'user_cfo_01',
+        action: 'budget_request_approved',
+        actionCode: 'BUDGET_REQUEST_GRANTED',
+        severity: 'SUCCESS',
+        actorName: currentUser?.name || 'Vincent Gallagher',
+        actorEmail: currentUser?.email || 'cfo@pointfex.internal',
+        actorRole: 'CFO',
+        entityType: 'report',
+        entityId: reportId,
+        entityTitle: report.title,
+        description: `CFO approved +$${approvedAmount.toLocaleString()} budget increase request`,
+        timestamp: 'Just now',
+        category: 'finance',
+        badgeColor: 'emerald',
+      }
+
+      return {
+        ...prev,
+        projects: updatedProjects,
+        treasury: updatedTreasury,
+        reports: updatedReports,
+        activityLogs: [log, ...prev.activityLogs],
+      }
+    })
+
+    showToast(`Approved +$${approvedAmount.toLocaleString()} budget increase`, 'success')
+  }, [currentUser, data.reports, data.treasury, showToast])
+
+  const handleRejectBudgetRequest = useCallback((reportId: string, feedback: string) => {
+    setData((prev) => {
+      const updatedReports = prev.reports.map((r) => {
+        if (r.id === reportId) {
+          return {
+            ...r,
+            status: 'dismissed' as const,
+            feedback: feedback || 'Budget increase request rejected by CFO due to reserve constraints.',
+            resolvedAt: new Date().toISOString(),
+          }
+        }
+        return r
+      })
+
+      const log: ActivityLog = {
+        id: `act_${Date.now()}`,
+        userId: currentUser?.id || 'user_cfo_01',
+        action: 'budget_request_rejected',
+        actionCode: 'BUDGET_REQUEST_DENIED',
+        severity: 'WARNING',
+        actorName: currentUser?.name || 'Vincent Gallagher',
+        actorEmail: currentUser?.email || 'cfo@pointfex.internal',
+        actorRole: 'CFO',
+        entityType: 'report',
+        entityId: reportId,
+        description: `CFO dismissed budget request: "${feedback}"`,
+        timestamp: 'Just now',
+        category: 'finance',
+        badgeColor: 'rose',
+      }
+
+      return {
+        ...prev,
+        reports: updatedReports,
+        activityLogs: [log, ...prev.activityLogs],
+      }
+    })
+
+    showToast('Budget request dismissed', 'info')
+  }, [currentUser, showToast])
+
+  const handleIssueFinancialAdjustment = useCallback((userId: string, amount: number, type: 'bonus' | 'penalty', reason: string) => {
+    const targetUser = data.users.find((u) => u.id === userId)
+    if (!targetUser) {
+      showToast('Target employee not found', 'error')
+      return
+    }
+
+    setData((prev) => {
+      // Update wallet
+      const walletIdx = prev.wallets.findIndex((w) => w.userId === userId)
+      let updatedWallets = [...prev.wallets]
+      if (walletIdx >= 0) {
+        const oldW = prev.wallets[walletIdx]
+        const newBalance = type === 'bonus' ? oldW.balance + amount : Math.max(0, oldW.balance - amount)
+        const newEarned = type === 'bonus' ? (oldW.totalEarnedToDate || 0) + amount : (oldW.totalEarnedToDate || 0)
+        updatedWallets[walletIdx] = {
+          ...oldW,
+          balance: newBalance,
+          totalEarnedToDate: newEarned,
+        }
+      } else {
+        updatedWallets.push({
+          userId,
+          balance: type === 'bonus' ? amount : 0,
+          currency: 'USD',
+          pendingEscrow: 0,
+          totalEarnedToDate: type === 'bonus' ? amount : 0,
+        })
+      }
+
+      // Update Treasury for bonuses
+      let updatedTreasury = prev.treasury
+      if (type === 'bonus') {
+        updatedTreasury = {
+          ...prev.treasury,
+          totalDistributedToDevs: (prev.treasury?.totalDistributedToDevs || 0) + amount,
+          unallocatedReserves: Math.max(0, (prev.treasury?.unallocatedReserves || 0) - amount),
+        }
+      }
+
+      const tx: any = {
+        id: `tx_adj_${Date.now()}`,
+        userId,
+        amount: type === 'bonus' ? amount : -amount,
+        type: type === 'bonus' ? 'bonus' : 'deduction',
+        description: reason,
+        date: new Date().toISOString().split('T')[0],
+        status: 'completed',
+      }
+
+      const log: ActivityLog = {
+        id: `act_${Date.now()}`,
+        userId: currentUser?.id || 'user_cfo_01',
+        action: `financial_${type}`,
+        actionCode: type === 'bonus' ? 'PERFORMANCE_BONUS_DISBURSED' : 'DISCIPLINARY_DEDUCTION_APPLIED',
+        severity: type === 'bonus' ? 'SUCCESS' : 'WARNING',
+        actorName: currentUser?.name || 'Leadership',
+        actorEmail: currentUser?.email || 'leadership@pointfex.internal',
+        actorRole: (currentRole || 'C-Suite').toUpperCase(),
+        entityType: 'user',
+        entityId: userId,
+        entityTitle: targetUser.name,
+        description: `${type.toUpperCase()}: $${amount.toLocaleString()} to ${targetUser.name} (${reason})`,
+        timestamp: 'Just now',
+        category: 'finance',
+        badgeColor: type === 'bonus' ? 'emerald' : 'amber',
+      }
+
+      return {
+        ...prev,
+        wallets: updatedWallets,
+        treasury: updatedTreasury,
+        transactions: [tx, ...prev.transactions],
+        activityLogs: [log, ...prev.activityLogs],
+      }
+    })
+
+    showToast(`Issued $${amount.toLocaleString()} ${type} to ${targetUser.name}`, 'success')
+  }, [currentUser, currentRole, data.users, showToast])
+
+  // CHRO State Handlers
+  const handleRecordPerformanceEvaluation = useCallback((userId: string, evaluation: {
+    score: number
+    tier: 'top_performer' | 'strong_contributor' | 'needs_support' | string
+    notes: string
+    strengths?: string[]
+    improvementAreas?: string[]
+  }) => {
+    const targetUser = data.users.find((u) => u.id === userId)
+    if (!targetUser) {
+      showToast('Employee not found', 'error')
+      return
+    }
+
+    setData((prev) => {
+      const recordIdx = prev.performanceRecords.findIndex((r) => r.developerId === userId)
+      let updatedRecords = [...prev.performanceRecords]
+      const todayStr = new Date().toISOString().split('T')[0]
+
+      if (recordIdx >= 0) {
+        const oldR = prev.performanceRecords[recordIdx]
+        updatedRecords[recordIdx] = {
+          ...oldR,
+          overallScore: evaluation.score,
+          performanceTier: evaluation.tier as any,
+          evaluationNotes: evaluation.notes,
+          strengths: evaluation.strengths || oldR.strengths,
+          improvements: evaluation.improvementAreas || oldR.improvements,
+          lastEvaluationDate: todayStr,
+        }
+      } else {
+        updatedRecords.push({
+          userId,
+          developerId: userId,
+          overallScore: evaluation.score,
+          deliverySpeed: 90,
+          codeQuality: evaluation.score,
+          reliability: 92,
+          collaboration: 94,
+          attendanceRate: 97,
+          satisfactionIndex: 4.8,
+          performanceTier: evaluation.tier as any,
+          evaluationNotes: evaluation.notes,
+          lastEvaluationDate: todayStr,
+          strengths: evaluation.strengths || ['High velocity', 'Reliable execution'],
+          improvements: evaluation.improvementAreas || ['Cross-team mentorship'],
+          weeklyHours: [40, 42, 39, 41],
+        })
+      }
+
+      const log: ActivityLog = {
+        id: `act_${Date.now()}`,
+        userId: currentUser?.id || 'user_cpo_01',
+        action: 'performance_evaluation_recorded',
+        actionCode: 'HR_EVALUATION_LOGGED',
+        severity: 'INFO',
+        actorName: currentUser?.name || 'Amara Okafor',
+        actorEmail: currentUser?.email || 'chro@pointfex.internal',
+        actorRole: 'CHRO',
+        entityType: 'user',
+        entityId: userId,
+        entityTitle: targetUser.name,
+        description: `CHRO recorded performance evaluation: Score ${evaluation.score}% (${evaluation.tier.replace('_', ' ')})`,
+        timestamp: 'Just now',
+        category: 'people',
+        badgeColor: 'sky',
+      }
+
+      return {
+        ...prev,
+        performanceRecords: updatedRecords,
+        activityLogs: [log, ...prev.activityLogs],
+      }
+    })
+
+    showToast(`Evaluation recorded for ${targetUser.name}`, 'success')
+  }, [currentUser, data.users, showToast])
+
+  const handleIssueEmployeeRecognition = useCallback((userId: string, title: string, description: string, bonusAmount?: number) => {
+    const targetUser = data.users.find((u) => u.id === userId)
+    if (!targetUser) {
+      showToast('Employee not found', 'error')
+      return
+    }
+
+    if (bonusAmount && bonusAmount > 0) {
+      handleIssueFinancialAdjustment(userId, bonusAmount, 'bonus', `Award: ${title}`)
+    }
+
+    setData((prev) => {
+      const log: ActivityLog = {
+        id: `act_${Date.now()}`,
+        userId: currentUser?.id || 'user_cpo_01',
+        action: 'employee_recognition_awarded',
+        actionCode: 'HR_RECOGNITION_AWARDED',
+        severity: 'SUCCESS',
+        actorName: currentUser?.name || 'Amara Okafor',
+        actorEmail: currentUser?.email || 'chro@pointfex.internal',
+        actorRole: 'CHRO',
+        entityType: 'user',
+        entityId: userId,
+        entityTitle: targetUser.name,
+        description: `Recognized ${targetUser.name}: "${title}" — ${description}`,
+        timestamp: 'Just now',
+        category: 'people',
+        badgeColor: 'emerald',
+      }
+
+      return {
+        ...prev,
+        activityLogs: [log, ...prev.activityLogs],
+      }
+    })
+
+    showToast(`Awarded "${title}" to ${targetUser.name}`, 'success')
+  }, [currentUser, data.users, handleIssueFinancialAdjustment, showToast])
+
+  const handleIssueDisciplinaryAction = useCallback((userId: string, title: string, description: string, penaltyAmount?: number) => {
+    const targetUser = data.users.find((u) => u.id === userId)
+    if (!targetUser) {
+      showToast('Employee not found', 'error')
+      return
+    }
+
+    if (penaltyAmount && penaltyAmount > 0) {
+      handleIssueFinancialAdjustment(userId, penaltyAmount, 'penalty', `Disciplinary: ${title}`)
+    }
+
+    setData((prev) => {
+      const recordIdx = prev.performanceRecords.findIndex((r) => r.developerId === userId)
+      let updatedRecords = [...prev.performanceRecords]
+      if (recordIdx >= 0) {
+        updatedRecords[recordIdx] = {
+          ...updatedRecords[recordIdx],
+          disciplinaryNotes: `${title}: ${description}`,
+          performanceTier: 'needs_support',
+        }
+      }
+
+      const log: ActivityLog = {
+        id: `act_${Date.now()}`,
+        userId: currentUser?.id || 'user_cpo_01',
+        action: 'disciplinary_action_recorded',
+        actionCode: 'HR_DISCIPLINARY_RECORDED',
+        severity: 'CRITICAL',
+        actorName: currentUser?.name || 'Amara Okafor',
+        actorEmail: currentUser?.email || 'chro@pointfex.internal',
+        actorRole: 'CHRO',
+        entityType: 'user',
+        entityId: userId,
+        entityTitle: targetUser.name,
+        description: `Formal disciplinary action against ${targetUser.name}: "${title}"`,
+        timestamp: 'Just now',
+        category: 'people',
+        badgeColor: 'rose',
+      }
+
+      return {
+        ...prev,
+        performanceRecords: updatedRecords,
+        activityLogs: [log, ...prev.activityLogs],
+      }
+    })
+
+    showToast(`Disciplinary action recorded for ${targetUser.name}`, 'warning')
+  }, [currentUser, data.users, handleIssueFinancialAdjustment, showToast])
+
+  const handleUpdateConfidentialComplaintStatus = useCallback((complaintId: string, status: string, mediationNotes?: string) => {
+    setData((prev) => {
+      const updatedReports = prev.reports.map((r) => {
+        if (r.id === complaintId) {
+          return {
+            ...r,
+            status: status as any,
+            mediationNotes: mediationNotes || r.mediationNotes,
+            resolvedAt: status === 'resolved' || status === 'dismissed' ? new Date().toISOString() : r.resolvedAt,
+          }
+        }
+        return r
+      })
+
+      const log: ActivityLog = {
+        id: `act_${Date.now()}`,
+        userId: currentUser?.id || 'user_cpo_01',
+        action: 'confidential_grievance_adjudicated',
+        actionCode: 'HR_CONFIDENTIAL_GRIEVANCE_UPDATED',
+        severity: 'INFO',
+        actorName: currentUser?.name || 'Amara Okafor',
+        actorEmail: currentUser?.email || 'chro@pointfex.internal',
+        actorRole: 'CHRO',
+        entityType: 'report',
+        entityId: complaintId,
+        description: `Confidential grievance status changed to ${status}`,
+        timestamp: 'Just now',
+        category: 'people',
+        badgeColor: 'purple',
+      }
+
+      return {
+        ...prev,
+        reports: updatedReports,
+        activityLogs: [log, ...prev.activityLogs],
+      }
+    })
+
+    showToast(`Confidential grievance updated to "${status}"`, 'success')
+  }, [currentUser, showToast])
+
+  // Executive Management Handlers
+  const handleUpdateExecutiveProfile = useCallback((roleId: string, updatedFields: Partial<User>) => {
+    setData((prev) => {
+      const idx = prev.users.findIndex((u) => u.role === roleId || (roleId === 'chro' && u.role === 'cpo'))
+      if (idx === -1) return prev
+
+      const updatedUsers = [...prev.users]
+      updatedUsers[idx] = { ...updatedUsers[idx], ...updatedFields }
+
+      return {
+        ...prev,
+        users: updatedUsers,
+      }
+    })
+
+    showToast('Executive profile updated successfully', 'success')
+  }, [showToast])
+
+  const handleCreateExecutiveDirective = useCallback((directive: {
+    title: string
+    description?: string
+    assigneeRole: string
+    assigneeId?: string
+    priority?: TaskPriority
+    dueDate?: string
+    tags?: string[]
+    projectId?: string
+  }): Task => {
+    const targetUserId =
+      directive.assigneeId ||
+      (directive.assigneeRole === 'pm'
+        ? currentPmId
+        : directive.assigneeRole === 'cto'
+        ? 'user_cto_01'
+        : directive.assigneeRole === 'cfo'
+        ? 'user_cfo_01'
+        : directive.assigneeRole === 'cpo' || directive.assigneeRole === 'chro'
+        ? 'user_cpo_01'
+        : CURRENT_DEV_ID)
+
+    const newTask: Task = {
+      id: `tsk_exec_${Date.now()}`,
+      title: directive.title,
+      description: directive.description || 'Executive strategic directive issued from C-Suite leadership.',
+      status: 'todo',
+      priority: directive.priority || 'urgent',
+      assigneeId: targetUserId,
+      assignedTo: targetUserId,
+      creatorId: currentUser?.id || 'user_ceo_01',
+      projectId: directive.projectId || data.projects[0]?.id || 'proj_01',
+      dueDate: directive.dueDate || '2026-11-30',
+      tags: directive.tags || ['Executive Directive', directive.assigneeRole.toUpperCase()],
+      estimatedHours: 24,
+      loggedHours: 0,
+      createdAt: new Date().toISOString(),
+      checklist: [
+        { id: 'chk_1', text: 'Executive brief and stakeholder alignment', completed: false },
+        { id: 'chk_2', text: 'Milestone execution and telemetry validation', completed: false },
+        { id: 'chk_3', text: 'C-Suite sign-off and retrospective documentation', completed: false },
+      ],
+    }
+
+    setData((prev) => {
+      const log: ActivityLog = {
+        id: `act_${Date.now()}`,
+        userId: currentUser?.id || 'user_ceo_01',
+        action: 'executive_directive_dispatched',
+        actionCode: 'EXECUTIVE_DIRECTIVE_ISSUED',
+        severity: 'INFO',
+        actorName: currentUser?.name || 'Chief Executive Officer',
+        actorEmail: currentUser?.email || 'ceo@pointfex.internal',
+        actorRole: (currentRole || 'CEO').toUpperCase(),
+        entityType: 'task',
+        entityId: newTask.id,
+        entityTitle: newTask.title,
+        description: `Dispatched directive to ${directive.assigneeRole.toUpperCase()}: "${newTask.title}"`,
+        timestamp: 'Just now',
+        category: 'task',
+        badgeColor: 'sky',
+      }
+
+      return {
+        ...prev,
+        tasks: [newTask, ...prev.tasks],
+        activityLogs: [log, ...prev.activityLogs],
+      }
+    })
+
+    showToast(`Executive directive dispatched to ${directive.assigneeRole.toUpperCase()}`, 'success')
+    return newTask
+  }, [currentPmId, currentUser, currentRole, data.projects, showToast])
+
+  const handleAuthorizeCeoAction = useCallback((actionType: string, entityId: string, notes?: string) => {
+    setData((prev) => {
+      const log: ActivityLog = {
+        id: `act_${Date.now()}`,
+        userId: currentUser?.id || 'user_ceo_01',
+        action: 'ceo_authorization_granted',
+        actionCode: 'CEO_DECISION_AUTHORIZED',
+        severity: 'SUCCESS',
+        actorName: currentUser?.name || 'Chief Executive Officer',
+        actorEmail: currentUser?.email || 'ceo@pointfex.internal',
+        actorRole: 'CEO',
+        entityType: 'general',
+        entityId,
+        description: `CEO formally ratified ${actionType.replace(/_/g, ' ')}${notes ? `: ${notes}` : ''}`,
+        timestamp: 'Just now',
+        category: 'governance',
+        badgeColor: 'emerald',
+      }
+
+      return {
+        ...prev,
+        activityLogs: [log, ...prev.activityLogs],
+      }
+    })
+
+    showToast(`CEO Authorized: ${actionType.replace(/_/g, ' ').toUpperCase()}`, 'success')
+  }, [currentUser, showToast])
+
   // Context value
   const value: AppContextType = {
     // State
@@ -1541,6 +2257,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     submitCtoReport: handleSubmitCtoReport,
     updateIncomingReportStatus: handleUpdateIncomingReportStatus,
     updateCtoProfile: handleUpdateCtoProfile,
+
+    // CFO Financial State Handlers
+    allocateProjectBudget: handleAllocateProjectBudget,
+    approveBudgetRequest: handleApproveBudgetRequest,
+    rejectBudgetRequest: handleRejectBudgetRequest,
+    issueFinancialAdjustment: handleIssueFinancialAdjustment,
+
+    // CHRO State Handlers
+    recordPerformanceEvaluation: handleRecordPerformanceEvaluation,
+    issueEmployeeRecognition: handleIssueEmployeeRecognition,
+    issueDisciplinaryAction: handleIssueDisciplinaryAction,
+    updateConfidentialComplaintStatus: handleUpdateConfidentialComplaintStatus,
+
+    // Executive Management Handlers
+    updateExecutiveProfile: handleUpdateExecutiveProfile,
+    createExecutiveDirective: handleCreateExecutiveDirective,
+    authorizeCeoAction: handleAuthorizeCeoAction,
   }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

@@ -9,7 +9,6 @@ import {
   BarChart3,
   Coins,
   Settings,
-  Calendar,
   GitBranch,
   Layers,
   ScrollText,
@@ -71,34 +70,59 @@ export const ROLE_NAVIGATION: Record<string, RoleNavigation> = {
   },
   cpo: {
     roleId: 'cpo',
-    roleLabel: 'Chief People Officer Hub',
+    roleLabel: 'CHRO People & Culture Hub',
     items: [
-      { id: 'cpo-overview', label: 'People Analytics', icon: LayoutDashboard, isImplemented: false },
-      { id: 'cpo-roster', label: '24 Dev Roster & Capacity', icon: Users, isImplemented: false },
-      { id: 'cpo-satisfaction', label: 'Satisfaction & Morale', icon: UserCheck, isImplemented: false },
+      { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, isImplemented: true },
+      { id: 'tasks', label: 'My Tasks', icon: CheckSquare, isImplemented: true },
+      { id: 'task-management', label: 'Task Management', icon: Layers, isImplemented: true },
+      { id: 'team-management', label: 'Team Management', icon: Users, isImplemented: true },
+      { id: 'performance', label: 'Performance', icon: BarChart3, isImplemented: true },
+      { id: 'people', label: 'People', icon: UserCheck, isImplemented: true },
+      { id: 'reports', label: 'Reports', icon: FileText, isImplemented: true },
+      { id: 'settings', label: 'Profile & Settings', icon: Settings, isImplemented: true },
+      { id: 'audit-log', label: 'Audit Log', icon: ScrollText, isImplemented: true },
     ],
   },
   cfo: {
     roleId: 'cfo',
     roleLabel: 'CFO Financial Desk',
     items: [
-      { id: 'cfo-overview', label: 'Sprint Budget Burn', icon: LayoutDashboard, isImplemented: false },
-      { id: 'cfo-escrow', label: 'Project Escrow Locks', icon: Coins, isImplemented: false },
-      { id: 'cfo-payouts', label: 'Developer Wallets', icon: Wallet, isImplemented: false },
+      { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, isImplemented: true },
+      { id: 'tasks', label: 'My Tasks', icon: CheckSquare, isImplemented: true },
+      { id: 'task-management', label: 'Task Management', icon: Layers, isImplemented: true },
+      { id: 'team-management', label: 'Team Management', icon: Users, isImplemented: true },
+      { id: 'budget', label: 'Budget', icon: Coins, isImplemented: true },
+      { id: 'people', label: 'People', icon: UserCheck, isImplemented: true },
+      { id: 'reports', label: 'Reports', icon: FileText, isImplemented: true },
+      { id: 'settings', label: 'Profile & Settings', icon: Settings, isImplemented: true },
+      { id: 'audit-log', label: 'Audit Log', icon: ScrollText, isImplemented: true },
     ],
   },
   ceo: {
     roleId: 'ceo',
     roleLabel: 'CEO Executive Suite',
     items: [
-      { id: 'ceo-overview', label: 'Executive Radar', icon: LayoutDashboard, isImplemented: false },
-      { id: 'ceo-milestones', label: '5-Week Sprint Roadmap', icon: Calendar, isImplemented: false },
-      { id: 'ceo-health', label: 'Company Scorecard', icon: BarChart3, isImplemented: false },
+      { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, isImplemented: true },
+      { id: 'tasks', label: 'My Tasks', icon: CheckSquare, isImplemented: true },
+      { id: 'task-management', label: 'Task Management', icon: Layers, isImplemented: true },
+      { id: 'team-management', label: 'Team Management', icon: Users, isImplemented: true },
+      { id: 'budget', label: 'Budget', icon: Coins, isImplemented: true },
+      { id: 'performance', label: 'Performance', icon: BarChart3, isImplemented: true },
+      { id: 'projects-repos', label: 'Projects & Repos', icon: GitBranch, isImplemented: true },
+      { id: 'code-quality', label: 'Code Review & Quality', icon: GitPullRequest, isImplemented: true },
+      { id: 'security-testing', label: 'Security & Testing', icon: ShieldCheck, isImplemented: true },
+      { id: 'consultancy', label: 'Consultancy', icon: Briefcase, isImplemented: true },
+      { id: 'earnings', label: 'Earnings & Performance', icon: Wallet, isImplemented: true },
+      { id: 'people', label: 'People', icon: UserCheck, isImplemented: true },
+      { id: 'reports', label: 'Reports', icon: FileText, isImplemented: true },
+      { id: 'settings', label: 'Profile & Settings', icon: Settings, isImplemented: true },
+      { id: 'audit-log', label: 'Audit Log', icon: ScrollText, isImplemented: true },
     ],
   },
 }
 
 export function getNavigationForRole(roleId: RoleId): RoleNavigation {
-  return ROLE_NAVIGATION[roleId] || ROLE_NAVIGATION.developer
+  const normalized = roleId === 'chro' ? 'cpo' : roleId
+  return ROLE_NAVIGATION[normalized] || ROLE_NAVIGATION.developer
 }
 

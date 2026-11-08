@@ -132,9 +132,68 @@ export const USERS: User[] = [
     github: 'github.com/dr-arthur-sterling',
     bio: 'Chief Technology Officer overseeing architectural standards, cross-team tech stacks, engineering quality, and infrastructure across all 6 Pointfex engineering squads.',
   },
-  { id: 'user_cpo_01', name: 'Amara Okafor', email: 'amara.okafor@pointfex.internal', role: 'cpo', title: 'Chief People Officer', initials: 'AO', status: 'online' },
-  { id: 'user_cfo_01', name: 'Vincent Gallagher', email: 'vincent.g@pointfex.internal', role: 'cfo', title: 'Chief Financial Officer', initials: 'VG', status: 'online' },
-  { id: 'user_ceo_01', name: 'Victoria Sterling-Fox', email: 'victoria.fox@pointfex.internal', role: 'ceo', title: 'Chief Executive Officer', initials: 'VF', status: 'online' },
+  {
+    id: 'user_cpo_01',
+    name: 'Amara Okafor',
+    email: 'amara.okafor@pointfex.internal',
+    role: 'cpo',
+    title: 'Chief Human Resources Officer (CHRO)',
+    initials: 'AO',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+    status: 'online',
+    skills: [
+      'Performance Management',
+      'Organizational Design',
+      'Confidential Dispute Mediation',
+      'Talent Acquisition & Retention',
+      'Compensation & Bonus Structures',
+      'Team Dynamics & Morale Optimization',
+      'Labor Compliance & Culture',
+    ],
+    timezone: 'UTC-5 (EST)',
+    bio: 'Chief Human Resources Officer leading company-wide employee growth, talent evaluations, agile team dynamics, and confidential grievance mediation across all 6 squads.',
+  },
+  {
+    id: 'user_cfo_01',
+    name: 'Vincent Gallagher',
+    email: 'vincent.g@pointfex.internal',
+    role: 'cfo',
+    title: 'Chief Financial Officer',
+    initials: 'VG',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
+    status: 'online',
+    skills: [
+      'Treasury Capital Management',
+      'Squad Budget Allocation',
+      'Financial Auditing & SOC1',
+      'Client Revenue Modeling',
+      'Virtual Currency Escrow',
+      'Incentive & Penalty Balancing',
+      'Corporate Cashflow Governance',
+    ],
+    timezone: 'UTC-5 (EST)',
+    bio: 'Chief Financial Officer managing company virtual financial resources, squad capital distribution, milestone escrow balances, and client revenue-sharing transparency.',
+  },
+  {
+    id: 'user_ceo_01',
+    name: 'Victoria Sterling-Fox',
+    email: 'victoria.fox@pointfex.internal',
+    role: 'ceo',
+    title: 'Chief Executive Officer',
+    initials: 'VF',
+    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
+    status: 'online',
+    skills: [
+      'Corporate Strategy & Vision',
+      'Capital Markets & Treasury Governance',
+      'Executive Leadership Overrides',
+      'Cross-Division Governance',
+      'Enterprise Client Partnerships',
+      'Global Product Roadmap Alignment',
+    ],
+    timezone: 'UTC-5 (EST)',
+    bio: 'Chief Executive Officer with company-wide executive authority over engineering, financial treasury, organizational performance, and corporate strategic roadmap.',
+  },
 ]
 
 export const CURRENT_DEV_ID = 'user_dev_01'
@@ -143,4 +202,10 @@ export const CURRENT_PM_ID = 'user_pm_01'
 export const getCurrentPm = (): User | undefined => USERS.find((u) => u.id === CURRENT_PM_ID)
 export const CURRENT_CTO_ID = 'user_cto_01'
 export const getCurrentCto = (): User | undefined => USERS.find((u) => u.id === CURRENT_CTO_ID)
+export const CURRENT_CFO_ID = 'user_cfo_01'
+export const getCurrentCfo = (): User | undefined => USERS.find((u) => u.id === CURRENT_CFO_ID)
+export const CURRENT_CPO_ID = 'user_cpo_01'
+export const getCurrentCpo = (): User | undefined => USERS.find((u) => u.id === CURRENT_CPO_ID)
+export const CURRENT_CEO_ID = 'user_ceo_01'
+export const getCurrentCeo = (): User | undefined => USERS.find((u) => u.id === CURRENT_CEO_ID)
 

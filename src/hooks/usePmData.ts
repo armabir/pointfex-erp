@@ -148,7 +148,11 @@ export function usePmData(): PmData {
       .filter((tx) => tx.amount > 0 && tx.status === 'completed')
       .reduce((sum, tx) => sum + tx.amount, 0)
 
-    const totalAllocated = Math.round(totalApprovedBudget * 0.68)
+    const txAllocated = teamTransactions
+      .filter((tx) => tx.type === 'budget_allocation')
+      .reduce((sum, tx) => sum + (tx.amount || 0), 0)
+    const projectAllocated = teamProjects.reduce((sum, p) => sum + (p.allocatedBudget || 0), 0)
+    const totalAllocated = Math.max(txAllocated, projectAllocated)
     const remainingBudget = Math.max(0, totalApprovedBudget - totalAllocated)
     const pendingEscrow = teamTransactions
       .filter((tx) => tx.type === 'escrow_hold' || tx.status === 'pending')

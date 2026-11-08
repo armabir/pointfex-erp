@@ -91,6 +91,13 @@ export function getInitialSeedData(): SeedData {
     testingSuites: JSON.parse(JSON.stringify(TESTING_SUITES)),
     bugBounties: JSON.parse(JSON.stringify(BUG_BOUNTIES)),
     consultancyRequests: JSON.parse(JSON.stringify(CONSULTANCY_REQUESTS)),
+    treasury: {
+      initialCapital: 500000,
+      totalApprovedBudgets: 380000,
+      totalDistributedToDevs: 245600,
+      totalClientRevenue: 740000,
+      unallocatedReserves: 120000,
+    },
   }
 }
 

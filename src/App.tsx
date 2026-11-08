@@ -32,6 +32,13 @@ import { CtoEarningsPage } from './pages/cto/CtoEarningsPage'
 import { CtoReportsPage } from './pages/cto/CtoReportsPage'
 import { CtoSettingsPage } from './pages/cto/CtoSettingsPage'
 
+// Phase 4: CFO, CHRO, and CEO Workspace Pages
+import { CfoDashboard } from './pages/cfo/CfoDashboard'
+import { CfoBudgetPage } from './pages/cfo/CfoBudgetPage'
+import { ChroDashboard } from './pages/chro/ChroDashboard'
+import { ChroPerformancePage } from './pages/chro/ChroPerformancePage'
+import { CeoDashboard } from './pages/ceo/CeoDashboard'
+
 import { RolePlaceholderPage } from './pages/placeholders/RolePlaceholderPage'
 
 function MainContentRouter() {
@@ -119,7 +126,97 @@ function MainContentRouter() {
     }
   }
 
-  // 4. Other non-implemented roles show role placeholder screen
+  // 4. Chief Financial Officer (CFO) workspace route switcher (9 panels)
+  if (currentRole === 'cfo') {
+    switch (currentRoute) {
+      case 'dashboard':
+        return <CfoDashboard />
+      case 'tasks':
+        return <CtoTasksPage />
+      case 'task-management':
+        return <CtoTaskManagementPage />
+      case 'team-management':
+        return <CtoTeamManagementPage />
+      case 'budget':
+        return <CfoBudgetPage />
+      case 'people':
+        return <CtoPeoplePage />
+      case 'reports':
+        return <CtoReportsPage />
+      case 'settings':
+        return <CtoSettingsPage />
+      case 'audit-log':
+        return <CtoAuditLogPage />
+      default:
+        return <CfoDashboard />
+    }
+  }
+
+  // 5. Chief Human Resources Officer (CHRO) workspace route switcher (9 panels)
+  if (currentRole === 'cpo' || currentRole === 'chro') {
+    switch (currentRoute) {
+      case 'dashboard':
+        return <ChroDashboard />
+      case 'tasks':
+        return <CtoTasksPage />
+      case 'task-management':
+        return <CtoTaskManagementPage />
+      case 'team-management':
+        return <CtoTeamManagementPage />
+      case 'performance':
+        return <ChroPerformancePage />
+      case 'people':
+        return <CtoPeoplePage />
+      case 'reports':
+        return <CtoReportsPage />
+      case 'settings':
+        return <CtoSettingsPage />
+      case 'audit-log':
+        return <CtoAuditLogPage />
+      default:
+        return <ChroDashboard />
+    }
+  }
+
+  // 6. Chief Executive Officer (CEO) workspace route switcher (15 panels)
+  if (currentRole === 'ceo') {
+    switch (currentRoute) {
+      case 'dashboard':
+        return <CeoDashboard />
+      case 'tasks':
+        return <CtoTasksPage />
+      case 'task-management':
+        return <CtoTaskManagementPage />
+      case 'team-management':
+        return <CtoTeamManagementPage />
+      case 'projects-repos':
+        return <CtoProjectsReposPage />
+      case 'code-quality':
+        return <CtoCodeQualityPage />
+      case 'security-testing':
+        return <CtoSecurityTestingPage />
+      case 'consultancy':
+        return <CtoConsultancyPage />
+      case 'budget':
+        return <CfoBudgetPage />
+      case 'performance':
+        return <ChroPerformancePage />
+      case 'earnings':
+        return <CtoEarningsPage />
+      case 'people':
+        return <CtoPeoplePage />
+      case 'reports':
+        return <CtoReportsPage />
+      case 'settings':
+        return <CtoSettingsPage />
+      case 'audit-log':
+        return <CtoAuditLogPage />
+      default:
+        return <CeoDashboard />
+    }
+  }
+
+  // 7. Other non-implemented roles show role placeholder screen
   return <RolePlaceholderPage />
 }
 

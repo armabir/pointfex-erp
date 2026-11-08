@@ -21,8 +21,10 @@ import {
 } from 'lucide-react'
 
 export function CtoReportsPage() {
-  const { cto, ctoReports, allReports } = useCtoData()
+  const { allReports } = useCtoData()
   const {
+    currentRole,
+    currentUser,
     addComplaint,
     updateComplaintStatusGeneral,
     reviewProjectIdea,
@@ -46,15 +48,21 @@ export function CtoReportsPage() {
   const [ideaStatus, setIdeaStatus] = useState<'approved' | 'rejected' | 'under_review'>('approved')
   const [ideaFeedback, setIdeaFeedback] = useState('')
 
-  // Filter CTO's submitted complaints
-  const myComplaints = ctoReports.filter(
-    (r) => r.type === 'complaint' || r.category?.includes('Complain') || r.category?.includes('Escalation')
+  // Filter current executive's submitted complaints
+  const myComplaints = allReports.filter(
+    (r) =>
+      (r.userId === currentUser?.id || r.authorId === currentUser?.id || r.authorRole === currentRole) &&
+      (r.type === 'complaint' || r.category?.includes('Complain') || r.category?.includes('Escalation'))
   )
 
-  // Filter complaints from PM & Dev
-  const teamComplaints = allReports.filter(
-    (r) => r.type === 'complaint' && r.authorRole !== 'cto'
-  )
+  // Filter complaints from PM & Dev (and exclude confidential unless CHRO or CEO)
+  const isChroOrCeo = currentRole === 'cpo' || currentRole === 'chro' || currentRole === 'ceo'
+  const teamComplaints = allReports.filter((r) => {
+    if (r.type !== 'complaint') return false
+    if (r.authorRole === currentRole) return false
+    if (r.isConfidential && !isChroOrCeo) return false
+    return true
+  })
 
   // Filter project proposals from PM & Dev
   const projectIdeas = allReports.filter(
@@ -69,13 +77,13 @@ export function CtoReportsPage() {
     }
 
     const newComplaint: Report = {
-      id: `report_cto_${Date.now()}`,
-      userId: cto?.id || 'user_cto_01',
+      id: `report_${currentRole || 'cto'}_${Date.now()}`,
+      userId: currentUser?.id || 'user_cto_01',
       date: new Date().toISOString(),
       submittedAt: new Date().toISOString(),
-      authorId: cto?.id || 'user_cto_01',
-      authorName: cto?.name || 'Dr. Arthur Sterling',
-      authorRole: 'cto',
+      authorId: currentUser?.id || 'user_cto_01',
+      authorName: currentUser?.name || 'Dr. Arthur Sterling',
+      authorRole: currentRole || 'cto',
       targetUserName: complainTo,
       type: 'complaint',
       title: complainTitle.trim(),

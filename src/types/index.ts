@@ -23,6 +23,7 @@ export interface User {
   title: string
   teamId?: string
   avatar?: string
+  avatarUrl?: string
   initials: string
   status: UserStatus
   skills?: string[]
@@ -86,6 +87,8 @@ export interface Project {
   totalWeeks: number
   currentWeek: number
   budget: number
+  allocatedBudget?: number
+  clientRevenue?: number
   client?: string
   priority?: string
   repositoryUrl?: string
@@ -113,6 +116,7 @@ export interface Task {
   description: string
   projectId: string
   assigneeId: string
+  assignedTo?: string
   creatorId: string
   status: TaskStatus
   priority: TaskPriority
@@ -195,17 +199,30 @@ export interface PerformanceReward {
 
 export interface PerformanceRecord {
   userId: string
+  developerId?: string
   overallScore: number
-  completionRate: number
-  onTimeDeliveryRate: number
+  completionRate?: number
+  onTimeDeliveryRate?: number
   codeQualityScore?: number
+  codeQuality?: number
+  deliverySpeed?: number
+  reliability?: number
+  collaboration?: number
   peerReviewScore?: number
   velocityPointsSprint3?: number
   targetVelocityPoints?: number
   sprintWeek?: number
-  recentRewards: PerformanceReward[]
+  recentRewards?: PerformanceReward[]
   strengths?: string[]
   improvementAreas?: string[]
+  improvements?: string[]
+  weeklyHours?: number[]
+  attendanceRate?: number
+  satisfactionIndex?: number
+  performanceTier?: 'top_performer' | 'strong_contributor' | 'needs_support' | string
+  evaluationNotes?: string
+  disciplinaryNotes?: string
+  lastEvaluationDate?: string
 }
 
 // --- REPORTS & SUBMISSIONS ---
@@ -238,6 +255,11 @@ export interface Report {
   forwardedBy?: string
   forwardedAt?: string
   pmEndorsement?: string
+  isConfidential?: boolean
+  confidentialTo?: string
+  mediationNotes?: string
+  author?: User
+  resolvedAt?: string
 }
 
 // --- ANNOUNCEMENTS & NOTIFICATIONS ---
@@ -274,7 +296,7 @@ export interface ActivityLog {
   action: string
   entityType: string
   entityId: string
-  entityTitle: string
+  entityTitle?: string
   description: string
   timestamp: string
   category: 'task' | 'comment' | 'git' | 'financial' | 'milestone' | 'security' | 'user' | 'project' | string
@@ -416,6 +438,15 @@ export interface ConsultancyRequest {
   completedAt?: string
 }
 
+// --- FINANCIAL TREASURY ---
+export interface CompanyTreasury {
+  initialCapital: number
+  totalApprovedBudgets: number
+  totalDistributedToDevs: number
+  totalClientRevenue: number
+  unallocatedReserves: number
+}
+
 // --- SEED DATA & RESOLVERS ---
 export interface SeedData {
   roles: Role[]
@@ -440,6 +471,7 @@ export interface SeedData {
   testingSuites: TestingSuite[]
   bugBounties: BugBountyItem[]
   consultancyRequests: ConsultancyRequest[]
+  treasury: CompanyTreasury
 }
 
 export interface DataResolvers {
@@ -688,4 +720,36 @@ export interface AppContextType {
   }) => void
   updateIncomingReportStatus: (reportId: string, newStatus: string, feedback?: string, forwardTo?: string) => void
   updateCtoProfile: (updatedFields: Partial<User>) => void
+
+  // CFO Financial State Handlers
+  allocateProjectBudget: (projectId: string, newBudget: number, reason?: string) => void
+  approveBudgetRequest: (reportId: string, approvedAmount: number, feedback?: string) => void
+  rejectBudgetRequest: (reportId: string, feedback: string) => void
+  issueFinancialAdjustment: (userId: string, amount: number, type: 'bonus' | 'penalty', reason: string) => void
+
+  // CHRO State Handlers
+  recordPerformanceEvaluation: (userId: string, evaluation: {
+    score: number
+    tier: 'top_performer' | 'strong_contributor' | 'needs_support' | string
+    notes: string
+    strengths?: string[]
+    improvementAreas?: string[]
+  }) => void
+  issueEmployeeRecognition: (userId: string, title: string, description: string, bonusAmount?: number) => void
+  issueDisciplinaryAction: (userId: string, title: string, description: string, penaltyAmount?: number) => void
+  updateConfidentialComplaintStatus: (complaintId: string, status: string, mediationNotes?: string) => void
+
+  // Executive Management Handlers
+  updateExecutiveProfile: (roleId: string, updatedFields: Partial<User>) => void
+  createExecutiveDirective: (directive: {
+    title: string
+    description?: string
+    assigneeRole: string
+    assigneeId?: string
+    priority?: TaskPriority
+    dueDate?: string
+    tags?: string[]
+    projectId?: string
+  }) => Task
+  authorizeCeoAction: (actionType: string, entityId: string, notes?: string) => void
 }

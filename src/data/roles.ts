@@ -24,24 +24,24 @@ export const ROLES: Record<string, Role> = {
   },
   CPO: {
     id: 'cpo',
-    name: 'Chief People Officer (CPO)',
+    name: 'Chief Human Resources Officer (CHRO)',
     badge: 'Executive',
-    description: 'Team allocations, dev capacity planning, developer satisfaction, and performance grading.',
-    isImplemented: false,
+    description: 'Employee performance evaluations, team dynamics, attendance, morale, and confidential grievance adjudication.',
+    isImplemented: true,
   },
   CFO: {
     id: 'cfo',
     name: 'Chief Financial Officer (CFO)',
     badge: 'Executive',
-    description: 'Sprint budgets, project escrow balances, virtual wallets, and payroll disbursements.',
-    isImplemented: false,
+    description: 'Company treasury, team & project budget allocations, financial transactions, and revenue-sharing management.',
+    isImplemented: true,
   },
   CEO: {
     id: 'ceo',
     name: 'Chief Executive Officer (CEO)',
     badge: 'Executive',
-    description: 'High-level business KPIs, client delivery timelines, company growth, and global health.',
-    isImplemented: false,
+    description: 'Company-wide executive command, strategic decisions authorization, cross-division governance, and corporate radar.',
+    isImplemented: true,
   },
 }
 
