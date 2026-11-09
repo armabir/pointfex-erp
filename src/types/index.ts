@@ -568,6 +568,15 @@ export interface AppContextType {
   currentUser: User | null
   currentTeam: Team | null
   resolvers: DataResolvers
+  backendStatus: 'connected' | 'connecting' | 'offline' | 'error'
+  backendHealth: {
+    status: string
+    service: string
+    environment: string
+    uptimeSeconds: number
+    database: { status: string; latencyMs: number }
+  } | null
+  refreshBackendData: () => Promise<void>
 
   setRole: (roleId: string) => void
   setPmId: (pmId: string) => void

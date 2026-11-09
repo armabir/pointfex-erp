@@ -14,6 +14,8 @@ export function Header() {
     setIsSearchOpen,
     theme,
     toggleTheme,
+    backendStatus,
+    backendHealth,
   } = useApp()
 
   const getPageInfo = (): { title: string; breadcrumbs: BreadcrumbItem[] } => {
@@ -124,6 +126,37 @@ export function Header() {
 
       {/* Right: Starline-style Floating Pill Capsule for Search, Theme Toggle, and Notifications */}
       <div className="flex items-center gap-2.5 sm:gap-3">
+        {/* Backend Connectivity Status Indicator */}
+        <div
+          title={
+            backendStatus === 'connected'
+              ? `Backend Connected (DB: ${backendHealth?.database.status || 'healthy'}, Latency: ${backendHealth?.database.latencyMs || 0}ms)`
+              : backendStatus === 'connecting'
+              ? 'Connecting to Pointfex Backend API...'
+              : 'Backend Offline — Operating in Local Mock Mode'
+          }
+          className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors shadow-2xs ${
+            backendStatus === 'connected'
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60'
+              : backendStatus === 'connecting'
+              ? 'bg-amber-50 text-amber-700 border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60'
+              : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+          }`}
+        >
+          <span
+            className={`w-2 h-2 rounded-full ${
+              backendStatus === 'connected'
+                ? 'bg-emerald-500 animate-pulse'
+                : backendStatus === 'connecting'
+                ? 'bg-amber-500 animate-ping'
+                : 'bg-slate-400'
+            }`}
+          />
+          <span className="font-semibold">
+            {backendStatus === 'connected' ? 'API Live' : backendStatus === 'connecting' ? 'Connecting...' : 'API Offline'}
+          </span>
+        </div>
+
         {/* Temporary Role Switcher */}
         <RoleSwitcher />
 
