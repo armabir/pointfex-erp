@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useMemo, useCallback, useEffect, type ReactNode } from 'react'
 import { getInitialSeedData, createDataResolvers, CURRENT_DEV_ID, CURRENT_PM_ID } from '../data'
 import { ROLES } from '../data/roles'
+import { api, type BackendHealthResponse } from '../services/api'
 import type {
   SeedData,
   AppContextType,
@@ -23,6 +24,8 @@ const AppContext = createContext<AppContextType | null>(null)
 export function AppProvider({ children }: { children: ReactNode }) {
   // 1. Initial State with URL hash & localStorage persistence
   const [data, setData] = useState<SeedData>(() => getInitialSeedData())
+  const [backendStatus, setBackendStatus] = useState<'connected' | 'connecting' | 'offline' | 'error'>('connecting')
+  const [backendHealth, setBackendHealth] = useState<BackendHealthResponse | null>(null)
 
   const [currentRole, setCurrentRole] = useState<string>(() => {
     return localStorage.getItem('pointfex_role') || 'developer'
@@ -106,6 +109,53 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Relational resolvers derived from current data state
   const resolvers = useMemo(() => createDataResolvers(data), [data])
+
+  // Synchronize with PostgreSQL database via NestJS backend
+  const refreshBackendData = useCallback(async () => {
+    try {
+      const health = await api.checkHealth()
+      if (health && health.status === 'ok') {
+        setBackendHealth(health)
+        setBackendStatus('connected')
+        const activeUserId = currentRole === 'developer' ? currentDevId : currentRole === 'pm' ? currentPmId : undefined
+        const liveData = await api.fetchFullData(activeUserId, currentRole)
+        setData(liveData)
+      } else {
+        setBackendStatus('offline')
+      }
+    } catch (err) {
+      console.warn('Backend connection failed, running in offline fallback mode:', err)
+      setBackendStatus('offline')
+    }
+  }, [currentRole, currentDevId, currentPmId])
+
+  useEffect(() => {
+    let active = true
+    const initSync = async () => {
+      try {
+        const health = await api.checkHealth()
+        if (!active) return
+        if (health && health.status === 'ok') {
+          setBackendHealth(health)
+          setBackendStatus('connected')
+          const activeUserId = currentRole === 'developer' ? currentDevId : currentRole === 'pm' ? currentPmId : undefined
+          const liveData = await api.fetchFullData(activeUserId, currentRole)
+          if (!active) return
+          setData(liveData)
+        } else {
+          setBackendStatus('offline')
+        }
+      } catch (err) {
+        if (!active) return
+        console.warn('Backend connection failed, running in offline fallback mode:', err)
+        setBackendStatus('offline')
+      }
+    }
+    initSync()
+    return () => {
+      active = false
+    }
+  }, [currentRole, currentDevId, currentPmId])
 
   // Current logged in user object
   const currentUser = useMemo<User | null>(() => {
@@ -232,9 +282,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         activityLogs: [newActivity, ...prev.activityLogs],
       }
     })
+
+    // Synchronize to backend database
+    api.updateTaskStatus(taskId, newStatus, currentDevId, currentRole).catch((err) => {
+      console.warn('Backend sync failed for updateTaskStatus:', err)
+    })
+
     showToast(`Task moved to "${newStatus.replace('_', ' ')}"`, 'success')
     return true
-  }, [currentRole, showToast])
+  }, [currentRole, currentDevId, showToast])
 
   // Handler: Update User Profile (editable profile requirement)
   const handleUpdateUserProfile = useCallback((updatedFields: Partial<User>) => {
@@ -250,8 +306,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         users: updatedUsers,
       }
     })
+
+    // Synchronize to backend database
+    api.updateEmployeeProfile(currentDevId, updatedFields, currentDevId, currentRole).catch((err) => {
+      console.warn('Backend sync failed for updateEmployeeProfile:', err)
+    })
+
     showToast('Profile updated successfully', 'success')
-  }, [currentDevId, showToast])
+  }, [currentDevId, currentRole, showToast])
 
   // Handler: Add Project Deliverable Submission
   const handleAddSubmission = useCallback((submission: Report) => {
@@ -340,6 +402,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       activityLogs: [newActivity, ...prev.activityLogs],
     }))
 
+    // Synchronize to backend database
+    api.createTask({
+      title: taskData.title,
+      description: taskData.description,
+      projectId: taskData.projectId,
+      assigneeId: taskData.assigneeId,
+      priority: taskData.priority,
+      dueDate: taskData.dueDate,
+      estimatedHours: Number(taskData.estimatedHours) || 8,
+      tags: taskData.tags,
+    }, currentPmId, 'pm').catch((err) => console.warn('Backend sync failed for createTask:', err))
+
     showToast(`Task "${newTask.title}" created successfully`, 'success')
     return newTask
   }, [currentPmId, resolvers, showToast])
@@ -387,6 +461,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         activityLogs: [newActivity, ...prev.activityLogs],
       }
     })
+
+    // Synchronize to backend database
+    api.approveTask(taskId, { feedback }, currentPmId, 'pm').catch((err) => {
+      console.warn('Backend sync failed for approveTask:', err)
+    })
+
     showToast('Task approved and marked as Completed', 'success')
   }, [currentPmId, showToast])
 
@@ -433,6 +513,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         activityLogs: [newActivity, ...prev.activityLogs],
       }
     })
+
+    // Synchronize to backend database
+    api.rejectTask(taskId, feedback, currentPmId, 'pm').catch((err) => {
+      console.warn('Backend sync failed for rejectTask:', err)
+    })
+
     showToast('Task returned to In Progress with feedback', 'info')
   }, [currentPmId, showToast])
 
@@ -466,6 +552,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         activityLogs: [newActivity, ...prev.activityLogs],
       }
     })
+
+    // Synchronize to backend database
+    api.reassignTask(taskId, newAssigneeId, currentPmId, 'pm').catch((err) => {
+      console.warn('Backend sync failed for reassignTask:', err)
+    })
+
     const devName = resolvers.getUser(newAssigneeId)?.name || 'developer'
     showToast(`Task reassigned to ${devName}`, 'success')
   }, [currentPmId, resolvers, showToast])
@@ -585,6 +677,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     })
 
+    // Synchronize to backend database
+    api.allocateDeveloperBudget({
+      projectId: allocation.projectId,
+      employeeId: allocation.developerId,
+      amount: allocAmount,
+      description: allocation.description || 'Sprint developer budget allocation',
+    }, currentPmId, 'pm').catch((err) => {
+      console.warn('Backend sync failed for allocateDeveloperBudget:', err)
+    })
+
     const devName = resolvers.getUser(allocation.developerId)?.name || 'developer'
     showToast(`Successfully allocated $${allocAmount.toLocaleString()} to ${devName}`, 'success')
     return true
@@ -596,6 +698,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     amount: number | string
     reason: string
   }) => {
+    // Synchronize to backend database
+    api.requestBudget({
+      projectId: req.projectId,
+      requestedAmount: Number(req.amount) || 0,
+      justification: req.reason,
+    }, currentPmId, 'pm').catch((err) => {
+      console.warn('Backend sync failed for requestBudget:', err)
+    })
+
     const project = resolvers.getProject(req.projectId)
     const newReport: Report = {
       id: `pm_budget_${Date.now()}`,
@@ -962,7 +1073,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     showToast('Personal task added to board', 'success')
     return newTask
-  }, [showToast])
+  }, [currentUser?.id, currentRole, showToast])
 
   const handleCreateProject = useCallback((projectData: {
     name: string
@@ -1049,9 +1160,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ],
     }))
 
+    // Synchronize to backend database
+    api.createProject({
+      name: projectData.name,
+      code: projectData.code,
+      description: projectData.description || '',
+      budgetAllocated: projectData.budget,
+      techStack: projectData.tags,
+      teamId: projectData.teamId,
+      repositoryUrl: projectData.repositoryUrl,
+      srsDocUrl: projectData.srsUrl,
+    }, currentUser?.id || 'emp_cto_01', 'cto').catch((err) => {
+      console.warn('Backend sync failed for createProject:', err)
+    })
+
     showToast(`Project ${newProject.code} created successfully`, 'success')
     return newProject
-  }, [showToast])
+  }, [currentUser, showToast])
 
   const handleUpdateProject = useCallback((projectId: string, updates: Partial<Project> & { repositoryUrl?: string; srsUrl?: string }) => {
     setData((prev) => {
@@ -2201,6 +2326,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     currentUser,
     currentTeam,
     resolvers,
+    backendStatus,
+    backendHealth,
+    refreshBackendData,
 
     // Setters / Actions
     setRole: handleSetRole,
