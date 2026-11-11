@@ -22,8 +22,8 @@ export function DeveloperEarningsPage() {
   const { wallet, transactions, performance } = useDeveloperData()
   const [filterType, setFilterType] = useState<'all' | 'payout' | 'penalty'>('all')
 
-  const totalPenalties = wallet?.totalPenalties || 250
-  const totalSpendings = wallet?.totalSpendings || 400
+  const totalPenalties = wallet?.totalPenalties ?? 0
+  const totalSpendings = wallet?.totalSpendings ?? 0
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter((tx) => {
@@ -56,7 +56,7 @@ export function DeveloperEarningsPage() {
             </div>
           </div>
           <div className="text-3xl font-bold font-display text-slate-900 dark:text-white">
-            {formatCurrency(wallet.balance)}
+            {formatCurrency(wallet?.balance ?? 0)}
           </div>
           <div className="mt-2 text-[11px] text-amber-700 dark:text-amber-400 font-medium flex items-center gap-1">
             <ArrowUpRight className="w-3 h-3" />
@@ -73,7 +73,7 @@ export function DeveloperEarningsPage() {
             </div>
           </div>
           <div className="text-3xl font-bold font-display text-slate-900 dark:text-white">
-            {formatCurrency(wallet.totalEarnedToDate)}
+            {formatCurrency(wallet?.totalEarnedToDate ?? 0)}
           </div>
           <div className="mt-2 text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
             Cumulative career earnings
@@ -210,7 +210,9 @@ export function DeveloperEarningsPage() {
                             : 'text-emerald-600 dark:text-emerald-400'
                         }`}
                       >
-                        {isPenalty ? `-${formatCurrency(Math.abs(tx.amount))}` : `+${formatCurrency(tx.amount)}`}
+                        {isPenalty
+                          ? `-${formatCurrency(Math.abs(tx.amount))}`
+                          : `+${formatCurrency(tx.amount)}`}
                       </td>
                     </tr>
                   )
@@ -222,10 +224,7 @@ export function DeveloperEarningsPage() {
       </Card>
 
       {/* Performance Section below table */}
-      <Card
-        title="Performance & Delivery Metrics"
-        icon={Award}
-      >
+      <Card title="Performance & Delivery Metrics" icon={Award}>
         <div className="space-y-4">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
             {/* Metric 1: Quality Score */}
@@ -235,7 +234,7 @@ export function DeveloperEarningsPage() {
                 <span>Overall Quality</span>
               </div>
               <div className="text-2xl font-bold font-display text-slate-900 dark:text-white">
-                {performance.overallScore || 94}/100
+                {performance?.overallScore ?? 0}/100
               </div>
               <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
                 Tier 1 Band
@@ -249,7 +248,7 @@ export function DeveloperEarningsPage() {
                 <span>On-Time Rate</span>
               </div>
               <div className="text-2xl font-bold font-display text-slate-900 dark:text-white">
-                {performance.onTimeDeliveryRate || 96}%
+                {performance?.onTimeDeliveryRate ?? 0}%
               </div>
               <div className="text-[10px] text-slate-400 dark:text-slate-500">
                 12 of 13 deadlines met
@@ -263,7 +262,7 @@ export function DeveloperEarningsPage() {
                 <span>Task Completion</span>
               </div>
               <div className="text-2xl font-bold font-display text-slate-900 dark:text-white">
-                {performance.completionRate || 92}%
+                {performance?.completionRate ?? 0}%
               </div>
               <div className="text-[10px] text-slate-400 dark:text-slate-500">
                 Sprint tasks completed
@@ -300,4 +299,3 @@ export function DeveloperEarningsPage() {
     </div>
   )
 }
-

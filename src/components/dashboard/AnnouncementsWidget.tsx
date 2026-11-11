@@ -17,10 +17,7 @@ export function AnnouncementsWidget({ announcements }: AnnouncementsWidgetProps)
   }
 
   return (
-    <Card
-      title="Announcements"
-      icon={Megaphone}
-    >
+    <Card title="Announcements" icon={Megaphone}>
       <div className="space-y-2.5">
         {announcements.map((ann) => {
           const isExpanded = expandedId === ann.id
@@ -70,4 +67,3 @@ export function AnnouncementsWidget({ announcements }: AnnouncementsWidgetProps)
     </Card>
   )
 }
-

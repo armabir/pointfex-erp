@@ -3,7 +3,7 @@ import { Modal } from '../common/Modal'
 import { Button } from '../common/Button'
 import { useApp } from '../../context/AppContext'
 import { Plus } from 'lucide-react'
-import type { Task, TaskPriority, ActivityLog } from '../../types'
+import type { TaskPriority } from '../../types'
 
 export interface QuickTaskCreateModalProps {
   isOpen: boolean
@@ -11,51 +11,31 @@ export interface QuickTaskCreateModalProps {
 }
 
 export function QuickTaskCreateModal({ isOpen, onClose }: QuickTaskCreateModalProps) {
-  const { data, showToast } = useApp()
+  const { data, createTask, currentUser, currentDevId } = useApp()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [projectId, setProjectId] = useState('proj_01')
   const [priority, setPriority] = useState<TaskPriority>('high')
-  const [dueDate, setDueDate] = useState('2026-11-06')
+  const [dueDate, setDueDate] = useState('2026-11-18')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim()) return
 
-    const newTask: Task = {
-      id: `task_${Date.now()}`,
+    const assigneeId = currentUser?.id || currentDevId
+    createTask({
       title: title.trim(),
       description: description.trim() || 'No detailed description provided.',
-      projectId,
-      assigneeId: 'user_dev_01',
-      creatorId: 'user_dev_01',
-      status: 'todo',
+      projectId: data.projects.some((p) => p.id === projectId)
+        ? projectId
+        : data.projects[0]?.id || 'proj_01',
+      assigneeId,
       priority,
       dueDate,
       estimatedHours: 6,
-      loggedHours: 0,
-      milestoneId: projectId === 'proj_01' ? 'ms_03' : 'ms_06',
-      tags: ['Sprint3', 'Frontend'],
-      createdAt: new Date().toISOString().split('T')[0],
-    }
+      tags: ['Sprint3'],
+    })
 
-    const newActivity: ActivityLog = {
-      id: `act_${Date.now()}`,
-      userId: 'user_dev_01',
-      action: 'task_created',
-      entityType: 'task',
-      entityId: newTask.id,
-      entityTitle: newTask.title,
-      description: 'Created new sprint task',
-      timestamp: 'Just now',
-      category: 'task',
-      badgeColor: 'sky',
-    }
-
-    data.tasks.unshift(newTask)
-    data.activityLogs.unshift(newActivity)
-
-    showToast(`Task "${newTask.title}" added to queue`, 'success')
     onClose()
     setTitle('')
     setDescription('')
@@ -95,24 +75,23 @@ export function QuickTaskCreateModal({ isOpen, onClose }: QuickTaskCreateModalPr
         </div>
 
         <div>
-          <label className="block text-slate-700 font-medium mb-1.5">
-            Project
-          </label>
+          <label className="block text-slate-700 font-medium mb-1.5">Project</label>
           <select
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-800 focus:bg-white focus:outline-none focus:border-slate-400 cursor-pointer"
           >
-            <option value="proj_01">PulseFlow Analytics (PFA-01)</option>
-            <option value="proj_02">CloudMesh Gateway (CMG-02)</option>
+            {data.projects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name} ({p.code})
+              </option>
+            ))}
           </select>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-slate-700 font-medium mb-1.5">
-              Priority
-            </label>
+            <label className="block text-slate-700 font-medium mb-1.5">Priority</label>
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value as TaskPriority)}
@@ -126,9 +105,7 @@ export function QuickTaskCreateModal({ isOpen, onClose }: QuickTaskCreateModalPr
           </div>
 
           <div>
-            <label className="block text-slate-700 font-medium mb-1.5">
-              Due Date
-            </label>
+            <label className="block text-slate-700 font-medium mb-1.5">Due Date</label>
             <input
               type="date"
               value={dueDate}
@@ -141,4 +118,3 @@ export function QuickTaskCreateModal({ isOpen, onClose }: QuickTaskCreateModalPr
     </Modal>
   )
 }
-

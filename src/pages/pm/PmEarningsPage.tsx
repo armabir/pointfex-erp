@@ -21,8 +21,8 @@ export function PmEarningsPage() {
   const { pmWallet, pmTransactions, teamPerformance, team } = usePmData()
   const [filterType, setFilterType] = useState<'all' | 'payout' | 'penalty'>('all')
 
-  const totalPenalties = pmWallet?.totalPenalties || 0
-  const totalSpendings = pmWallet?.totalSpendings || 250
+  const totalPenalties = pmWallet?.totalPenalties ?? 0
+  const totalSpendings = pmWallet?.totalSpendings ?? 0
 
   const filteredTransactions = useMemo(() => {
     return pmTransactions.filter((tx) => {
@@ -40,7 +40,10 @@ export function PmEarningsPage() {
           Earnings & Virtual Wallet
         </h2>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-          Compensation balance, earnings history, penalties, and performance metrics for <span className="font-semibold text-slate-700 dark:text-slate-300">{team?.name || 'Squad'}</span>
+          Compensation balance, earnings history, penalties, and performance metrics for{' '}
+          <span className="font-semibold text-slate-700 dark:text-slate-300">
+            {team?.name || 'Squad'}
+          </span>
         </p>
       </div>
 
@@ -55,7 +58,7 @@ export function PmEarningsPage() {
             </div>
           </div>
           <div className="text-3xl font-bold font-display text-slate-900 dark:text-white">
-            {formatCurrency(pmWallet.balance)}
+            {formatCurrency(pmWallet?.balance ?? 0)}
           </div>
           <div className="mt-2 text-[11px] text-amber-700 dark:text-amber-400 font-medium flex items-center gap-1">
             <ArrowUpRight className="w-3 h-3" />
@@ -72,7 +75,7 @@ export function PmEarningsPage() {
             </div>
           </div>
           <div className="text-3xl font-bold font-display text-slate-900 dark:text-white">
-            {formatCurrency(pmWallet.totalEarnedToDate)}
+            {formatCurrency(pmWallet?.totalEarnedToDate ?? 0)}
           </div>
           <div className="mt-2 text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
             Cumulative career earnings
@@ -193,8 +196,8 @@ export function PmEarningsPage() {
                             isPenalty
                               ? 'bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300'
                               : tx.type === 'bonus'
-                              ? 'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300'
-                              : 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300'
+                                ? 'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300'
+                                : 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300'
                           }`}
                         >
                           {isPenalty ? 'Penalty' : tx.type === 'bonus' ? 'Bonus' : 'Payout'}
@@ -213,7 +216,9 @@ export function PmEarningsPage() {
                             : 'text-emerald-600 dark:text-emerald-400'
                         }`}
                       >
-                        {isPenalty ? `-${formatCurrency(Math.abs(tx.amount))}` : `+${formatCurrency(tx.amount)}`}
+                        {isPenalty
+                          ? `-${formatCurrency(Math.abs(tx.amount))}`
+                          : `+${formatCurrency(tx.amount)}`}
                       </td>
                     </tr>
                   )
@@ -225,10 +230,7 @@ export function PmEarningsPage() {
       </Card>
 
       {/* Performance Section below table (Identical to Dev) */}
-      <Card
-        title="Performance & Delivery Metrics"
-        icon={Award}
-      >
+      <Card title="Performance & Delivery Metrics" icon={Award}>
         <div className="space-y-4">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
             {/* Metric 1: Quality Score */}
@@ -238,7 +240,7 @@ export function PmEarningsPage() {
                 <span>Overall Quality</span>
               </div>
               <div className="text-2xl font-bold font-display text-slate-900 dark:text-white">
-                {teamPerformance.overallScore || 95}/100
+                {teamPerformance?.overallScore ?? 0}/100
               </div>
               <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
                 Tier 1 Band
@@ -252,7 +254,7 @@ export function PmEarningsPage() {
                 <span>On-Time Rate</span>
               </div>
               <div className="text-2xl font-bold font-display text-slate-900 dark:text-white">
-                {teamPerformance.onTimeDeliveryRate || 96}%
+                {teamPerformance?.onTimeDeliveryRate ?? 0}%
               </div>
               <div className="text-[10px] text-slate-400 dark:text-slate-500">
                 12 of 13 deadlines met
@@ -266,7 +268,7 @@ export function PmEarningsPage() {
                 <span>Task Completion</span>
               </div>
               <div className="text-2xl font-bold font-display text-slate-900 dark:text-white">
-                {teamPerformance.completionRate || 92}%
+                {teamPerformance?.completionRate ?? 0}%
               </div>
               <div className="text-[10px] text-slate-400 dark:text-slate-500">
                 Sprint tasks completed
@@ -280,7 +282,7 @@ export function PmEarningsPage() {
                 <span>Velocity</span>
               </div>
               <div className="text-2xl font-bold font-display text-slate-900 dark:text-white">
-                {teamPerformance.teamVelocity || 42} pts
+                {teamPerformance?.teamVelocity ?? 0} pts
               </div>
               <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
                 +15% vs baseline
@@ -295,7 +297,7 @@ export function PmEarningsPage() {
               <span>Current Sprint Management Performance Bonus Qualified:</span>
             </div>
             <span className="font-bold text-amber-700 dark:text-amber-300 font-display text-sm">
-              +{formatCurrency(pmWallet.sprintBonusEarned || 1200)}
+              +{formatCurrency(pmWallet?.sprintBonusEarned ?? 0)}
             </span>
           </div>
         </div>
@@ -305,4 +307,3 @@ export function PmEarningsPage() {
 }
 
 export default PmEarningsPage
-

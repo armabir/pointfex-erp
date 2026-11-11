@@ -29,19 +29,9 @@ interface StatCardItem {
 }
 
 export function CeoDashboard() {
-  const {
-    treasury,
-    projects,
-    hrStats,
-    confidentialComplaints,
-    auditLogs,
-  } = useExecutiveData()
+  const { treasury, projects, hrStats, confidentialComplaints, auditLogs } = useExecutiveData()
 
-  const {
-    setRoute,
-    createExecutiveDirective,
-    authorizeCeoAction,
-  } = useApp()
+  const { setRoute, createExecutiveDirective, authorizeCeoAction } = useApp()
 
   // Modal: Create Executive Directive
   const [isDirectiveModalOpen, setIsDirectiveModalOpen] = useState(false)
@@ -153,7 +143,9 @@ export function CeoDashboard() {
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
                   {card.label}
                 </span>
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${card.iconBg}`}>
+                <div
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center ${card.iconBg}`}
+                >
                   <Icon className="w-4 h-4" />
                 </div>
               </div>
@@ -210,9 +202,7 @@ export function CeoDashboard() {
                 <div className="text-lg font-bold text-slate-900 dark:text-white">
                   {formatCurrency(treasury?.unallocatedReserves || 120000)}
                 </div>
-                <div className="text-xs text-slate-500 mt-1">
-                  Reserves Buffer Available
-                </div>
+                <div className="text-xs text-slate-500 mt-1">Reserves Buffer Available</div>
                 <div className="mt-3 pt-2 border-t border-slate-200/60 dark:border-slate-700 text-xs font-semibold text-sky-600 dark:text-sky-400 flex items-center gap-1">
                   Budget Desk <ArrowRight className="w-3 h-3" />
                 </div>
@@ -232,9 +222,7 @@ export function CeoDashboard() {
                 <div className="text-lg font-bold text-slate-900 dark:text-white">
                   {projects.length} Squads On-Track
                 </div>
-                <div className="text-xs text-slate-500 mt-1">
-                  Quality Gate: 92.4% Avg
-                </div>
+                <div className="text-xs text-slate-500 mt-1">Quality Gate: 92.4% Avg</div>
                 <div className="mt-3 pt-2 border-t border-slate-200/60 dark:border-slate-700 text-xs font-semibold text-sky-600 dark:text-sky-400 flex items-center gap-1">
                   Projects & Repos <ArrowRight className="w-3 h-3" />
                 </div>

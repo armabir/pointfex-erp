@@ -2,8 +2,10 @@ import React, { useState, useMemo } from 'react'
 import { Badge } from '../../components/common/Badge'
 import { Button } from '../../components/common/Button'
 import { Modal } from '../../components/common/Modal'
+import { Avatar } from '../../components/common/Avatar'
 import { useCtoData, type TeamWithDetails } from '../../hooks/useCtoData'
 import { useApp } from '../../context/AppContext'
+import { usePermissions } from '../../hooks/usePermissions'
 import {
   Users,
   Search,
@@ -18,6 +20,10 @@ import {
 export function CtoTeamManagementPage() {
   const { teams, developers, projectManagers, projects } = useCtoData()
   const { createTeam, updateTeam, showToast } = useApp()
+  const { hasPermission, hasAnyPermission } = usePermissions()
+
+  const canCreateSquad = hasPermission('teams:create')
+  const canManageSquad = hasAnyPermission('teams:update', 'teams:manage_members')
 
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSquad, setSelectedSquad] = useState<TeamWithDetails | null>(null)
@@ -100,25 +106,25 @@ export function CtoTeamManagementPage() {
 
   const toggleCreateMember = (devId: string) => {
     setNewMemberIds((prev) =>
-      prev.includes(devId) ? prev.filter((id) => id !== devId) : [...prev, devId]
+      prev.includes(devId) ? prev.filter((id) => id !== devId) : [...prev, devId],
     )
   }
 
   const toggleCreateProject = (projId: string) => {
     setNewProjectIds((prev) =>
-      prev.includes(projId) ? prev.filter((id) => id !== projId) : [...prev, projId]
+      prev.includes(projId) ? prev.filter((id) => id !== projId) : [...prev, projId],
     )
   }
 
   const toggleEditMember = (devId: string) => {
     setEditMemberIds((prev) =>
-      prev.includes(devId) ? prev.filter((id) => id !== devId) : [...prev, devId]
+      prev.includes(devId) ? prev.filter((id) => id !== devId) : [...prev, devId],
     )
   }
 
   const toggleEditProject = (projId: string) => {
     setEditProjectIds((prev) =>
-      prev.includes(projId) ? prev.filter((id) => id !== projId) : [...prev, projId]
+      prev.includes(projId) ? prev.filter((id) => id !== projId) : [...prev, projId],
     )
   }
 
@@ -127,19 +133,24 @@ export function CtoTeamManagementPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">
-            Engineering Squads & Teams
+          <h2 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white font-display">
+            Engineering Squads &amp; Teams
           </h2>
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">
+            Organize cross-functional squads, project leads, and sprint allocation.
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="lime"
-            size="sm"
-            icon={Plus}
-            onClick={() => setIsCreateModalOpen(true)}
-          >
-            Create New Squad
-          </Button>
+          {canCreateSquad && (
+            <Button
+              variant="brand"
+              size="sm"
+              icon={Plus}
+              onClick={() => setIsCreateModalOpen(true)}
+            >
+              Create New Squad
+            </Button>
+          )}
         </div>
       </div>
 
@@ -241,17 +252,12 @@ export function CtoTeamManagementPage() {
                 <div className="flex items-center justify-between text-xs py-2 px-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
                   <span className="text-[11px] text-slate-400 font-medium">Project Manager</span>
                   <div className="flex items-center gap-1.5 min-w-0">
-                    {squad.pm?.avatar ? (
-                      <img
-                        src={squad.pm.avatar}
-                        alt={squad.pm.name}
-                        className="w-5 h-5 rounded-full object-cover shrink-0"
-                      />
-                    ) : (
-                      <div className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 text-[10px] flex items-center justify-center font-bold shrink-0">
-                        {squad.pm?.name?.charAt(0) || 'P'}
-                      </div>
-                    )}
+                    <Avatar
+                      src={squad.pm?.avatarUrl || squad.pm?.avatar}
+                      name={squad.pm?.name || 'Project Manager'}
+                      initials={squad.pm?.initials}
+                      size="xs"
+                    />
                     <span className="font-semibold text-slate-800 dark:text-slate-200 text-xs truncate">
                       {squad.pm?.name || 'Unassigned'}
                     </span>
@@ -265,7 +271,9 @@ export function CtoTeamManagementPage() {
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {squad.projects.length === 0 ? (
-                      <span className="text-[11px] text-slate-400 italic">No projects assigned</span>
+                      <span className="text-[11px] text-slate-400 italic">
+                        No projects assigned
+                      </span>
                     ) : (
                       squad.projects.map((proj) => (
                         <span
@@ -301,12 +309,13 @@ export function CtoTeamManagementPage() {
               <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div className="flex items-center -space-x-1.5 overflow-hidden">
                   {squad.members.slice(0, 5).map((member) => (
-                    <img
+                    <Avatar
                       key={member.id}
-                      src={member.avatar}
-                      alt={member.name}
+                      src={member.avatarUrl || member.avatar}
+                      name={member.name}
+                      initials={member.initials}
                       title={`${member.name} (${member.title})`}
-                      className="inline-block w-6 h-6 rounded-full ring-2 ring-white dark:ring-slate-900 object-cover"
+                      className="w-6 h-6 text-[10px] ring-2 ring-white dark:ring-slate-900"
                     />
                   ))}
                   {squad.members.length > 5 && (
@@ -317,19 +326,17 @@ export function CtoTeamManagementPage() {
                 </div>
 
                 <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="xs"
-                    icon={Edit2}
-                    onClick={() => handleOpenEdit(squad)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="xs"
-                    onClick={() => setSelectedSquad(squad)}
-                  >
+                  {canManageSquad && (
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      icon={Edit2}
+                      onClick={() => handleOpenEdit(squad)}
+                    >
+                      Edit
+                    </Button>
+                  )}
+                  <Button variant="secondary" size="xs" onClick={() => setSelectedSquad(squad)}>
                     Inspect
                   </Button>
                 </div>
@@ -401,17 +408,16 @@ export function CtoTeamManagementPage() {
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-32 overflow-y-auto p-2 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800">
                 {projects.map((p) => (
-                  <label
-                    key={p.id}
-                    className="flex items-center gap-2 text-[11px] cursor-pointer"
-                  >
+                  <label key={p.id} className="flex items-center gap-2 text-[11px] cursor-pointer">
                     <input
                       type="checkbox"
                       checked={newProjectIds.includes(p.id)}
                       onChange={() => toggleCreateProject(p.id)}
                       className="rounded accent-lime-500"
                     />
-                    <span className="truncate">{p.code} — {p.name}</span>
+                    <span className="truncate">
+                      {p.code} — {p.name}
+                    </span>
                   </label>
                 ))}
               </div>
@@ -448,12 +454,7 @@ export function CtoTeamManagementPage() {
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                variant="lime"
-                size="sm"
-                icon={Plus}
-              >
+              <Button type="submit" variant="lime" size="sm" icon={Plus}>
                 Create Squad
               </Button>
             </div>
@@ -521,17 +522,16 @@ export function CtoTeamManagementPage() {
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-32 overflow-y-auto p-2 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800">
                 {projects.map((p) => (
-                  <label
-                    key={p.id}
-                    className="flex items-center gap-2 text-[11px] cursor-pointer"
-                  >
+                  <label key={p.id} className="flex items-center gap-2 text-[11px] cursor-pointer">
                     <input
                       type="checkbox"
                       checked={editProjectIds.includes(p.id)}
                       onChange={() => toggleEditProject(p.id)}
                       className="rounded accent-lime-500"
                     />
-                    <span className="truncate">{p.code} — {p.name}</span>
+                    <span className="truncate">
+                      {p.code} — {p.name}
+                    </span>
                   </label>
                 ))}
               </div>
@@ -568,12 +568,7 @@ export function CtoTeamManagementPage() {
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                variant="lime"
-                size="sm"
-                icon={CheckCircle2}
-              >
+              <Button type="submit" variant="lime" size="sm" icon={CheckCircle2}>
                 Save Squad Changes
               </Button>
             </div>
@@ -586,24 +581,23 @@ export function CtoTeamManagementPage() {
         <Modal
           isOpen={!!selectedSquad}
           onClose={() => setSelectedSquad(null)}
-          title={selectedSquad ? `${selectedSquad.name} (${selectedSquad.code}) — Squad Overview` : 'Squad'}
+          title={
+            selectedSquad
+              ? `${selectedSquad.name} (${selectedSquad.code}) — Squad Overview`
+              : 'Squad'
+          }
         >
           <div className="space-y-4 text-xs">
             {/* PM Card */}
             <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 flex items-center justify-between">
               <span className="text-slate-400 font-medium">Assigned Project Manager</span>
               <div className="flex items-center gap-2">
-                {selectedSquad.pm?.avatar ? (
-                  <img
-                    src={selectedSquad.pm.avatar}
-                    alt={selectedSquad.pm.name}
-                    className="w-6 h-6 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-xs flex items-center justify-center font-bold">
-                    {selectedSquad.pm?.name?.charAt(0) || 'P'}
-                  </div>
-                )}
+                <Avatar
+                  src={selectedSquad.pm?.avatarUrl || selectedSquad.pm?.avatar}
+                  name={selectedSquad.pm?.name || 'Project Manager'}
+                  initials={selectedSquad.pm?.initials}
+                  className="w-6 h-6 text-[10px]"
+                />
                 <span className="font-semibold text-slate-800 dark:text-slate-200">
                   {selectedSquad.pm?.name || 'Unassigned'}
                 </span>
@@ -621,10 +615,11 @@ export function CtoTeamManagementPage() {
                     key={member.id}
                     className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center gap-2"
                   >
-                    <img
-                      src={member.avatar}
-                      alt={member.name}
-                      className="w-8 h-8 rounded-full object-cover"
+                    <Avatar
+                      src={member.avatarUrl || member.avatar}
+                      name={member.name}
+                      initials={member.initials}
+                      className="w-8 h-8 text-xs"
                     />
                     <div>
                       <h5 className="font-semibold text-xs text-slate-900 dark:text-slate-100">

@@ -6,13 +6,7 @@ import { Modal } from '../../components/common/Modal'
 import { useCtoData } from '../../hooks/useCtoData'
 import { useApp } from '../../context/AppContext'
 import type { PullRequest } from '../../types'
-import {
-  GitPullRequest,
-  ShieldCheck,
-  Zap,
-  Clock,
-  GitMerge,
-} from 'lucide-react'
+import { GitPullRequest, ShieldCheck, Zap, Clock, GitMerge } from 'lucide-react'
 
 export function CtoCodeQualityPage() {
   const { pullRequests, codeQualityGates, projects } = useCtoData()
@@ -38,23 +32,44 @@ export function CtoCodeQualityPage() {
   const getPrStatusBadge = (status: string) => {
     switch (status) {
       case 'merged':
-        return <Badge variant="purple" size="xs">Merged</Badge>
+        return (
+          <Badge variant="purple" size="xs">
+            Merged
+          </Badge>
+        )
       case 'approved':
-        return <Badge variant="emerald" size="xs">Approved</Badge>
+        return (
+          <Badge variant="emerald" size="xs">
+            Approved
+          </Badge>
+        )
       case 'in_review':
-        return <Badge variant="sky" size="xs">In Review</Badge>
+        return (
+          <Badge variant="sky" size="xs">
+            In Review
+          </Badge>
+        )
       case 'changes_requested':
-        return <Badge variant="rose" size="xs">Changes Requested</Badge>
+        return (
+          <Badge variant="rose" size="xs">
+            Changes Requested
+          </Badge>
+        )
       default:
-        return <Badge variant="slate" size="xs">Open</Badge>
+        return (
+          <Badge variant="slate" size="xs">
+            Open
+          </Badge>
+        )
     }
   }
 
   const avgQuality = Math.round(
-    codeQualityGates.reduce((acc, g) => acc + g.complianceScore, 0) / (codeQualityGates.length || 1)
+    codeQualityGates.reduce((acc, g) => acc + g.complianceScore, 0) /
+      (codeQualityGates.length || 1),
   )
   const avgCoverage = Math.round(
-    codeQualityGates.reduce((acc, g) => acc + g.testCoverage, 0) / (codeQualityGates.length || 1)
+    codeQualityGates.reduce((acc, g) => acc + g.testCoverage, 0) / (codeQualityGates.length || 1),
   )
 
   return (
@@ -119,9 +134,7 @@ export function CtoCodeQualityPage() {
             <Clock className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-base font-bold text-slate-900 dark:text-slate-100">
-              18.4 hrs
-            </div>
+            <div className="text-base font-bold text-slate-900 dark:text-slate-100">18.4 hrs</div>
             <div className="text-[11px] text-slate-400">Technical Debt</div>
           </div>
         </div>
@@ -212,11 +225,7 @@ export function CtoCodeQualityPage() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Button
-                      variant="primary"
-                      size="xs"
-                      onClick={() => setSelectedPr(pr)}
-                    >
+                    <Button variant="primary" size="xs" onClick={() => setSelectedPr(pr)}>
                       Review PR
                     </Button>
                   </div>
@@ -257,10 +266,7 @@ export function CtoCodeQualityPage() {
                         {project?.code} — {project?.name}
                       </td>
                       <td className="py-3 px-3">
-                        <Badge
-                          variant={gate.complianceScore >= 95 ? 'emerald' : 'amber'}
-                          size="xs"
-                        >
+                        <Badge variant={gate.complianceScore >= 95 ? 'emerald' : 'amber'} size="xs">
                           {gate.complianceScore}/100
                         </Badge>
                       </td>
@@ -278,16 +284,18 @@ export function CtoCodeQualityPage() {
                         </div>
                       </td>
                       <td className="py-3 px-3">
-                        <span className={`font-mono ${gate.bugsDetected > 0 ? 'text-rose-600 font-semibold' : 'text-slate-500'}`}>
+                        <span
+                          className={`font-mono ${gate.bugsDetected > 0 ? 'text-rose-600 font-semibold' : 'text-slate-500'}`}
+                        >
                           {gate.bugsDetected}
                         </span>
                       </td>
-                      <td className="py-3 px-3 font-mono text-slate-500">
-                        {gate.codeSmellsCount}
-                      </td>
+                      <td className="py-3 px-3 font-mono text-slate-500">{gate.codeSmellsCount}</td>
                       <td className="py-3 px-3">
                         {gate.vulnerabilitiesCount > 0 ? (
-                          <span className="text-rose-600 font-semibold">{gate.vulnerabilitiesCount} Alert</span>
+                          <span className="text-rose-600 font-semibold">
+                            {gate.vulnerabilitiesCount} Alert
+                          </span>
                         ) : (
                           <span className="text-emerald-600 font-mono">0</span>
                         )}
@@ -297,7 +305,13 @@ export function CtoCodeQualityPage() {
                       </td>
                       <td className="py-3 px-3">
                         <Badge
-                          variant={gate.status === 'passed' ? 'emerald' : gate.status === 'warning' ? 'amber' : 'rose'}
+                          variant={
+                            gate.status === 'passed'
+                              ? 'emerald'
+                              : gate.status === 'warning'
+                                ? 'amber'
+                                : 'rose'
+                          }
                           size="xs"
                         >
                           {gate.status.toUpperCase()}
@@ -306,6 +320,13 @@ export function CtoCodeQualityPage() {
                     </tr>
                   )
                 })}
+                {codeQualityGates.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="py-10 text-center text-xs text-slate-400">
+                      No code quality telemetry records available yet.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -354,11 +375,7 @@ export function CtoCodeQualityPage() {
               >
                 Request Changes
               </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => handlePrAction('approved')}
-              >
+              <Button variant="secondary" size="sm" onClick={() => handlePrAction('approved')}>
                 Approve
               </Button>
               <Button

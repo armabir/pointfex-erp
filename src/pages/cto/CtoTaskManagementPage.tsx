@@ -2,19 +2,12 @@ import { useState, useMemo } from 'react'
 import { Badge } from '../../components/common/Badge'
 import { Button } from '../../components/common/Button'
 import { Modal } from '../../components/common/Modal'
+import { Avatar } from '../../components/common/Avatar'
 import { useCtoData } from '../../hooks/useCtoData'
 import { useApp } from '../../context/AppContext'
 import { formatDate } from '../../utils/formatters'
 import type { TaskPriority, TaskStatus, EnrichedTask } from '../../types'
-import {
-  Plus,
-  Search,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  Users,
-  Send,
-} from 'lucide-react'
+import { Plus, Search, CheckCircle2, XCircle, Clock, Users, Send } from 'lucide-react'
 
 interface ColumnDef {
   id: TaskStatus
@@ -267,10 +260,12 @@ export function CtoTaskManagementPage() {
               >
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
-                    <img
-                      src={pm.avatar}
-                      alt={pm.name}
-                      className="w-7 h-7 rounded-xl object-cover border border-slate-200 dark:border-slate-700"
+                    <Avatar
+                      src={pm.avatarUrl || pm.avatar}
+                      name={pm.name}
+                      initials={pm.initials}
+                      size="sm"
+                      className="border border-slate-200 dark:border-slate-700"
                     />
                     <div>
                       <h4 className="font-semibold text-xs text-slate-900 dark:text-slate-100">
@@ -351,127 +346,131 @@ export function CtoTaskManagementPage() {
                         : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40'
                     }`}
                   >
-                  {/* Column Header */}
-                  <div className="flex items-center justify-between mb-3 px-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className={`w-2 h-2 rounded-full ${col.dot}`} />
-                      <span className="font-semibold text-xs text-slate-900 dark:text-slate-100">
-                        {col.label}
+                    {/* Column Header */}
+                    <div className="flex items-center justify-between mb-3 px-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`w-2 h-2 rounded-full ${col.dot}`} />
+                        <span className="font-semibold text-xs text-slate-900 dark:text-slate-100">
+                          {col.label}
+                        </span>
+                      </div>
+                      <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-700">
+                        {colTasks.length}
                       </span>
                     </div>
-                    <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-700">
-                      {colTasks.length}
-                    </span>
-                  </div>
 
-                  {/* Tasks List */}
-                  <div className="space-y-2.5 flex-1">
-                    {colTasks.length === 0 ? (
-                      <div className="h-32 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-center p-3 text-center">
-                        <span className="text-[11px] text-slate-400">No directives</span>
-                      </div>
-                    ) : (
-                      colTasks.map((task) => (
-                        <div
-                          key={task.id}
-                          draggable
-                          onDragStart={(e) => handleDragStart(e, task.id)}
-                          onDragEnd={handleDragEnd}
-                          onClick={() => setSelectedTaskModal(task)}
-                          className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/70 hover:border-lime-400 dark:hover:border-lime-500 hover:shadow-xs transition-all duration-150 cursor-grab active:cursor-grabbing group space-y-2"
-                        >
-                          {/* Top Row: Project code & Priority */}
-                          <div className="flex items-center justify-between gap-1">
-                            <Badge variant="indigo" size="xs">
-                              {task.project?.code || 'TECH'}
-                            </Badge>
-                            {task.priority && (
-                              <span
-                                className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                                  task.priority === 'urgent'
-                                    ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
-                                    : task.priority === 'high'
-                                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
-                                    : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
-                                }`}
-                              >
-                                {task.priority}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Task Title */}
-                          <h4 className="text-xs font-semibold text-slate-900 dark:text-slate-100 group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors line-clamp-2">
-                            {task.title}
-                          </h4>
-
-                          {/* Description snippet */}
-                          {task.description && (
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2">
-                              {task.description}
-                            </p>
-                          )}
-
-                          {/* Assignee PM pill */}
-                          {task.assignee && (
-                            <div className="flex items-center gap-1.5 pt-1">
-                              <img
-                                src={task.assignee.avatar}
-                                alt={task.assignee.name}
-                                className="w-4 h-4 rounded-full object-cover"
-                              />
-                              <span className="text-[11px] text-slate-600 dark:text-slate-300 font-medium truncate">
-                                {task.assignee.name}
-                              </span>
-                            </div>
-                          )}
-
-                          {/* In-Review Actions: Approve / Request Changes */}
-                          {col.isReview && (
-                            <div
-                              onClick={(e) => e.stopPropagation()}
-                              className="pt-2 border-t border-purple-100 dark:border-purple-900/40 flex items-center gap-1.5"
-                            >
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  reviewCtoTaskSubmission(task.id, true)
-                                  showToast('Directive deliverable approved & verified.', 'success')
-                                }}
-                                className="flex-1 py-1.5 px-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors whitespace-nowrap cursor-pointer shadow-2xs"
-                              >
-                                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                                <span>Approve</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setReviewingTask(task)
-                                  setFeedbackNotes('')
-                                }}
-                                className="flex-1 py-1.5 px-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/40 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors whitespace-nowrap cursor-pointer shadow-2xs"
-                              >
-                                <XCircle className="w-3.5 h-3.5 shrink-0" />
-                                <span>Changes</span>
-                              </button>
-                            </div>
-                          )}
-
-                          {/* Footer */}
-                          <div className="pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[10px] text-slate-400">
-                            <div className="flex items-center gap-1">
-                              <Clock className="w-3 h-3 text-slate-400" />
-                              <span>{formatDate(task.dueDate, 'short')}</span>
-                            </div>
-                            <span className="font-mono">{task.project?.code}</span>
-                          </div>
+                    {/* Tasks List */}
+                    <div className="space-y-2.5 flex-1">
+                      {colTasks.length === 0 ? (
+                        <div className="h-32 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-center p-3 text-center">
+                          <span className="text-[11px] text-slate-400">No directives</span>
                         </div>
-                      ))
-                    )}
+                      ) : (
+                        colTasks.map((task) => (
+                          <div
+                            key={task.id}
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, task.id)}
+                            onDragEnd={handleDragEnd}
+                            onClick={() => setSelectedTaskModal(task)}
+                            className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/70 hover:border-lime-400 dark:hover:border-lime-500 hover:shadow-xs transition-all duration-150 cursor-grab active:cursor-grabbing group space-y-2"
+                          >
+                            {/* Top Row: Project code & Priority */}
+                            <div className="flex items-center justify-between gap-1">
+                              <Badge variant="indigo" size="xs">
+                                {task.project?.code || 'TECH'}
+                              </Badge>
+                              {task.priority && (
+                                <span
+                                  className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
+                                    task.priority === 'urgent'
+                                      ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
+                                      : task.priority === 'high'
+                                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
+                                        : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+                                  }`}
+                                >
+                                  {task.priority}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Task Title */}
+                            <h4 className="text-xs font-semibold text-slate-900 dark:text-slate-100 group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors line-clamp-2">
+                              {task.title}
+                            </h4>
+
+                            {/* Description snippet */}
+                            {task.description && (
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2">
+                                {task.description}
+                              </p>
+                            )}
+
+                            {/* Assignee PM pill */}
+                            {task.assignee && (
+                              <div className="flex items-center gap-1.5 pt-1">
+                                <Avatar
+                                  src={task.assignee.avatarUrl || task.assignee.avatar}
+                                  name={task.assignee.name}
+                                  initials={task.assignee.initials}
+                                  className="w-4 h-4 text-[9px]"
+                                />
+                                <span className="text-[11px] text-slate-600 dark:text-slate-300 font-medium truncate">
+                                  {task.assignee.name}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* In-Review Actions: Approve / Request Changes */}
+                            {col.isReview && (
+                              <div
+                                onClick={(e) => e.stopPropagation()}
+                                className="pt-2 border-t border-purple-100 dark:border-purple-900/40 flex items-center gap-1.5"
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    reviewCtoTaskSubmission(task.id, true)
+                                    showToast(
+                                      'Directive deliverable approved & verified.',
+                                      'success',
+                                    )
+                                  }}
+                                  className="flex-1 py-1.5 px-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors whitespace-nowrap cursor-pointer shadow-2xs"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                                  <span>Approve</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setReviewingTask(task)
+                                    setFeedbackNotes('')
+                                  }}
+                                  className="flex-1 py-1.5 px-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/40 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors whitespace-nowrap cursor-pointer shadow-2xs"
+                                >
+                                  <XCircle className="w-3.5 h-3.5 shrink-0" />
+                                  <span>Changes</span>
+                                </button>
+                              </div>
+                            )}
+
+                            {/* Footer */}
+                            <div className="pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[10px] text-slate-400">
+                              <div className="flex items-center gap-1">
+                                <Clock className="w-3 h-3 text-slate-400" />
+                                <span>{formatDate(task.dueDate, 'short')}</span>
+                              </div>
+                              <span className="font-mono">{task.project?.code}</span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
                   </div>
-                </div>
-              )
-            })}
+                )
+              })}
             </div>
           </div>
         </div>
@@ -631,11 +630,7 @@ export function CtoTaskManagementPage() {
             <Button variant="ghost" size="sm" onClick={() => setReviewingTask(null)}>
               Cancel
             </Button>
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={() => handleReviewAction(false)}
-            >
+            <Button variant="danger" size="sm" onClick={() => handleReviewAction(false)}>
               Send Feedback
             </Button>
           </div>

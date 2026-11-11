@@ -120,7 +120,8 @@ export function useExecutiveData(): ExecutiveData {
     const executiveWallet: Wallet = resolvers.getDeveloperWallet(execUser.id) || {
       userId: execUser.id,
       balance: 15000,
-      currency: 'USD',
+      currency: 'BDT',
+      currencySymbol: '৳',
       pendingEscrow: 2500,
       totalEarnedToDate: 45000,
     }
@@ -159,7 +160,9 @@ export function useExecutiveData(): ExecutiveData {
       const pm = resolvers.getUser(team.pmId)
       const leadDev = team.leadDevId ? resolvers.getUser(team.leadDevId) : null
       const members = team.memberIds.map((id) => resolvers.getUser(id)).filter(Boolean) as User[]
-      const teamProjects = projects.filter((p) => p.teamId === team.id || team.projectIds?.includes(p.id))
+      const teamProjects = projects.filter(
+        (p) => p.teamId === team.id || team.projectIds?.includes(p.id),
+      )
       const teamTasks = data.tasks.filter((t) => team.memberIds.includes(t.assigneeId))
       const completedTasks = teamTasks.filter((t) => t.status === 'completed')
       const inProgressTasks = teamTasks.filter((t) => t.status === 'in_progress')
@@ -196,12 +199,15 @@ export function useExecutiveData(): ExecutiveData {
 
     // Tasks assigned to current executive
     const executiveTasks = tasks.filter(
-      (t) => t.assigneeId === execUser.id || t.tags?.includes('Executive') || t.tags?.includes('Strategy')
+      (t) =>
+        t.assigneeId === execUser.id ||
+        t.tags?.includes('Executive') ||
+        t.tags?.includes('Strategy'),
     )
 
     // Technical / Strategic directives assigned to PMs
-    const assignedDirectives = tasks.filter(
-      (t) => projectManagers.some((pm) => pm.id === t.assigneeId)
+    const assignedDirectives = tasks.filter((t) =>
+      projectManagers.some((pm) => pm.id === t.assigneeId),
     )
 
     // 7. CFO & Budget Calculations
@@ -218,12 +224,14 @@ export function useExecutiveData(): ExecutiveData {
     const projectBudgets: ProjectBudgetOverview[] = projects.map((proj) => {
       const approvedBudget = Number(proj.budget) || 0
       // Sum actual distributed budget from transactions
-      const distributed = data.transactions
-        .filter((tx) => tx.projectId === proj.id && tx.type === 'budget_allocation')
-        .reduce((sum, tx) => sum + tx.amount, 0) || Math.round(approvedBudget * 0.68)
+      const distributed =
+        data.transactions
+          .filter((tx) => tx.projectId === proj.id && tx.type === 'budget_allocation')
+          .reduce((sum, tx) => sum + tx.amount, 0) || Math.round(approvedBudget * 0.68)
 
       const remainingBudget = Math.max(0, approvedBudget - distributed)
-      const utilizationRate = approvedBudget > 0 ? Math.round((distributed / approvedBudget) * 100) : 0
+      const utilizationRate =
+        approvedBudget > 0 ? Math.round((distributed / approvedBudget) * 100) : 0
       const health: 'healthy' | 'warning' | 'critical' =
         utilizationRate >= 95 ? 'critical' : utilizationRate >= 80 ? 'warning' : 'healthy'
 
@@ -247,51 +255,64 @@ export function useExecutiveData(): ExecutiveData {
     })
 
     const pendingBudgetRequests = data.reports.filter(
-      (r) => r.type === 'pm_report' && r.category?.toLowerCase().includes('budget')
+      (r) =>
+        r.type === 'pm_report' &&
+        r.category?.toLowerCase().includes('budget') &&
+        r.status !== 'resolved' &&
+        r.status !== 'dismissed',
     )
 
     const financialTransactions = data.transactions.filter(
-      (t) => t.type === 'budget_allocation' || t.type === 'payout' || t.type === 'penalty' || t.type === 'bonus'
+      (t) =>
+        t.type === 'budget_allocation' ||
+        t.type === 'payout' ||
+        t.type === 'milestone_payout' ||
+        t.type === 'client_revenue_share' ||
+        t.type === 'penalty' ||
+        t.type === 'deduction' ||
+        t.type === 'bonus',
     )
 
     // 8. CHRO & Performance Calculations
     const performanceRecords = data.performanceRecords
     const avgPerformanceScore = Math.round(
       performanceRecords.reduce((acc, p) => acc + (p.overallScore || 90), 0) /
-        (performanceRecords.length || 1)
+        (performanceRecords.length || 1),
     )
     const avgAttendanceRate = Math.round(
       performanceRecords.reduce((acc, p) => acc + (p.attendanceRate || 96), 0) /
-        (performanceRecords.length || 1)
+        (performanceRecords.length || 1),
     )
     const avgSatisfactionIndex = Number(
       (
         performanceRecords.reduce((acc, p) => acc + (p.satisfactionIndex || 4.7), 0) /
         (performanceRecords.length || 1)
-      ).toFixed(1)
+      ).toFixed(1),
     )
     const onTimeDeliveryRate = Math.round(
       performanceRecords.reduce((acc, p) => acc + (p.onTimeDeliveryRate || 90), 0) /
-        (performanceRecords.length || 1)
+        (performanceRecords.length || 1),
     )
     const topPerformersCount = performanceRecords.filter((p) => p.overallScore >= 93).length
     const needsSupportCount = performanceRecords.filter(
-      (p) => (p.overallScore && p.overallScore < 88) || p.performanceTier === 'needs_support'
+      (p) => (p.overallScore && p.overallScore < 88) || p.performanceTier === 'needs_support',
     ).length
 
     // Confidential Complaints: accessible only to CHRO (cpo/chro) and CEO
     const confidentialComplaints = data.reports.filter(
-      (r) => r.type === 'complaint' && (r.isConfidential || r.complainTo?.includes('CHRO') || r.complainTo?.includes('CPO'))
+      (r) =>
+        r.type === 'complaint' &&
+        (r.isConfidential || r.complainTo?.includes('CHRO') || r.complainTo?.includes('CPO')),
     )
 
     const generalComplaints = data.reports.filter(
-      (r) => r.type === 'complaint' && !r.isConfidential
+      (r) => r.type === 'complaint' && !r.isConfidential,
     )
 
     const projectIdeas = data.reports.filter((r) => r.type === 'project_submission')
 
     const activeGrievancesCount = data.reports.filter(
-      (r) => r.type === 'complaint' && r.status !== 'resolved'
+      (r) => r.type === 'complaint' && r.status !== 'resolved',
     ).length
 
     // 9. CTO Engineering Domain
@@ -303,13 +324,16 @@ export function useExecutiveData(): ExecutiveData {
     const bugBounties = data.bugBounties
     const consultancyRequests = data.consultancyRequests
     const avgQualityScore = Math.round(
-      codeQualityGates.reduce((acc, g) => acc + g.complianceScore, 0) / (codeQualityGates.length || 1)
+      codeQualityGates.reduce((acc, g) => acc + g.complianceScore, 0) /
+        (codeQualityGates.length || 1),
     )
 
     // 10. Executive High-Level Stats
     const pendingDecisionsCount =
-      pendingBudgetRequests.filter((r) => r.status === 'under_review' || r.status === 'pending').length +
-      data.reports.filter((r) => r.status === 'pending' || r.status === 'forwarded_to_c_level').length +
+      pendingBudgetRequests.filter((r) => r.status === 'under_review' || r.status === 'pending')
+        .length +
+      data.reports.filter((r) => r.status === 'pending' || r.status === 'forwarded_to_c_level')
+        .length +
       pullRequests.filter((pr) => pr.status === 'in_review').length
 
     return {

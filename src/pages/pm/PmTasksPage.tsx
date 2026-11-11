@@ -4,13 +4,7 @@ import { usePmData } from '../../hooks/usePmData'
 import { useApp } from '../../context/AppContext'
 import { formatDate } from '../../utils/formatters'
 import type { TaskStatus } from '../../types'
-import {
-  Clock,
-  Layers,
-  Crown,
-  Search,
-  Lock,
-} from 'lucide-react'
+import { Clock, Layers, Crown, Search, Lock } from 'lucide-react'
 
 interface ColumnDef {
   id: TaskStatus
@@ -48,10 +42,25 @@ export function PmTasksPage() {
 
   // Executive categories
   const executives: ExecutiveDef[] = [
-    { id: 'cto', name: 'CTO — Dr. Arthur Sterling', role: 'CTO', title: 'Architecture & Engineering Standards' },
-    { id: 'cfo', name: 'CFO — Vincent Gallagher', role: 'CFO', title: 'Budgets & Financial Allocations' },
+    {
+      id: 'cto',
+      name: 'CTO — Dr. Arthur Sterling',
+      role: 'CTO',
+      title: 'Architecture & Engineering Standards',
+    },
+    {
+      id: 'cfo',
+      name: 'CFO — Vincent Gallagher',
+      role: 'CFO',
+      title: 'Budgets & Financial Allocations',
+    },
     { id: 'cpo', name: 'CPO — Amara Okafor', role: 'CPO', title: 'Talent, HR & Squad Health' },
-    { id: 'ceo', name: 'CEO — Victoria Sterling-Fox', role: 'CEO', title: 'Company Roadmap & Milestones' },
+    {
+      id: 'ceo',
+      name: 'CEO — Victoria Sterling-Fox',
+      role: 'CEO',
+      title: 'Company Roadmap & Milestones',
+    },
   ]
 
   // Filter tasks based on executive assignor and search
@@ -85,7 +94,8 @@ export function PmTasksPage() {
   const totalTasksCount = pmPersonalTasks.length
   const totalCompletedCount = pmPersonalTasks.filter((t) => t.status === 'completed').length
   const totalActiveCount = totalTasksCount - totalCompletedCount
-  const overallProgress = totalTasksCount > 0 ? Math.round((totalCompletedCount / totalTasksCount) * 100) : 0
+  const overallProgress =
+    totalTasksCount > 0 ? Math.round((totalCompletedCount / totalTasksCount) * 100) : 0
 
   // Drag and drop handlers (Exactly like Dev's TasksPage)
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, taskId: string) => {
@@ -120,7 +130,7 @@ export function PmTasksPage() {
     if (targetColId === 'completed') {
       showToast(
         'Permission denied: PM operational tasks require C-Level executive verification to be marked as Completed. Please move to "In Review" for sign-off.',
-        'error'
+        'error',
       )
       setDraggedTaskId(null)
       return
@@ -139,7 +149,8 @@ export function PmTasksPage() {
             My Operational Tasks
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Interactive Kanban board · Personal responsibilities assigned to {pm?.name || 'PM'} by C-Suite Executives
+            Interactive Kanban board · Personal responsibilities assigned to {pm?.name || 'PM'} by
+            C-Suite Executives
           </p>
         </div>
 
@@ -158,9 +169,7 @@ export function PmTasksPage() {
               <Crown className="w-3.5 h-3.5 text-slate-400" />
               Executive Filter
             </span>
-            <span className="text-[11px] text-slate-400">
-              {executives.length + 1} views
-            </span>
+            <span className="text-[11px] text-slate-400">{executives.length + 1} views</span>
           </div>
 
           {/* "All Initiatives" Card */}
@@ -188,9 +197,7 @@ export function PmTasksPage() {
                   <span className="font-bold text-xs text-slate-900 dark:text-white block">
                     All Directives
                   </span>
-                  <span className="text-[10px] text-slate-400">
-                    C-Suite Directives
-                  </span>
+                  <span className="text-[10px] text-slate-400">C-Suite Directives</span>
                 </div>
               </div>
               <Badge variant="lime" size="xs">
@@ -253,9 +260,7 @@ export function PmTasksPage() {
                     <span className="font-bold text-xs text-slate-900 dark:text-white truncate block">
                       {exec.name}
                     </span>
-                    <span className="text-[10px] text-slate-400 truncate block">
-                      {exec.title}
-                    </span>
+                    <span className="text-[10px] text-slate-400 truncate block">{exec.title}</span>
                   </div>
                   <Badge variant="purple" size="xs">
                     {exec.role}
@@ -373,8 +378,8 @@ export function PmTasksPage() {
                                   task.priority === 'urgent'
                                     ? 'rose'
                                     : task.priority === 'high'
-                                    ? 'amber'
-                                    : 'slate'
+                                      ? 'amber'
+                                      : 'slate'
                                 }
                                 size="xs"
                               >
@@ -413,4 +418,3 @@ export function PmTasksPage() {
 }
 
 export default PmTasksPage
-

@@ -84,19 +84,21 @@ export function useDeveloperData(): DeveloperData {
     const blockedTasks = allDevTasks.filter((t) => t.status === 'blocked')
 
     // Projects assigned to dev/team
-    const devProjects: DeveloperProject[] = resolvers.getDeveloperProjects(currentDevId).map((proj) => {
-      const projRepo = proj.repoId ? resolvers.getRepo(proj.repoId) : null
-      const projPM = resolvers.getUser(proj.pmId)
-      const projTasks = data.tasks.filter((t) => t.projectId === proj.id)
-      const projCompletedTasks = projTasks.filter((t) => t.status === 'completed')
-      return {
-        ...proj,
-        repo: projRepo,
-        pm: projPM,
-        totalTasksCount: projTasks.length,
-        completedTasksCount: projCompletedTasks.length,
-      }
-    })
+    const devProjects: DeveloperProject[] = resolvers
+      .getDeveloperProjects(currentDevId)
+      .map((proj) => {
+        const projRepo = proj.repoId ? resolvers.getRepo(proj.repoId) : null
+        const projPM = resolvers.getUser(proj.pmId)
+        const projTasks = data.tasks.filter((t) => t.projectId === proj.id)
+        const projCompletedTasks = projTasks.filter((t) => t.status === 'completed')
+        return {
+          ...proj,
+          repo: projRepo,
+          pm: projPM,
+          totalTasksCount: projTasks.length,
+          completedTasksCount: projCompletedTasks.length,
+        }
+      })
 
     // Virtual wallet & transactions
     const wallet: Wallet = resolvers.getDeveloperWallet(currentDevId) || {
@@ -194,4 +196,3 @@ export function useDeveloperData(): DeveloperData {
     }
   }, [data, currentDevId, resolvers])
 }
-

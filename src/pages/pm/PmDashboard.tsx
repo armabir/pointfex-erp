@@ -111,7 +111,8 @@ export function PmDashboard() {
       {/* 1. Welcome Section */}
       <div className="py-1">
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white font-display tracking-tight flex items-center gap-2">
-          Welcome, {pm?.name?.split(' ')[0] || 'Sarah'} <span className="inline-block animate-wiggle">👋</span>
+          Welcome, {pm?.name?.split(' ')[0] || 'Sarah'}{' '}
+          <span className="inline-block animate-wiggle">👋</span>
         </h2>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
           Here's what's happening with your team and projects today.
@@ -129,7 +130,9 @@ export function PmDashboard() {
               className={`border rounded-3xl p-5 transition-all duration-200 cursor-pointer shadow-[0_4px_20px_-2px_rgba(15,23,42,0.03)] hover:shadow-[0_8px_24px_-4px_rgba(15,23,42,0.06)] hover:-translate-y-0.5 group ${card.cardBg}`}
             >
               <div className="flex items-center gap-3.5 mb-3.5">
-                <div className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 shadow-2xs ${card.iconBg}`}>
+                <div
+                  className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 shadow-2xs ${card.iconBg}`}
+                >
                   <Icon className="w-5 h-5" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -186,7 +189,8 @@ export function PmDashboard() {
                   All developer deliverables verified
                 </div>
                 <p className="text-[11px] text-slate-400 dark:text-slate-500 max-w-xs mx-auto">
-                  No tasks currently in review. When engineers complete code, items will appear here for PM sign-off.
+                  No tasks currently in review. When engineers complete code, items will appear here
+                  for PM sign-off.
                 </p>
               </div>
             ) : (
@@ -206,7 +210,12 @@ export function PmDashboard() {
                         </span>
                       </div>
                       <div className="flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400">
-                        <span>Assignee: <strong className="text-slate-700 dark:text-slate-200">{task.assignee?.name || 'Engineer'}</strong></span>
+                        <span>
+                          Assignee:{' '}
+                          <strong className="text-slate-700 dark:text-slate-200">
+                            {task.assignee?.name || 'Engineer'}
+                          </strong>
+                        </span>
                         <span>•</span>
                         <span>Project: {task.project?.code}</span>
                         <span>•</span>
@@ -228,7 +237,9 @@ export function PmDashboard() {
                         variant="lime"
                         size="xs"
                         icon={CheckCircle2}
-                        onClick={() => approveTask(task.id, 'Verified deliverable and approved by PM')}
+                        onClick={() =>
+                          approveTask(task.id, 'Verified deliverable and approved by PM')
+                        }
                       >
                         Approve
                       </Button>
@@ -240,10 +251,7 @@ export function PmDashboard() {
           </Card>
 
           {/* Team Performance Analytics with Donut Ring (matching Dev Dashboard order) */}
-          <Card
-            title="Team Performance Analytics"
-            icon={Award}
-          >
+          <Card title="Team Performance Analytics" icon={Award}>
             <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-5">
               {/* Donut Chart */}
               <div className="relative w-28 h-28 shrink-0 flex items-center justify-center">
@@ -423,7 +431,9 @@ export function PmDashboard() {
                   className="p-3 rounded-2xl bg-slate-50/70 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-1"
                 >
                   <div className="flex items-center justify-between gap-1 text-[11px] text-slate-400">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300">{ann.authorName}</span>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">
+                      {ann.authorName}
+                    </span>
                     <span>{formatDate(ann.date, 'short')}</span>
                   </div>
                   <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-xs truncate">
@@ -453,7 +463,9 @@ export function PmDashboard() {
                   <span className="w-2 h-2 rounded-full bg-sky-500" />
                   In Progress
                 </span>
-                <span className="font-bold text-sky-900 dark:text-sky-100">{stats.inProgressTasks}</span>
+                <span className="font-bold text-sky-900 dark:text-sky-100">
+                  {stats.inProgressTasks}
+                </span>
               </div>
 
               <div className="flex items-center justify-between p-2.5 rounded-xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/40">
@@ -461,7 +473,9 @@ export function PmDashboard() {
                   <span className="w-2 h-2 rounded-full bg-purple-500" />
                   In Review (Pending PM)
                 </span>
-                <span className="font-bold text-purple-900 dark:text-purple-100">{pendingReviewTasks.length}</span>
+                <span className="font-bold text-purple-900 dark:text-purple-100">
+                  {pendingReviewTasks.length}
+                </span>
               </div>
 
               <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40">
@@ -469,7 +483,9 @@ export function PmDashboard() {
                   <span className="w-2 h-2 rounded-full bg-emerald-500" />
                   Completed
                 </span>
-                <span className="font-bold text-emerald-900 dark:text-emerald-100">{stats.completedTasks}</span>
+                <span className="font-bold text-emerald-900 dark:text-emerald-100">
+                  {stats.completedTasks}
+                </span>
               </div>
 
               <div className="flex items-center justify-between p-2.5 rounded-xl bg-rose-50/50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/40">
@@ -477,7 +493,9 @@ export function PmDashboard() {
                   <span className="w-2 h-2 rounded-full bg-rose-500" />
                   Blocked
                 </span>
-                <span className="font-bold text-rose-900 dark:text-rose-100">{stats.blockedTasks}</span>
+                <span className="font-bold text-rose-900 dark:text-rose-100">
+                  {stats.blockedTasks}
+                </span>
               </div>
 
               <div className="pt-2">
@@ -545,4 +563,3 @@ export function PmDashboard() {
 }
 
 export default PmDashboard
-

@@ -1,10 +1,12 @@
 import { Card } from '../../components/common/Card'
 import { Badge } from '../../components/common/Badge'
 import { useDeveloperData } from '../../hooks/useDeveloperData'
+import { useApp } from '../../context/AppContext'
 import { Mail, Globe, Shield } from 'lucide-react'
 
 export function DeveloperTeamPage() {
   const { team, teamMembers, pm } = useDeveloperData()
+  const { currentDevId } = useApp()
 
   return (
     <div className="space-y-5">
@@ -12,9 +14,7 @@ export function DeveloperTeamPage() {
         <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">
           {team?.name || 'Team 1 — Quantum Core'}
         </h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-          {team?.focus}
-        </p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{team?.focus}</p>
       </div>
 
       {/* PM Card */}
@@ -26,7 +26,9 @@ export function DeveloperTeamPage() {
                 {pm.initials}
               </div>
               <div>
-                <div className="font-semibold text-slate-900 dark:text-white text-sm">{pm.name}</div>
+                <div className="font-semibold text-slate-900 dark:text-white text-sm">
+                  {pm.name}
+                </div>
                 <div className="text-slate-500 dark:text-slate-400">{pm.title}</div>
               </div>
             </div>
@@ -54,21 +56,19 @@ export function DeveloperTeamPage() {
                     <div>
                       <div className="font-semibold text-slate-900 dark:text-white text-xs flex items-center gap-1.5">
                         {member.name}
-                        {member.id === 'user_dev_01' && (
+                        {member.id === currentDevId && (
                           <Badge variant="lime" size="xs">
                             YOU
                           </Badge>
                         )}
                       </div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400">{member.title}</div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                        {member.title}
+                      </div>
                     </div>
                   </div>
 
-                  <Badge
-                    variant={member.status === 'online' ? 'emerald' : 'slate'}
-                    size="xs"
-                    dot
-                  >
+                  <Badge variant={member.status === 'online' ? 'emerald' : 'slate'} size="xs" dot>
                     {member.status}
                   </Badge>
                 </div>
@@ -93,4 +93,3 @@ export function DeveloperTeamPage() {
     </div>
   )
 }
-

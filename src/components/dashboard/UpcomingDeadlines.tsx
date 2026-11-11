@@ -1,6 +1,7 @@
 import { Card } from '../common/Card'
 import { Badge } from '../common/Badge'
 import { useApp } from '../../context/AppContext'
+import { usePermissions } from '../../hooks/usePermissions'
 import { formatDate } from '../../utils/formatters'
 import { Clock, CheckCircle2 } from 'lucide-react'
 import type { TaskWithDeadline } from '../../hooks/useDeveloperData'
@@ -11,7 +12,9 @@ export interface UpcomingDeadlinesProps {
 }
 
 export function UpcomingDeadlines({ deadlines, overdueTasks }: UpcomingDeadlinesProps) {
-  const { setSelectedTaskModal, updateTaskStatus, currentRole } = useApp()
+  const { setSelectedTaskModal, updateTaskStatus } = useApp()
+  const { hasPermission } = usePermissions()
+  const canApproveTasks = hasPermission('tasks:approve')
 
   return (
     <Card
@@ -64,7 +67,7 @@ export function UpcomingDeadlines({ deadlines, overdueTasks }: UpcomingDeadlines
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      if (currentRole === 'developer') {
+                      if (!canApproveTasks) {
                         // Submit for review instead of completed
                         updateTaskStatus(task.id, 'in_review')
                       } else {
@@ -72,7 +75,7 @@ export function UpcomingDeadlines({ deadlines, overdueTasks }: UpcomingDeadlines
                       }
                     }}
                     className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors cursor-pointer"
-                    title={currentRole === 'developer' ? 'Submit for Review' : 'Mark Completed'}
+                    title={!canApproveTasks ? 'Submit for Review' : 'Mark Completed'}
                   >
                     <CheckCircle2 className="w-4 h-4" />
                   </button>
@@ -85,4 +88,3 @@ export function UpcomingDeadlines({ deadlines, overdueTasks }: UpcomingDeadlines
     </Card>
   )
 }
-

@@ -3,15 +3,10 @@ import { Card } from '../common/Card'
 import { Badge } from '../common/Badge'
 import { StatusPill } from '../common/StatusPill'
 import { Button } from '../common/Button'
+import { EmptyState } from '../common/EmptyState'
 import { useApp } from '../../context/AppContext'
 import { formatDate } from '../../utils/formatters'
-import {
-  CheckSquare,
-  ArrowRight,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-} from 'lucide-react'
+import { CheckSquare, ArrowRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import type { UrgentTaskOverview } from '../../hooks/useDeveloperData'
 
 export interface MyTasksOverviewProps {
@@ -35,7 +30,13 @@ export function MyTasksOverview({ tasks }: MyTasksOverviewProps) {
   const sortedTasks = useMemo(() => {
     const list = [...tasks]
     const priorityWeight: Record<string, number> = { urgent: 4, high: 3, medium: 2, low: 1 }
-    const statusWeight: Record<string, number> = { in_progress: 5, in_review: 4, todo: 3, blocked: 2, completed: 1 }
+    const statusWeight: Record<string, number> = {
+      in_progress: 5,
+      in_review: 4,
+      todo: 3,
+      blocked: 2,
+      completed: 1,
+    }
 
     list.sort((a, b) => {
       let comparison = 0
@@ -68,12 +69,7 @@ export function MyTasksOverview({ tasks }: MyTasksOverviewProps) {
       title="My Tasks"
       icon={CheckSquare}
       action={
-        <Button
-          variant="ghost"
-          size="xs"
-          rightIcon={ArrowRight}
-          onClick={() => setRoute('tasks')}
-        >
+        <Button variant="ghost" size="xs" rightIcon={ArrowRight} onClick={() => setRoute('tasks')}>
           Kanban View
         </Button>
       }
@@ -101,13 +97,12 @@ export function MyTasksOverview({ tasks }: MyTasksOverviewProps) {
                   }`}
                 >
                   <span>{opt.label}</span>
-                  {isActive && (
-                    sortOrder === 'asc' ? (
+                  {isActive &&
+                    (sortOrder === 'asc' ? (
                       <ArrowUp className="w-3 h-3" />
                     ) : (
                       <ArrowDown className="w-3 h-3" />
-                    )
-                  )}
+                    ))}
                 </button>
               )
             })}
@@ -133,8 +128,12 @@ export function MyTasksOverview({ tasks }: MyTasksOverviewProps) {
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {sortedTasks.length === 0 ? (
               <tr>
-                <td colSpan={5} className="py-8 text-center text-slate-400 dark:text-slate-500">
-                  No active tasks.
+                <td colSpan={5} className="p-4">
+                  <EmptyState
+                    icon={CheckSquare}
+                    title="No pending tasks at this time."
+                    description="New deliverables and executive assignments will appear here automatically."
+                  />
                 </td>
               </tr>
             ) : (
@@ -142,31 +141,31 @@ export function MyTasksOverview({ tasks }: MyTasksOverviewProps) {
                 <tr
                   key={task.id}
                   onClick={() => setSelectedTaskModal(task)}
-                  className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 cursor-pointer transition-colors group"
+                  className="hover:bg-gray-50/80 dark:hover:bg-slate-800/50 cursor-pointer transition-colors group"
                 >
                   {/* Title */}
-                  <td className="py-3.5 px-5 min-w-[220px]">
-                    <span className="font-medium text-slate-900 dark:text-slate-100 group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors line-clamp-1">
+                  <td className="py-4 px-6 min-w-[220px]">
+                    <span className="font-medium text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">
                       {task.title}
                     </span>
                   </td>
 
                   {/* Project */}
-                  <td className="py-3.5 px-3 whitespace-nowrap">
+                  <td className="py-4 px-4 whitespace-nowrap">
                     <Badge variant="indigo" size="xs">
                       {task.project?.code || 'PROJ'}
                     </Badge>
                   </td>
 
                   {/* Priority */}
-                  <td className="py-3.5 px-3 whitespace-nowrap">
+                  <td className="py-4 px-4 whitespace-nowrap">
                     <Badge
                       variant={
                         task.priority === 'urgent'
                           ? 'rose'
                           : task.priority === 'high'
-                          ? 'amber'
-                          : 'slate'
+                            ? 'amber'
+                            : 'slate'
                       }
                       size="xs"
                     >
@@ -175,12 +174,12 @@ export function MyTasksOverview({ tasks }: MyTasksOverviewProps) {
                   </td>
 
                   {/* Status */}
-                  <td className="py-3.5 px-3 whitespace-nowrap">
+                  <td className="py-4 px-4 whitespace-nowrap">
                     <StatusPill status={task.status} size="sm" />
                   </td>
 
                   {/* Deadline */}
-                  <td className="py-3.5 px-5 whitespace-nowrap text-right text-slate-500 dark:text-slate-400">
+                  <td className="py-4 px-6 whitespace-nowrap text-right tabular-nums text-slate-500 dark:text-slate-400">
                     {formatDate(task.dueDate, 'short')}
                   </td>
                 </tr>
@@ -192,4 +191,3 @@ export function MyTasksOverview({ tasks }: MyTasksOverviewProps) {
     </Card>
   )
 }
-

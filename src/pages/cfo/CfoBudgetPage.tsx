@@ -34,7 +34,9 @@ export function CfoBudgetPage() {
   } = useApp()
 
   // Tabs
-  const [activeTab, setActiveTab] = useState<'allocations' | 'requests' | 'adjustments' | 'ledger'>('allocations')
+  const [activeTab, setActiveTab] = useState<'allocations' | 'requests' | 'adjustments' | 'ledger'>(
+    'allocations',
+  )
 
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState('')
@@ -109,7 +111,7 @@ export function CfoBudgetPage() {
   // Open approve request modal
   const handleOpenApproveRequest = (req: any) => {
     setApproveRequestModal(req)
-    const match = req.title.match(/\$([0-9,]+)/)
+    const match = req.title.match(/[৳$]([0-9,]+)/)
     const parsedAmt = match ? Number(match[1].replace(/,/g, '')) : 5000
     setApprovedAmountInput(parsedAmt)
     setApprovalNoteInput('Approved by CFO. Funds transferred to squad project pool.')
@@ -125,7 +127,9 @@ export function CfoBudgetPage() {
   // Open reject request modal
   const handleOpenRejectRequest = (req: any) => {
     setRejectRequestModal(req)
-    setRejectionFeedbackInput('Budget request exceeds current quarterly reserve allocation parameters.')
+    setRejectionFeedbackInput(
+      'Budget request exceeds current quarterly reserve allocation parameters.',
+    )
   }
 
   const handleConfirmRejection = (e: React.FormEvent) => {
@@ -139,7 +143,12 @@ export function CfoBudgetPage() {
   const handleConfirmAdjustment = (e: React.FormEvent) => {
     e.preventDefault()
     if (!targetUserId || adjustmentAmount <= 0) return
-    issueFinancialAdjustment(targetUserId, adjustmentAmount, adjustmentType, adjustmentReason || `CFO financial ${adjustmentType}`)
+    issueFinancialAdjustment(
+      targetUserId,
+      adjustmentAmount,
+      adjustmentType,
+      adjustmentReason || `CFO financial ${adjustmentType}`,
+    )
     setIsBonusPenaltyModalOpen(false)
     setTargetUserId('')
     setAdjustmentAmount(500)
@@ -163,7 +172,9 @@ export function CfoBudgetPage() {
           <div className="text-2xl font-bold text-slate-900 dark:text-white">
             {formatCurrency(treasury?.initialCapital || 500000)}
           </div>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">CEO Seed Authorization</p>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+            CEO Seed Authorization
+          </p>
         </div>
 
         {/* Approved Project Budgets */}
@@ -179,7 +190,9 @@ export function CfoBudgetPage() {
           <div className="text-2xl font-bold text-slate-900 dark:text-white">
             {formatCurrency(treasury?.totalApprovedBudgets || 380000)}
           </div>
-          <p className="text-[11px] text-sky-600 dark:text-sky-400 mt-1 font-medium">Active Squad Commitments</p>
+          <p className="text-[11px] text-sky-600 dark:text-sky-400 mt-1 font-medium">
+            Active Squad Commitments
+          </p>
         </div>
 
         {/* Distributed to Developers */}
@@ -195,7 +208,9 @@ export function CfoBudgetPage() {
           <div className="text-2xl font-bold text-slate-900 dark:text-white">
             {formatCurrency(treasury?.totalDistributedToDevs || 245600)}
           </div>
-          <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-medium">Credited to Wallets</p>
+          <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-medium">
+            Credited to Wallets
+          </p>
         </div>
 
         {/* Unallocated Reserves */}
@@ -227,7 +242,9 @@ export function CfoBudgetPage() {
           <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
             {formatCurrency(treasury?.totalClientRevenue || 740000)}
           </div>
-          <p className="text-[11px] text-purple-600 dark:text-purple-400 mt-1 font-medium">70% Company / 20% Squad</p>
+          <p className="text-[11px] text-purple-600 dark:text-purple-400 mt-1 font-medium">
+            70% Company / 20% Squad
+          </p>
         </div>
       </div>
 
@@ -313,47 +330,57 @@ export function CfoBudgetPage() {
                 />
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Reserves buffer: <span className="font-semibold text-slate-900 dark:text-white">{formatCurrency(treasury?.unallocatedReserves || 120000)}</span>
+                Reserves buffer:{' '}
+                <span className="font-semibold text-slate-900 dark:text-white">
+                  {formatCurrency(treasury?.unallocatedReserves || 120000)}
+                </span>
               </p>
             </div>
 
-            <div className="overflow-x-auto border border-slate-200/80 dark:border-slate-800 rounded-xl">
+            <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-xl">
               <table className="w-full text-left text-sm">
-                <thead className="bg-slate-50 dark:bg-slate-800/40 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200/80 dark:border-slate-800">
+                <thead className="bg-slate-50 dark:bg-slate-800/40 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
                   <tr>
-                    <th className="py-3.5 px-4">Project & Code</th>
-                    <th className="py-3.5 px-4">Squad / PM</th>
-                    <th className="py-3.5 px-4">Approved Budget</th>
-                    <th className="py-3.5 px-4">Disbursed to Devs</th>
-                    <th className="py-3.5 px-4">Remaining Pool</th>
-                    <th className="py-3.5 px-4">Utilization</th>
-                    <th className="py-3.5 px-4">Client Revenue</th>
-                    <th className="py-3.5 px-4 text-right">Actions</th>
+                    <th className="py-4 px-6">Project &amp; Code</th>
+                    <th className="py-4 px-6">Squad / PM</th>
+                    <th className="py-4 px-6 text-right">Approved Budget</th>
+                    <th className="py-4 px-6 text-right">Disbursed to Devs</th>
+                    <th className="py-4 px-6 text-right">Remaining Pool</th>
+                    <th className="py-4 px-6">Utilization</th>
+                    <th className="py-4 px-6 text-right">Client Revenue</th>
+                    <th className="py-4 px-6 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {filteredProjects.map((pb) => (
-                    <tr key={pb.project.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                      <td className="py-3.5 px-4">
-                        <div className="font-semibold text-slate-900 dark:text-white">{pb.project.name}</div>
-                        <div className="text-xs text-slate-400 font-mono">{pb.project.code}</div>
+                    <tr
+                      key={pb.project.id}
+                      className="hover:bg-slate-50/70 dark:hover:bg-slate-800/30 transition-colors"
+                    >
+                      <td className="py-4 px-6">
+                        <div className="font-semibold text-slate-900 dark:text-white">
+                          {pb.project.name}
+                        </div>
+                        <div className="text-xs text-slate-500 font-mono">{pb.project.code}</div>
                       </td>
-                      <td className="py-3.5 px-4">
-                        <div className="text-slate-800 dark:text-slate-200 font-medium">
+                      <td className="py-4 px-6">
+                        <div className="text-slate-900 dark:text-slate-200 font-medium">
                           {pb.project.pm?.name || 'Assigned PM'}
                         </div>
-                        <div className="text-xs text-slate-400">{pb.project.assignedDevs?.length || 4} Devs Assigned</div>
+                        <div className="text-xs text-slate-500">
+                          {pb.project.assignedDevs?.length || 4} Devs Assigned
+                        </div>
                       </td>
-                      <td className="py-3.5 px-4 font-semibold text-slate-900 dark:text-white">
+                      <td className="py-4 px-6 text-right tabular-nums font-semibold text-slate-900 dark:text-white">
                         {formatCurrency(pb.approvedBudget)}
                       </td>
-                      <td className="py-3.5 px-4 font-medium text-emerald-600 dark:text-emerald-400">
+                      <td className="py-4 px-6 text-right tabular-nums font-medium text-emerald-600 dark:text-emerald-400">
                         {formatCurrency(pb.distributedToDevs)}
                       </td>
-                      <td className="py-3.5 px-4 font-medium text-slate-700 dark:text-slate-300">
+                      <td className="py-4 px-6 text-right tabular-nums font-medium text-slate-700 dark:text-slate-300">
                         {formatCurrency(pb.remainingBudget)}
                       </td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-4 px-6">
                         <div className="flex items-center gap-2">
                           <div className="w-24 h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                             <div
@@ -361,21 +388,21 @@ export function CfoBudgetPage() {
                                 pb.utilizationRate > 90
                                   ? 'bg-rose-500'
                                   : pb.utilizationRate > 75
-                                  ? 'bg-amber-500'
-                                  : 'bg-emerald-500'
+                                    ? 'bg-amber-500'
+                                    : 'bg-emerald-500'
                               }`}
                               style={{ width: `${Math.min(100, pb.utilizationRate)}%` }}
                             />
                           </div>
-                          <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                          <span className="text-xs font-semibold tabular-nums text-slate-600 dark:text-slate-400">
                             {pb.utilizationRate}%
                           </span>
                         </div>
                       </td>
-                      <td className="py-3.5 px-4 font-medium text-purple-600 dark:text-purple-400">
+                      <td className="py-4 px-6 text-right tabular-nums font-medium text-indigo-600 dark:text-indigo-400">
                         {formatCurrency(pb.clientRevenue)}
                       </td>
-                      <td className="py-3.5 px-4 text-right">
+                      <td className="py-4 px-6 text-right">
                         <Button
                           variant="secondary"
                           size="sm"
@@ -386,6 +413,13 @@ export function CfoBudgetPage() {
                       </td>
                     </tr>
                   ))}
+                  {filteredProjects.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="py-10 text-center text-xs text-slate-400">
+                        No projects match your current budget filter.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -398,7 +432,9 @@ export function CfoBudgetPage() {
             {pendingBudgetRequests.length === 0 ? (
               <div className="text-center py-12 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
                 <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-2 opacity-80" />
-                <h4 className="text-base font-semibold text-slate-900 dark:text-white">No Pending Budget Requests</h4>
+                <h4 className="text-base font-semibold text-slate-900 dark:text-white">
+                  No Pending Budget Requests
+                </h4>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                   All PM budget requests have been reviewed and adjudicated.
                 </p>
@@ -417,12 +453,17 @@ export function CfoBudgetPage() {
                         </span>
                         <span className="text-xs text-slate-400">{req.date}</span>
                       </div>
-                      <h4 className="text-base font-bold text-slate-900 dark:text-white mb-1.5">{req.title}</h4>
+                      <h4 className="text-base font-bold text-slate-900 dark:text-white mb-1.5">
+                        {req.title}
+                      </h4>
                       <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
                         {req.description}
                       </p>
                       <div className="text-xs text-slate-500 dark:text-slate-400">
-                        Submitted by: <span className="font-semibold text-slate-700 dark:text-slate-200">{req.authorName || 'Project Manager'}</span>
+                        Submitted by:{' '}
+                        <span className="font-semibold text-slate-700 dark:text-slate-200">
+                          {req.authorName || 'Project Manager'}
+                        </span>
                       </div>
                     </div>
 
@@ -458,9 +499,12 @@ export function CfoBudgetPage() {
           <div className="space-y-6">
             <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-between">
               <div>
-                <h4 className="text-sm font-semibold text-slate-900 dark:text-white">Discretionary Executive Compensation</h4>
+                <h4 className="text-sm font-semibold text-slate-900 dark:text-white">
+                  Discretionary Executive Compensation
+                </h4>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Directly disburse milestone bonuses or enforce SLA deductions on developer/PM wallets.
+                  Directly disburse milestone bonuses or enforce SLA deductions on developer/PM
+                  wallets.
                 </p>
               </div>
               <Button
@@ -499,7 +543,9 @@ export function CfoBudgetPage() {
                           <td className="py-3 px-4 text-xs text-slate-500">{tx.date}</td>
                           <td className="py-3 px-4 font-medium text-slate-900 dark:text-white">
                             {recipient?.name || tx.userId}
-                            <span className="text-xs text-slate-400 ml-1.5 font-mono">({recipient?.role.toUpperCase()})</span>
+                            <span className="text-xs text-slate-400 ml-1.5 font-mono">
+                              ({recipient?.role.toUpperCase()})
+                            </span>
                           </td>
                           <td className="py-3 px-4">
                             <span
@@ -513,8 +559,15 @@ export function CfoBudgetPage() {
                             </span>
                           </td>
                           <td className="py-3 px-4 font-bold">
-                            <span className={tx.type === 'bonus' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
-                              {tx.type === 'bonus' ? '+' : '-'}${Math.abs(tx.amount).toLocaleString()}
+                            <span
+                              className={
+                                tx.type === 'bonus'
+                                  ? 'text-emerald-600 dark:text-emerald-400'
+                                  : 'text-rose-600 dark:text-rose-400'
+                              }
+                            >
+                              {tx.type === 'bonus' ? '+' : '-'}$
+                              {Math.abs(tx.amount).toLocaleString()}
                             </span>
                           </td>
                           <td className="py-3 px-4 text-slate-600 dark:text-slate-300 text-xs">
@@ -523,6 +576,15 @@ export function CfoBudgetPage() {
                         </tr>
                       )
                     })}
+                  {financialTransactions.filter(
+                    (tx) => tx.type === 'bonus' || tx.type === 'deduction',
+                  ).length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="py-10 text-center text-xs text-slate-400">
+                        No discretionary bonus or deduction adjustments recorded.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -558,7 +620,10 @@ export function CfoBudgetPage() {
               </div>
 
               <div className="text-xs text-slate-500 dark:text-slate-400">
-                Total ledger records: <span className="font-semibold text-slate-900 dark:text-white">{filteredTransactions.length}</span>
+                Total ledger records:{' '}
+                <span className="font-semibold text-slate-900 dark:text-white">
+                  {filteredTransactions.length}
+                </span>
               </div>
             </div>
 
@@ -598,6 +663,13 @@ export function CfoBudgetPage() {
                       </td>
                     </tr>
                   ))}
+                  {filteredTransactions.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="py-10 text-center text-xs text-slate-400">
+                        No ledger transactions match the active criteria.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -635,7 +707,8 @@ export function CfoBudgetPage() {
                 required
               />
               <p className="text-xs text-slate-500 mt-1">
-                Minimum allowed: ${adjustProjectModal.distributedToDevs.toLocaleString()} (already disbursed to devs).
+                Minimum allowed: ${adjustProjectModal.distributedToDevs.toLocaleString()} (already
+                disbursed to devs).
               </p>
             </div>
 
@@ -709,7 +782,11 @@ export function CfoBudgetPage() {
               <Button variant="secondary" onClick={() => setApproveRequestModal(null)}>
                 Cancel
               </Button>
-              <Button variant="primary" type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white">
+              <Button
+                variant="primary"
+                type="submit"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
                 Confirm Approval & Disburse
               </Button>
             </div>

@@ -26,6 +26,19 @@ export interface User {
   avatarUrl?: string
   initials: string
   status: UserStatus
+  isSuspended?: boolean
+  activeRoleSlugs?: string[]
+  activeRoleNames?: string[]
+  pendingAccessRequest?: {
+    id: string
+    requestedRoleId: string
+    requestedRoleSlug: string
+    requestedRoleName: string
+    requesterId: string
+    requesterName: string
+    reason?: string | null
+    createdAt: string
+  } | null
   skills?: string[]
   timezone?: string
   github?: string
@@ -227,7 +240,15 @@ export interface PerformanceRecord {
 
 // --- REPORTS & SUBMISSIONS ---
 export type ReportType = 'project_submission' | 'complaint' | 'pm_report' | string
-export type ReportStatus = 'pending' | 'under_review' | 'approved' | 'rejected' | 'under_investigation' | 'resolved' | 'forwarded_to_c_level' | string
+export type ReportStatus =
+  | 'pending'
+  | 'under_review'
+  | 'approved'
+  | 'rejected'
+  | 'under_investigation'
+  | 'resolved'
+  | 'forwarded_to_c_level'
+  | string
 
 export interface Report {
   id: string
@@ -299,7 +320,16 @@ export interface ActivityLog {
   entityTitle?: string
   description: string
   timestamp: string
-  category: 'task' | 'comment' | 'git' | 'financial' | 'milestone' | 'security' | 'user' | 'project' | string
+  category:
+    | 'task'
+    | 'comment'
+    | 'git'
+    | 'financial'
+    | 'milestone'
+    | 'security'
+    | 'user'
+    | 'project'
+    | string
   badgeColor?: string
   actorName?: string
   actorEmail?: string
@@ -427,7 +457,14 @@ export interface ConsultancyRequest {
   category: string
   description: string
   urgency: 'critical' | 'high' | 'medium' | 'low'
-  status: 'submitted' | 'under_review' | 'accepted' | 'assigned' | 'in_progress' | 'completed' | 'rejected'
+  status:
+    | 'submitted'
+    | 'under_review'
+    | 'accepted'
+    | 'assigned'
+    | 'in_progress'
+    | 'completed'
+    | 'rejected'
   assignedConsultantId?: string
   assignedConsultantName?: string
   estimatedHours?: number
@@ -552,6 +589,19 @@ export interface DeveloperWorkload extends User {
 }
 
 // --- APP CONTEXT TYPE ---
+export interface DirectPermissionDelegation {
+  id: string
+  permissionId: string
+  code: string
+  module: string
+  description?: string | null
+  isSensitive?: boolean
+  grantedById?: string | null
+  grantedAt: string
+  expiresAt?: string | null
+  reason?: string | null
+}
+
 export interface AppContextType {
   data: SeedData
   currentRole: RoleId
@@ -560,6 +610,10 @@ export interface AppContextType {
   currentRoute: string
   theme: string
   isSidebarCollapsed: boolean
+  isMobileSidebarOpen: boolean
+  isAuthenticated: boolean
+  isAuthChecking: boolean
+  isDataLoading: boolean
   searchQuery: string
   isSearchOpen: boolean
   selectedTaskModal: Task | EnrichedTask | null
@@ -567,16 +621,10 @@ export interface AppContextType {
   toastMessage: ToastMessage | null
   currentUser: User | null
   currentTeam: Team | null
+  rolePermissions: string[]
+  myPermissions: string[]
+  directPermissions: DirectPermissionDelegation[]
   resolvers: DataResolvers
-  backendStatus: 'connected' | 'connecting' | 'offline' | 'error'
-  backendHealth: {
-    status: string
-    service: string
-    environment: string
-    uptimeSeconds: number
-    database: { status: string; latencyMs: number }
-  } | null
-  refreshBackendData: () => Promise<void>
 
   setRole: (roleId: string) => void
   setPmId: (pmId: string) => void
@@ -584,17 +632,24 @@ export interface AppContextType {
   toggleTheme: () => void
   toggleSidebar: () => void
   setSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>
+  setMobileSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>
+  loginWithCredentials: (email: string, password: string) => Promise<void>
+  logout: () => void
+  hasPermission: (code: string) => boolean
+  hasAnyPermission: (...codes: string[]) => boolean
   setSearchQuery: React.Dispatch<React.SetStateAction<string>>
   setIsSearchOpen: React.Dispatch<React.SetStateAction<boolean>>
   setSelectedTaskModal: React.Dispatch<React.SetStateAction<Task | EnrichedTask | null>>
   setSelectedProjectModal: React.Dispatch<React.SetStateAction<Project | EnrichedProject | null>>
   updateTaskStatus: (taskId: string, newStatus: TaskStatus) => boolean
+  addTaskComment: (taskId: string, content: string) => void
   updateUserProfile: (updatedFields: Partial<User>) => void
   addSubmission: (submission: Report) => void
   addComplaint: (complaint: Report) => void
   markNotificationRead: (notificationId: string) => void
   markAllNotificationsRead: () => void
-  resetDemoData: () => void
+  refreshData: () => Promise<void>
+  refreshPermissions: () => Promise<void>
   showToast: (msg: string, type?: 'info' | 'success' | 'error' | 'warning') => void
 
   createTask: (taskData: {
@@ -639,7 +694,7 @@ export interface AppContextType {
       title: string
       dueDate?: string
       status?: string
-    }
+    },
   ) => void
   updateMilestoneStatus: (projectId: string, milestoneId: string, newStatus: string) => void
   updatePmProfile: (updatedFields: Partial<User>) => void
@@ -679,7 +734,10 @@ export interface AppContextType {
     progress?: number
     tags?: string[]
   }) => Project
-  updateProject: (projectId: string, updates: Partial<Project> & { repositoryUrl?: string; srsUrl?: string }) => void
+  updateProject: (
+    projectId: string,
+    updates: Partial<Project> & { repositoryUrl?: string; srsUrl?: string },
+  ) => void
   updateUser: (userId: string, updates: Partial<User>) => void
   createTeam: (teamData: {
     name: string
@@ -694,12 +752,15 @@ export interface AppContextType {
   updateTeam: (teamId: string, updates: Partial<Team>) => void
   reviewProjectIdea: (ideaId: string, status: string, feedback?: string) => void
   updateComplaintStatusGeneral: (complaintId: string, status: string, feedback?: string) => void
-  updateRepoConfig: (projectId: string, updates: {
-    repositoryUrl?: string
-    defaultBranch?: string
-    tags?: string[]
-    srsUrl?: string
-  }) => void
+  updateRepoConfig: (
+    projectId: string,
+    updates: {
+      repositoryUrl?: string
+      defaultBranch?: string
+      tags?: string[]
+      srsUrl?: string
+    },
+  ) => void
   reviewPullRequest: (prId: string, newStatus: 'approved' | 'merged' | 'changes_requested') => void
   createSecurityIssue: (issue: {
     title: string
@@ -711,14 +772,27 @@ export interface AppContextType {
     recommendation: string
     cveOrPackage?: string
   }) => void
-  updateSecurityIssueStatus: (issueId: string, newStatus: 'open' | 'investigating' | 'patch_in_progress' | 'resolved') => void
-  updateConsultancyStatus: (requestId: string, updates: {
-    status: 'submitted' | 'under_review' | 'accepted' | 'assigned' | 'in_progress' | 'completed' | 'rejected'
-    assignedConsultantName?: string
-    feeUSD?: number
-    targetDate?: string
-    ctoNotes?: string
-  }) => void
+  updateSecurityIssueStatus: (
+    issueId: string,
+    newStatus: 'open' | 'investigating' | 'patch_in_progress' | 'resolved',
+  ) => void
+  updateConsultancyStatus: (
+    requestId: string,
+    updates: {
+      status:
+        | 'submitted'
+        | 'under_review'
+        | 'accepted'
+        | 'assigned'
+        | 'in_progress'
+        | 'completed'
+        | 'rejected'
+      assignedConsultantName?: string
+      feeUSD?: number
+      targetDate?: string
+      ctoNotes?: string
+    },
+  ) => void
   submitCtoReport: (report: {
     category: string
     recipient: string
@@ -727,26 +801,53 @@ export interface AppContextType {
     projectId?: string
     docsUrl?: string
   }) => void
-  updateIncomingReportStatus: (reportId: string, newStatus: string, feedback?: string, forwardTo?: string) => void
+  updateIncomingReportStatus: (
+    reportId: string,
+    newStatus: string,
+    feedback?: string,
+    forwardTo?: string,
+  ) => void
   updateCtoProfile: (updatedFields: Partial<User>) => void
 
   // CFO Financial State Handlers
   allocateProjectBudget: (projectId: string, newBudget: number, reason?: string) => void
   approveBudgetRequest: (reportId: string, approvedAmount: number, feedback?: string) => void
   rejectBudgetRequest: (reportId: string, feedback: string) => void
-  issueFinancialAdjustment: (userId: string, amount: number, type: 'bonus' | 'penalty', reason: string) => void
+  issueFinancialAdjustment: (
+    userId: string,
+    amount: number,
+    type: 'bonus' | 'penalty',
+    reason: string,
+  ) => void
 
   // CHRO State Handlers
-  recordPerformanceEvaluation: (userId: string, evaluation: {
-    score: number
-    tier: 'top_performer' | 'strong_contributor' | 'needs_support' | string
-    notes: string
-    strengths?: string[]
-    improvementAreas?: string[]
-  }) => void
-  issueEmployeeRecognition: (userId: string, title: string, description: string, bonusAmount?: number) => void
-  issueDisciplinaryAction: (userId: string, title: string, description: string, penaltyAmount?: number) => void
-  updateConfidentialComplaintStatus: (complaintId: string, status: string, mediationNotes?: string) => void
+  recordPerformanceEvaluation: (
+    userId: string,
+    evaluation: {
+      score: number
+      tier: 'top_performer' | 'strong_contributor' | 'needs_support' | string
+      notes: string
+      strengths?: string[]
+      improvementAreas?: string[]
+    },
+  ) => void
+  issueEmployeeRecognition: (
+    userId: string,
+    title: string,
+    description: string,
+    bonusAmount?: number,
+  ) => void
+  issueDisciplinaryAction: (
+    userId: string,
+    title: string,
+    description: string,
+    penaltyAmount?: number,
+  ) => void
+  updateConfidentialComplaintStatus: (
+    complaintId: string,
+    status: string,
+    mediationNotes?: string,
+  ) => void
 
   // Executive Management Handlers
   updateExecutiveProfile: (roleId: string, updatedFields: Partial<User>) => void

@@ -1,14 +1,7 @@
 import type { ComponentType } from 'react'
 import { Button } from '../../components/common/Button'
 import { useApp } from '../../context/AppContext'
-import {
-  ArrowLeft,
-  Briefcase,
-  Shield,
-  Users,
-  DollarSign,
-  BarChart,
-} from 'lucide-react'
+import { ArrowLeft, Briefcase, Shield, Users, DollarSign, BarChart } from 'lucide-react'
 
 interface RoleMetaConfig {
   icon: ComponentType<{ className?: string }>
@@ -66,12 +59,7 @@ export function RolePlaceholderPage() {
         </div>
 
         <div className="pt-3">
-          <Button
-            variant="lime"
-            size="md"
-            icon={ArrowLeft}
-            onClick={() => setRole('developer')}
-          >
+          <Button variant="lime" size="md" icon={ArrowLeft} onClick={() => setRole('developer')}>
             Back to Developer Workspace
           </Button>
         </div>
@@ -79,4 +67,3 @@ export function RolePlaceholderPage() {
     </div>
   )
 }
-

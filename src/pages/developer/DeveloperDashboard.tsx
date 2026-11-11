@@ -45,13 +45,9 @@ export function DeveloperDashboard() {
         <div className="lg:col-span-5 xl:col-span-4 space-y-6">
           <AnnouncementsWidget announcements={announcements} />
 
-          <UpcomingDeadlines
-            deadlines={upcomingDeadlines}
-            overdueTasks={overdueTasks}
-          />
+          <UpcomingDeadlines deadlines={upcomingDeadlines} overdueTasks={overdueTasks} />
         </div>
       </div>
     </div>
   )
 }
-

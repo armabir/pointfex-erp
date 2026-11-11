@@ -6,6 +6,7 @@ import { Modal } from '../../components/common/Modal'
 import { StatusPill } from '../../components/common/StatusPill'
 import { useCtoData } from '../../hooks/useCtoData'
 import { useApp } from '../../context/AppContext'
+import { usePermissions } from '../../hooks/usePermissions'
 import { formatDate } from '../../utils/formatters'
 import type { Report, ReportStatus } from '../../types'
 import {
@@ -30,8 +31,11 @@ export function CtoReportsPage() {
     reviewProjectIdea,
     showToast,
   } = useApp()
+  const { hasAnyPermission } = usePermissions()
 
-  const [activeTab, setActiveTab] = useState<'submit_c_level' | 'review_complaints' | 'review_project_ideas'>('submit_c_level')
+  const [activeTab, setActiveTab] = useState<
+    'submit_c_level' | 'review_complaints' | 'review_project_ideas'
+  >('submit_c_level')
 
   // Submit Complain to C-Level Form State
   const [complainTo, setComplainTo] = useState('CEO — Victoria Sterling-Fox')
@@ -51,23 +55,28 @@ export function CtoReportsPage() {
   // Filter current executive's submitted complaints
   const myComplaints = allReports.filter(
     (r) =>
-      (r.userId === currentUser?.id || r.authorId === currentUser?.id || r.authorRole === currentRole) &&
-      (r.type === 'complaint' || r.category?.includes('Complain') || r.category?.includes('Escalation'))
+      (r.userId === currentUser?.id ||
+        r.authorId === currentUser?.id ||
+        r.authorRole === currentRole) &&
+      (r.type === 'complaint' ||
+        r.category?.includes('Complain') ||
+        r.category?.includes('Escalation')),
   )
 
-  // Filter complaints from PM & Dev (and exclude confidential unless CHRO or CEO)
-  const isChroOrCeo = currentRole === 'cpo' || currentRole === 'chro' || currentRole === 'ceo'
+  // Filter complaints from colleagues (and exclude confidential unless granted confidential grievance permission)
+  const canViewConfidential = hasAnyPermission(
+    'grievances:read_confidential',
+    'grievances:adjudicate_confidential',
+  )
   const teamComplaints = allReports.filter((r) => {
     if (r.type !== 'complaint') return false
-    if (r.authorRole === currentRole) return false
-    if (r.isConfidential && !isChroOrCeo) return false
+    if (r.authorId === currentUser?.id) return false
+    if (r.isConfidential && !canViewConfidential) return false
     return true
   })
 
   // Filter project proposals from PM & Dev
-  const projectIdeas = allReports.filter(
-    (r) => r.type === 'project_submission'
-  )
+  const projectIdeas = allReports.filter((r) => r.type === 'project_submission')
 
   const handleSubmitComplaint = (e: React.FormEvent) => {
     e.preventDefault()
@@ -106,7 +115,7 @@ export function CtoReportsPage() {
     updateComplaintStatusGeneral(
       selectedComplaint.id,
       complaintStatus,
-      complaintFeedback.trim() || undefined
+      complaintFeedback.trim() || undefined,
     )
 
     showToast(`Complaint status updated to ${complaintStatus.replace('_', ' ')}`, 'success')
@@ -118,11 +127,7 @@ export function CtoReportsPage() {
     e.preventDefault()
     if (!selectedIdea) return
 
-    reviewProjectIdea(
-      selectedIdea.id,
-      ideaStatus,
-      ideaFeedback.trim() || undefined
-    )
+    reviewProjectIdea(selectedIdea.id, ideaStatus, ideaFeedback.trim() || undefined)
 
     showToast(`Project idea status updated to ${ideaStatus.replace('_', ' ')}`, 'success')
     setSelectedIdea(null)
@@ -190,10 +195,7 @@ export function CtoReportsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Submission Form */}
           <div className="lg:col-span-5">
-            <Card
-              title="File C-Level Complaint / Escalation"
-              icon={AlertTriangle}
-            >
+            <Card title="File C-Level Complaint / Escalation" icon={AlertTriangle}>
               <form onSubmit={handleSubmitComplaint} className="space-y-4 text-xs">
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
@@ -204,9 +206,15 @@ export function CtoReportsPage() {
                     onChange={(e) => setComplainTo(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
                   >
-                    <option value="CEO — Victoria Sterling-Fox">CEO — Victoria Sterling-Fox (Strategy & Resource Allocation)</option>
-                    <option value="CFO — Vincent Gallagher">CFO — Vincent Gallagher (Budgetary & Capital Approval)</option>
-                    <option value="CPO — Amara Okafor">CPO — Amara Okafor (People, Talent & Culture)</option>
+                    <option value="CEO — Victoria Sterling-Fox">
+                      CEO — Victoria Sterling-Fox (Strategy & Resource Allocation)
+                    </option>
+                    <option value="CFO — Vincent Gallagher">
+                      CFO — Vincent Gallagher (Budgetary & Capital Approval)
+                    </option>
+                    <option value="CPO — Amara Okafor">
+                      CPO — Amara Okafor (People, Talent & Culture)
+                    </option>
                   </select>
                 </div>
 
@@ -236,13 +244,7 @@ export function CtoReportsPage() {
                   />
                 </div>
 
-                <Button
-                  type="submit"
-                  variant="lime"
-                  size="sm"
-                  className="w-full"
-                  icon={Send}
-                >
+                <Button type="submit" variant="lime" size="sm" className="w-full" icon={Send}>
                   Submit Complaint
                 </Button>
               </form>
@@ -251,10 +253,7 @@ export function CtoReportsPage() {
 
           {/* Submitted Complaints History */}
           <div className="lg:col-span-7">
-            <Card
-              title="My Filed C-Level Complaints"
-              icon={Building}
-            >
+            <Card title="My Filed C-Level Complaints" icon={Building}>
               {myComplaints.length === 0 ? (
                 <div className="py-12 text-center text-slate-400 text-xs">
                   No complaints filed yet by the CTO office.
@@ -278,13 +277,20 @@ export function CtoReportsPage() {
                       </p>
 
                       <div className="flex flex-wrap items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800/60 text-[10px] text-slate-400 gap-2">
-                        <span>Submitted to: <strong className="text-slate-700 dark:text-slate-300">{item.targetUserName || 'Executive Office'}</strong></span>
+                        <span>
+                          Submitted to:{' '}
+                          <strong className="text-slate-700 dark:text-slate-300">
+                            {item.targetUserName || 'Executive Office'}
+                          </strong>
+                        </span>
                         <span>{formatDate(item.createdAt, 'short')}</span>
                       </div>
 
                       {item.feedback && (
                         <div className="p-2.5 rounded-xl bg-lime-50/60 dark:bg-lime-950/20 border border-lime-200/50 dark:border-lime-900/40 text-[11px] text-slate-700 dark:text-slate-300">
-                          <strong className="text-lime-700 dark:text-lime-400 block mb-0.5">Executive Response:</strong>
+                          <strong className="text-lime-700 dark:text-lime-400 block mb-0.5">
+                            Executive Response:
+                          </strong>
                           {item.feedback}
                         </div>
                       )}
@@ -299,10 +305,7 @@ export function CtoReportsPage() {
 
       {/* PANEL 2: Review & update submitted complaints from PM & Dev */}
       {activeTab === 'review_complaints' && (
-        <Card
-          title="Submitted Complaints from PM & Engineering Teams"
-          icon={UserCheck}
-        >
+        <Card title="Submitted Complaints from PM & Engineering Teams" icon={UserCheck}>
           {teamComplaints.length === 0 ? (
             <div className="py-12 text-center text-slate-400 text-xs">
               No pending complaints filed by developers or project managers.
@@ -316,10 +319,7 @@ export function CtoReportsPage() {
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
-                      <Badge
-                        variant={item.authorRole === 'pm' ? 'purple' : 'sky'}
-                        size="xs"
-                      >
+                      <Badge variant={item.authorRole === 'pm' ? 'purple' : 'sky'} size="xs">
                         From {item.authorRole?.toUpperCase() || 'ENGINEER'}
                       </Badge>
                       <StatusPill status={item.status} size="sm" />
@@ -334,7 +334,12 @@ export function CtoReportsPage() {
                     </p>
 
                     <div className="flex items-center gap-3 text-[10px] text-slate-400 pt-1">
-                      <span>Author: <strong className="text-slate-700 dark:text-slate-300">{item.authorName}</strong></span>
+                      <span>
+                        Author:{' '}
+                        <strong className="text-slate-700 dark:text-slate-300">
+                          {item.authorName}
+                        </strong>
+                      </span>
                       <span>•</span>
                       <span>Target: {item.targetUserName || 'CTO Office'}</span>
                       <span>•</span>
@@ -343,7 +348,9 @@ export function CtoReportsPage() {
 
                     {item.feedback && (
                       <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-100 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400">
-                        <strong className="text-slate-900 dark:text-slate-200 block mb-0.5">CTO Feedback:</strong>
+                        <strong className="text-slate-900 dark:text-slate-200 block mb-0.5">
+                          CTO Feedback:
+                        </strong>
                         {item.feedback}
                       </div>
                     )}
@@ -372,10 +379,7 @@ export function CtoReportsPage() {
 
       {/* PANEL 3: Review & select project ideas from PM & Dev */}
       {activeTab === 'review_project_ideas' && (
-        <Card
-          title="Project Proposals & Innovation Submissions"
-          icon={Lightbulb}
-        >
+        <Card title="Project Proposals & Innovation Submissions" icon={Lightbulb}>
           {projectIdeas.length === 0 ? (
             <div className="py-12 text-center text-slate-400 text-xs">
               No project ideas submitted yet.
@@ -389,10 +393,7 @@ export function CtoReportsPage() {
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
-                      <Badge
-                        variant={idea.authorRole === 'pm' ? 'purple' : 'emerald'}
-                        size="xs"
-                      >
+                      <Badge variant={idea.authorRole === 'pm' ? 'purple' : 'emerald'} size="xs">
                         {idea.authorRole === 'pm' ? 'PM Proposal' : 'Dev Proposal'}
                       </Badge>
                       <StatusPill status={idea.status} size="sm" />
@@ -422,14 +423,21 @@ export function CtoReportsPage() {
                     )}
 
                     <div className="flex items-center gap-3 text-[10px] text-slate-400 pt-1">
-                      <span>Proposer: <strong className="text-slate-700 dark:text-slate-300">{idea.authorName}</strong></span>
+                      <span>
+                        Proposer:{' '}
+                        <strong className="text-slate-700 dark:text-slate-300">
+                          {idea.authorName}
+                        </strong>
+                      </span>
                       <span>•</span>
                       <span>{formatDate(idea.createdAt, 'short')}</span>
                     </div>
 
                     {idea.feedback && (
                       <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400">
-                        <strong className="text-slate-900 dark:text-slate-200 block mb-0.5">CTO Adjudication:</strong>
+                        <strong className="text-slate-900 dark:text-slate-200 block mb-0.5">
+                          CTO Adjudication:
+                        </strong>
                         {idea.feedback}
                       </div>
                     )}
@@ -441,7 +449,13 @@ export function CtoReportsPage() {
                       size="xs"
                       onClick={() => {
                         setSelectedIdea(idea)
-                        setIdeaStatus(idea.status === 'approved' ? 'approved' : idea.status === 'rejected' ? 'rejected' : 'under_review')
+                        setIdeaStatus(
+                          idea.status === 'approved'
+                            ? 'approved'
+                            : idea.status === 'rejected'
+                              ? 'rejected'
+                              : 'under_review',
+                        )
                         setIdeaFeedback(idea.feedback || '')
                       }}
                     >
@@ -470,7 +484,11 @@ export function CtoReportsPage() {
                           size="xs"
                           icon={CheckCircle2}
                           onClick={() => {
-                            reviewProjectIdea(idea.id, 'approved', 'Selected by CTO for upcoming development sprint')
+                            reviewProjectIdea(
+                              idea.id,
+                              'approved',
+                              'Selected by CTO for upcoming development sprint',
+                            )
                             showToast('Project idea approved and selected!', 'success')
                           }}
                         >
@@ -505,7 +523,11 @@ export function CtoReportsPage() {
                 {selectedComplaint.description}
               </p>
               <div className="text-[10px] text-slate-400 pt-1">
-                Filer: <strong className="text-slate-700 dark:text-slate-300">{selectedComplaint.authorName}</strong> ({selectedComplaint.authorRole?.toUpperCase()})
+                Filer:{' '}
+                <strong className="text-slate-700 dark:text-slate-300">
+                  {selectedComplaint.authorName}
+                </strong>{' '}
+                ({selectedComplaint.authorRole?.toUpperCase()})
               </div>
             </div>
 
@@ -546,12 +568,7 @@ export function CtoReportsPage() {
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                variant="lime"
-                size="sm"
-                icon={CheckCircle2}
-              >
+              <Button type="submit" variant="lime" size="sm" icon={CheckCircle2}>
                 Save Status
               </Button>
             </div>
@@ -571,9 +588,7 @@ export function CtoReportsPage() {
               <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">
                 Idea Title
               </span>
-              <div className="font-bold text-slate-900 dark:text-white">
-                {selectedIdea.title}
-              </div>
+              <div className="font-bold text-slate-900 dark:text-white">{selectedIdea.title}</div>
               <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed pt-1">
                 {selectedIdea.description}
               </p>
@@ -585,7 +600,9 @@ export function CtoReportsPage() {
               </label>
               <select
                 value={ideaStatus}
-                onChange={(e) => setIdeaStatus(e.target.value as 'approved' | 'rejected' | 'under_review')}
+                onChange={(e) =>
+                  setIdeaStatus(e.target.value as 'approved' | 'rejected' | 'under_review')
+                }
                 className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400"
               >
                 <option value="under_review">Under Review</option>
@@ -616,12 +633,7 @@ export function CtoReportsPage() {
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                variant="lime"
-                size="sm"
-                icon={CheckCircle2}
-              >
+              <Button type="submit" variant="lime" size="sm" icon={CheckCircle2}>
                 Save Decision
               </Button>
             </div>

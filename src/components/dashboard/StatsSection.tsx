@@ -1,10 +1,4 @@
-import {
-  Wallet,
-  CheckSquare,
-  CheckCircle2,
-  FolderGit2,
-  ArrowUpRight,
-} from 'lucide-react'
+import { Wallet, CheckSquare, CheckCircle2, FolderGit2, ArrowUpRight } from 'lucide-react'
 import { formatCurrency } from '../../utils/formatters'
 import { useApp } from '../../context/AppContext'
 import type { DeveloperStats } from '../../hooks/useDeveloperData'
@@ -108,4 +102,3 @@ export function StatsSection({ stats }: StatsSectionProps) {
     </div>
   )
 }
-

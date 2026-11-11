@@ -6,13 +6,7 @@ import { Modal } from '../../components/common/Modal'
 import { usePmData } from '../../hooks/usePmData'
 import { useApp } from '../../context/AppContext'
 import type { DeveloperWorkload } from '../../types'
-import {
-  Mail,
-  Globe,
-  ArrowRightLeft,
-  CheckCircle2,
-  Clock,
-} from 'lucide-react'
+import { Mail, Globe, ArrowRightLeft, CheckCircle2, Clock } from 'lucide-react'
 
 export function PmTeamManagementPage() {
   const { team, developerWorkloads, teamMembers } = usePmData()
@@ -86,11 +80,7 @@ export function PmTeamManagementPage() {
                     </div>
                   </div>
 
-                  <Badge
-                    variant={member.status === 'online' ? 'emerald' : 'slate'}
-                    size="xs"
-                    dot
-                  >
+                  <Badge variant={member.status === 'online' ? 'emerald' : 'slate'} size="xs" dot>
                     {member.status}
                   </Badge>
                 </div>

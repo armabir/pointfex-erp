@@ -1,10 +1,103 @@
-import {
-  ChevronLeft,
-  ChevronRight,
-  Sparkles,
-} from 'lucide-react'
+import { useMemo } from 'react'
+import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { useApp } from '../../context/AppContext'
-import { getNavigationForRole } from '../../config/navigation'
+import { usePermissions } from '../../hooks/usePermissions'
+import { getDynamicNavigation } from '../../config/navigation'
+import { Avatar } from '../common/Avatar'
+import type { NavItem } from '../../types'
+
+const ROLE_NAVIGATION_PRIORITY: Record<string, string[]> = {
+  // Developers & PMs: 1. My Tasks, 2. Projects & Squads, 3. Directory
+  developer: ['tasks', 'projects', 'team', 'people', 'dashboard', 'earnings', 'report', 'settings'],
+  pm: [
+    'tasks',
+    'task-management',
+    'projects',
+    'team-management',
+    'people',
+    'dashboard',
+    'budget-finance',
+    'security-testing',
+    'earnings',
+    'report',
+    'settings',
+  ],
+  // CFO: 1. Financial Operations, 2. Treasury & Budgets, 3. Executive Dashboard, 4. Directory
+  cfo: [
+    'budget',
+    'earnings',
+    'dashboard',
+    'people',
+    'reports',
+    'audit-log',
+    'projects-repos',
+    'team-management',
+    'tasks',
+    'task-management',
+    'settings',
+  ],
+  // CHRO: 1. People & Culture, 2. Performance, 3. Executive Dashboard, 4. Directory
+  cpo: [
+    'team-management',
+    'performance',
+    'dashboard',
+    'people',
+    'reports',
+    'audit-log',
+    'projects-repos',
+    'tasks',
+    'task-management',
+    'access-control',
+    'settings',
+  ],
+  // CEO & CTO: 1. Executive Dashboard, 2. Governance, 3. Engineering/Projects, 4. Financials
+  ceo: [
+    'dashboard',
+    'access-control',
+    'audit-log',
+    'reports',
+    'projects-repos',
+    'team-management',
+    'code-quality',
+    'security-testing',
+    'consultancy',
+    'budget',
+    'earnings',
+    'people',
+    'performance',
+    'task-management',
+    'tasks',
+    'settings',
+  ],
+  cto: [
+    'dashboard',
+    'audit-log',
+    'reports',
+    'projects-repos',
+    'team-management',
+    'code-quality',
+    'security-testing',
+    'consultancy',
+    'task-management',
+    'tasks',
+    'earnings',
+    'people',
+    'settings',
+  ],
+}
+
+function sortNavigationByRolePriority(items: NavItem[], roleId: string): NavItem[] {
+  const normalized = roleId.toLowerCase() === 'chro' ? 'cpo' : roleId.toLowerCase()
+  const priorityOrder = ROLE_NAVIGATION_PRIORITY[normalized] || ROLE_NAVIGATION_PRIORITY.developer
+  const rankMap = new Map(priorityOrder.map((id, idx) => [id, idx]))
+
+  return [...items].sort((a, b) => {
+    const rankA = rankMap.get(a.id) ?? 999
+    const rankB = rankMap.get(b.id) ?? 999
+    if (rankA !== rankB) return rankA - rankB
+    return a.label.localeCompare(b.label)
+  })
+}
 
 export function Sidebar() {
   const {
@@ -13,119 +106,160 @@ export function Sidebar() {
     setRoute,
     isSidebarCollapsed,
     toggleSidebar,
+    isMobileSidebarOpen,
+    setMobileSidebarOpen,
     currentUser,
   } = useApp()
+  // Keep the main sidebar strictly tied to baseline organizational role permissions;
+  // temporary DAC delegations launch from Profile & Settings without cluttering the sidebar.
+  const { rolePermissions } = usePermissions()
 
-  const navConfig = getNavigationForRole(currentRole)
+  const navConfig = getDynamicNavigation(rolePermissions, currentRole)
+
+  const orderedNavItems = useMemo(
+    () => sortNavigationByRolePriority(navConfig.items, currentRole),
+    [navConfig.items, currentRole],
+  )
+
+  const handleNavigate = (routeId: string) => {
+    setRoute(routeId)
+    setMobileSidebarOpen(false)
+  }
 
   return (
     <aside
-      className={`fixed top-0 left-0 bottom-0 z-30 flex flex-col bg-[#eaeef2] dark:bg-[#090c14] border-r border-slate-200/60 dark:border-slate-800/60 transition-all duration-200 select-none ${
-        isSidebarCollapsed ? 'w-20' : 'w-64'
-      }`}
+      className={`fixed top-0 left-0 bottom-0 z-40 flex flex-col bg-white dark:bg-[#0c111d] border-r border-slate-200 dark:border-slate-800 transition-all duration-200 select-none shadow-sm lg:shadow-none ${
+        isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      } ${isSidebarCollapsed ? 'lg:w-20 w-64' : 'w-64'}`}
     >
-      {/* Brand Header */}
-      <div className="flex items-center justify-between h-20 px-6">
-        {!isSidebarCollapsed ? (
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded-xl bg-slate-900 dark:bg-slate-800 flex items-center justify-center text-white shadow-xs shrink-0">
-              <Sparkles className="w-4 h-4 text-[#e2f952]" />
-            </div>
+      {/* Top Brand Header with Logo & Collapse/Expand Chevron */}
+      <div
+        className={`flex items-center h-20 border-b border-slate-200/80 dark:border-slate-800 ${
+          isSidebarCollapsed && !isMobileSidebarOpen
+            ? 'justify-between px-3'
+            : 'justify-between px-5'
+        }`}
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <img
+            src="/Logo.png"
+            alt="Pointfex Logo"
+            className="w-9 h-9 rounded-xl object-cover shadow-sm border border-slate-200 dark:border-slate-700 shrink-0"
+          />
+          {(!isSidebarCollapsed || isMobileSidebarOpen) && (
             <div className="min-w-0">
-              <span className="font-display font-bold text-base tracking-tight text-slate-900 dark:text-white">
+              <div className="font-display font-bold text-base tracking-tight text-slate-900 dark:text-white leading-none">
                 Pointfex
-              </span>
+              </div>
+              <div className="text-[11px] font-medium text-indigo-600 dark:text-indigo-400 mt-1 truncate">
+                Enterprise ERP
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="w-full flex justify-center">
-            <div className="w-8 h-8 rounded-xl bg-slate-900 dark:bg-slate-800 flex items-center justify-center text-white shadow-xs">
-              <Sparkles className="w-4 h-4 text-[#e2f952]" />
-            </div>
-          </div>
-        )}
+          )}
+        </div>
 
+        {/* Desktop Collapse / Expand Button at Top Right of Logo */}
         <button
+          type="button"
           onClick={toggleSidebar}
-          className={`p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors cursor-pointer ${
-            isSidebarCollapsed ? 'hidden' : 'block'
-          }`}
+          className="hidden lg:inline-flex p-1.5 rounded-lg text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all duration-200 cursor-pointer shrink-0"
           title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          <ChevronLeft className="w-4 h-4" />
+          {isSidebarCollapsed ? (
+            <ChevronRight className="w-4 h-4" />
+          ) : (
+            <ChevronLeft className="w-4 h-4" />
+          )}
+        </button>
+
+        {/* Mobile close */}
+        <button
+          type="button"
+          onClick={() => setMobileSidebarOpen(false)}
+          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden cursor-pointer"
+          aria-label="Close navigation menu"
+        >
+          <X className="w-4 h-4" />
         </button>
       </div>
 
-      {/* Navigation Links */}
-      <div className="flex-1 overflow-y-auto px-4 py-2 space-y-1.5">
-        {navConfig.items.map((item) => {
+      {/* Priority-Sorted, Permission-Filtered Navigation Links */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+        {orderedNavItems.map((item) => {
           const isActive = currentRoute === item.id
           const Icon = item.icon
 
           return (
             <button
               key={item.id}
-              onClick={() => setRoute(item.id)}
-              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-medium transition-all group cursor-pointer ${
+              type="button"
+              onClick={() => handleNavigate(item.id)}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all duration-200 group cursor-pointer ${
                 isActive
-                  ? 'bg-[#e2f952] text-slate-950 font-semibold shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-slate-800/60'
-              } ${isSidebarCollapsed ? 'justify-center px-0 py-3' : ''}`}
-              title={isSidebarCollapsed ? item.label : undefined}
+                  ? 'bg-indigo-600 text-white font-semibold shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800/70'
+              } ${isSidebarCollapsed && !isMobileSidebarOpen ? 'lg:justify-center lg:px-0' : ''}`}
+              title={isSidebarCollapsed && !isMobileSidebarOpen ? item.label : undefined}
             >
               <Icon
                 className={`w-4 h-4 shrink-0 transition-colors ${
-                  isActive ? 'text-slate-950' : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white'
+                  isActive
+                    ? 'text-white'
+                    : 'text-slate-400 dark:text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'
                 }`}
               />
 
-              {!isSidebarCollapsed && (
+              {(!isSidebarCollapsed || isMobileSidebarOpen) && (
                 <span className="truncate">{item.label}</span>
               )}
             </button>
           )
         })}
-      </div>
-
-      {/* Collapse Toggle when Collapsed */}
-      {isSidebarCollapsed && (
-        <div className="p-3 flex justify-center">
-          <button
-            onClick={toggleSidebar}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer"
-            title="Expand sidebar"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+      </nav>
 
       {/* User profile capsule at bottom */}
-      <div className="p-4">
-        {!isSidebarCollapsed ? (
-          <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-white dark:bg-[#131722] border border-slate-100 dark:border-slate-800 shadow-2xs">
+      <div className="p-3.5 border-t border-slate-200/80 dark:border-slate-800">
+        {!isSidebarCollapsed || isMobileSidebarOpen ? (
+          <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 dark:bg-[#131926] border border-slate-200/80 dark:border-slate-800">
             <div className="relative shrink-0">
-              <div className="w-9 h-9 rounded-xl bg-slate-900 dark:bg-slate-800 text-white flex items-center justify-center text-xs font-bold">
-                {currentUser?.initials || 'AR'}
-              </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-[#131722] rounded-full" />
+              <Avatar
+                src={currentUser?.avatarUrl || currentUser?.avatar}
+                name={currentUser?.name}
+                initials={currentUser?.initials}
+                size="md"
+                className="shadow-sm"
+              />
+              <span
+                className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 border-2 border-white dark:border-[#131926] rounded-full ${
+                  currentUser?.isSuspended ? 'bg-rose-500' : 'bg-emerald-500'
+                }`}
+              />
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-xs font-semibold text-slate-900 dark:text-white truncate">
-                {currentUser?.name || 'Alex Rivera'}
+                {currentUser?.name || 'Pointfex Member'}
               </div>
-              <div className="text-[11px] text-slate-400 truncate">
-                Senior Frontend
+              <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 truncate">
+                {currentUser?.title || navConfig.roleLabel}
               </div>
             </div>
           </div>
         ) : (
           <div className="flex justify-center">
             <div className="relative">
-              <div className="w-9 h-9 rounded-xl bg-slate-900 dark:bg-slate-800 text-white flex items-center justify-center text-xs font-bold">
-                {currentUser?.initials || 'AR'}
-              </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-[#131722] rounded-full" />
+              <Avatar
+                src={currentUser?.avatarUrl || currentUser?.avatar}
+                name={currentUser?.name}
+                initials={currentUser?.initials}
+                size="md"
+                className="shadow-sm"
+              />
+              <span
+                className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 border-2 border-white dark:border-[#0c111d] rounded-full ${
+                  currentUser?.isSuspended ? 'bg-rose-500' : 'bg-emerald-500'
+                }`}
+              />
             </div>
           </div>
         )}
@@ -133,4 +267,3 @@ export function Sidebar() {
     </aside>
   )
 }
-
