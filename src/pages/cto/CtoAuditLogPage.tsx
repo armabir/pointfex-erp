@@ -15,29 +15,37 @@ export function CtoAuditLogPage() {
   const [selectedLog, setSelectedLog] = useState<ActivityLog | null>(null)
 
   // Map user ID to user name, email & role
-  const getUserInfo = useCallback((userId?: string, log?: ActivityLog) => {
-    if (log?.actorName && log?.actorEmail && log?.actorRole) {
-      return {
-        name: log.actorName,
-        email: log.actorEmail,
-        role: log.actorRole,
+  const getUserInfo = useCallback(
+    (userId?: string, log?: ActivityLog) => {
+      if (log?.actorName && log?.actorEmail && log?.actorRole) {
+        return {
+          name: log.actorName,
+          email: log.actorEmail,
+          role: log.actorRole,
+        }
       }
-    }
-    if (!userId) return { name: 'System Event', email: 'system@pointfex.internal', role: 'SYSTEM' }
-    const found = data.users.find((u) => u.id === userId)
-    if (found) {
-      return {
-        name: found.name,
-        email: found.email,
-        role: found.role.toUpperCase(),
+      if (!userId)
+        return { name: 'System Event', email: 'system@pointfex.internal', role: 'SYSTEM' }
+      const found = data.users.find((u) => u.id === userId)
+      if (found) {
+        return {
+          name: found.name,
+          email: found.email,
+          role: found.role.toUpperCase(),
+        }
       }
-    }
-    if (userId.includes('cto')) return { name: 'ARM Abir Hasan', email: '2023100000176@seu.edu.bd', role: 'CTO' }
-    if (userId.includes('ceo')) return { name: 'Chief Executive Officer', email: 'noon@seu.edu.bd', role: 'CEO' }
-    if (userId.includes('cfo')) return { name: 'Vincent Gallagher', email: 'vincent.gallagher@pointfex.com', role: 'CFO' }
-    if (userId.includes('cpo')) return { name: 'Amara Okafor', email: 'amara.okafor@pointfex.com', role: 'CPO' }
-    return { name: userId, email: `${userId}@pointfex.internal`, role: 'USER' }
-  }, [data.users])
+      if (userId.includes('cto'))
+        return { name: 'ARM Abir Hasan', email: '2023100000176@seu.edu.bd', role: 'CTO' }
+      if (userId.includes('ceo'))
+        return { name: 'Chief Executive Officer', email: 'noon@seu.edu.bd', role: 'CEO' }
+      if (userId.includes('cfo'))
+        return { name: 'Vincent Gallagher', email: 'vincent.gallagher@pointfex.com', role: 'CFO' }
+      if (userId.includes('cpo'))
+        return { name: 'Amara Okafor', email: 'amara.okafor@pointfex.com', role: 'CPO' }
+      return { name: userId, email: `${userId}@pointfex.internal`, role: 'USER' }
+    },
+    [data.users],
+  )
 
   const getActionCode = (log: ActivityLog) => {
     if (log.actionCode) return log.actionCode
@@ -46,13 +54,24 @@ export function CtoAuditLogPage() {
 
   const getSeverity = (log: ActivityLog): 'INFO' | 'CRITICAL' | 'WARNING' | 'SUCCESS' => {
     if (log.severity) return log.severity as any
-    if (log.action.toLowerCase().includes('token') || log.action.toLowerCase().includes('critical') || log.action.toLowerCase().includes('security')) {
+    if (
+      log.action.toLowerCase().includes('token') ||
+      log.action.toLowerCase().includes('critical') ||
+      log.action.toLowerCase().includes('security')
+    ) {
       return 'CRITICAL'
     }
-    if (log.action.toLowerCase().includes('warning') || log.action.toLowerCase().includes('reject')) {
+    if (
+      log.action.toLowerCase().includes('warning') ||
+      log.action.toLowerCase().includes('reject')
+    ) {
       return 'WARNING'
     }
-    if (log.action.toLowerCase().includes('approved') || log.action.toLowerCase().includes('created') || log.action.toLowerCase().includes('completed')) {
+    if (
+      log.action.toLowerCase().includes('approved') ||
+      log.action.toLowerCase().includes('created') ||
+      log.action.toLowerCase().includes('completed')
+    ) {
       return 'SUCCESS'
     }
     return 'INFO'
@@ -82,10 +101,14 @@ export function CtoAuditLogPage() {
 
   // Export audit log as JSON file
   const handleExportJson = () => {
-    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(processedLogs, null, 2))
+    const dataStr =
+      'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(processedLogs, null, 2))
     const downloadAnchor = document.createElement('a')
     downloadAnchor.setAttribute('href', dataStr)
-    downloadAnchor.setAttribute('download', `executive_audit_log_${new Date().toISOString().slice(0, 10)}.json`)
+    downloadAnchor.setAttribute(
+      'download',
+      `executive_audit_log_${new Date().toISOString().slice(0, 10)}.json`,
+    )
     document.body.appendChild(downloadAnchor)
     downloadAnchor.click()
     downloadAnchor.remove()
@@ -123,27 +146,25 @@ export function CtoAuditLogPage() {
 
   return (
     <div className="space-y-4">
-      {/* Header bar without extra texts */}
+      {/* Header bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">
-            Audit Log
+          <h2 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white font-display">
+            Governance Audit Trail
           </h2>
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">
+            Immutable security, financial, and organizational activity log.
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            icon={Download}
-            onClick={handleExportJson}
-          >
+          <Button variant="secondary" size="sm" icon={Download} onClick={handleExportJson}>
             Export JSON
           </Button>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-slate-900/60 p-3 rounded-2xl border border-slate-200 dark:border-slate-800">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-[#0f1422] p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -151,7 +172,7 @@ export function CtoAuditLogPage() {
             placeholder="Search by actor, action code, email, or payload..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-lime-500"
+            className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
           />
         </div>
 
@@ -162,9 +183,9 @@ export function CtoAuditLogPage() {
               type="button"
               key={sev}
               onClick={() => setSeverityFilter(sev)}
-              className={`px-3 py-1 rounded-xl font-medium whitespace-nowrap transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition-all duration-200 cursor-pointer ${
                 severityFilter === sev
-                  ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
+                  ? 'bg-indigo-600 text-white shadow-sm'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
@@ -174,12 +195,13 @@ export function CtoAuditLogPage() {
         </div>
       </div>
 
-      {/* Main Audit Log Card matching image1 */}
-      <div className="bg-white dark:bg-slate-900/80 rounded-3xl border border-slate-200/90 dark:border-slate-800 overflow-hidden shadow-2xs">
+      {/* Main Audit Log Card */}
+      <div className="bg-white dark:bg-[#0f1422] rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
         {/* Top Header Row */}
         <div className="px-6 py-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 text-xs">
           <div className="text-slate-600 dark:text-slate-300 font-medium">
-            Total executive audit logs: <strong className="text-slate-900 dark:text-white font-bold">{auditLogs.length}</strong>
+            Total executive audit logs:{' '}
+            <strong className="text-slate-900 dark:text-white font-bold">{auditLogs.length}</strong>
           </div>
           <div className="text-slate-400 text-[11px]">
             Showing recent {processedLogs.length} entries
@@ -249,9 +271,7 @@ export function CtoAuditLogPage() {
                       </td>
 
                       {/* Severity */}
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        {getSeverityPill(severity)}
-                      </td>
+                      <td className="py-4 px-4 whitespace-nowrap">{getSeverityPill(severity)}</td>
 
                       {/* Payload Inspect Button */}
                       <td className="py-4 px-6 text-right whitespace-nowrap">
@@ -292,7 +312,9 @@ export function CtoAuditLogPage() {
 
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
-                <span className="text-[10px] text-slate-400 block font-semibold uppercase">Actor</span>
+                <span className="text-[10px] text-slate-400 block font-semibold uppercase">
+                  Actor
+                </span>
                 <span className="font-bold text-slate-900 dark:text-white block mt-0.5">
                   {getUserInfo(selectedLog.userId, selectedLog).name}
                 </span>
@@ -302,7 +324,9 @@ export function CtoAuditLogPage() {
               </div>
 
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
-                <span className="text-[10px] text-slate-400 block font-semibold uppercase">Timestamp</span>
+                <span className="text-[10px] text-slate-400 block font-semibold uppercase">
+                  Timestamp
+                </span>
                 <span className="font-bold text-slate-900 dark:text-white block mt-0.5 font-mono">
                   {selectedLog.timestamp}
                 </span>
@@ -326,7 +350,7 @@ export function CtoAuditLogPage() {
                     description: selectedLog.description,
                   },
                   null,
-                  2
+                  2,
                 )}
               </pre>
             </div>

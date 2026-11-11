@@ -7,21 +7,16 @@ import { useCtoData } from '../../hooks/useCtoData'
 import { useApp } from '../../context/AppContext'
 import { formatCurrency } from '../../utils/formatters'
 import type { EnrichedProject } from '../../types'
-import {
-  Search,
-  Plus,
-  Edit2,
-  GitBranch,
-  ExternalLink,
-  CheckCircle2,
-} from 'lucide-react'
+import { Search, Plus, Edit2, GitBranch, ExternalLink, CheckCircle2 } from 'lucide-react'
 
 export function CtoProjectsReposPage() {
   const { projects, teams } = useCtoData()
   const { setSelectedProjectModal, createProject, updateProject, showToast } = useApp()
 
   const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'planning' | 'completed'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'planning' | 'completed'>(
+    'all',
+  )
 
   // Create Project Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
@@ -88,8 +83,10 @@ export function CtoProjectsReposPage() {
       deadline: newDeadline,
       status: 'active',
       progress: 0,
-      repositoryUrl: newRepoUrl.trim() || `https://github.com/pointfex/${newCode.toLowerCase()}-core`,
-      srsUrl: newSrsUrl.trim() || `https://docs.pointfex.internal/srs/${newCode.toUpperCase()}-SRS.pdf`,
+      repositoryUrl:
+        newRepoUrl.trim() || `https://github.com/pointfex/${newCode.toLowerCase()}-core`,
+      srsUrl:
+        newSrsUrl.trim() || `https://docs.pointfex.internal/srs/${newCode.toUpperCase()}-SRS.pdf`,
     })
 
     setIsCreateModalOpen(false)
@@ -129,12 +126,7 @@ export function CtoProjectsReposPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="lime"
-            size="sm"
-            icon={Plus}
-            onClick={() => setIsCreateModalOpen(true)}
-          >
+          <Button variant="lime" size="sm" icon={Plus} onClick={() => setIsCreateModalOpen(true)}>
             Create New Project
           </Button>
         </div>
@@ -253,7 +245,10 @@ export function CtoProjectsReposPage() {
                 {(project.repositoryUrl || project.repo) && (
                   <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-xs">
                     <a
-                      href={project.repositoryUrl || `https://github.com/pointfex/${project.code.toLowerCase()}-core`}
+                      href={
+                        project.repositoryUrl ||
+                        `https://github.com/pointfex/${project.code.toLowerCase()}-core`
+                      }
                       target="_blank"
                       rel="noreferrer"
                       className="flex items-center gap-1.5 font-mono text-[11px] text-sky-600 dark:text-sky-400 hover:underline truncate"
@@ -420,12 +415,7 @@ export function CtoProjectsReposPage() {
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                variant="lime"
-                size="sm"
-                icon={Plus}
-              >
+              <Button type="submit" variant="lime" size="sm" icon={Plus}>
                 Create Project
               </Button>
             </div>
@@ -553,12 +543,7 @@ export function CtoProjectsReposPage() {
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                variant="lime"
-                size="sm"
-                icon={CheckCircle2}
-              >
+              <Button type="submit" variant="lime" size="sm" icon={CheckCircle2}>
                 Save Changes
               </Button>
             </div>

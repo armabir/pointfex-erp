@@ -77,4 +77,3 @@ export function MyProjectsOverview({ projects }: MyProjectsOverviewProps) {
     </Card>
   )
 }
-

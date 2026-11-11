@@ -29,7 +29,9 @@ export function Breadcrumbs({ items = [] }: BreadcrumbsProps) {
               <span
                 onClick={item.onClick}
                 className={`truncate transition-colors ${
-                  item.onClick ? 'cursor-pointer hover:text-slate-900 text-slate-500' : 'text-slate-400'
+                  item.onClick
+                    ? 'cursor-pointer hover:text-slate-900 text-slate-500'
+                    : 'text-slate-400'
                 }`}
               >
                 {item.label}
@@ -41,4 +43,3 @@ export function Breadcrumbs({ items = [] }: BreadcrumbsProps) {
     </nav>
   )
 }
-

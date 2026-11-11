@@ -32,10 +32,7 @@ export function RecentActivityFeed({ activities }: RecentActivityFeedProps) {
   }
 
   return (
-    <Card
-      title="Recent Activity"
-      icon={Activity}
-    >
+    <Card title="Recent Activity" icon={Activity}>
       <div className="space-y-2">
         {activities.map((act) => (
           <div
@@ -65,4 +62,3 @@ export function RecentActivityFeed({ activities }: RecentActivityFeedProps) {
     </Card>
   )
 }
-

@@ -23,15 +23,12 @@ import {
 
 export function PmReportsPage() {
   const { pm, team, resolvers } = usePmData()
-  const {
-    data,
-    addSubmission,
-    addComplaint,
-    forwardSubmissionToCLevel,
-    updateComplaintStatus,
-  } = useApp()
+  const { data, addSubmission, addComplaint, forwardSubmissionToCLevel, updateComplaintStatus } =
+    useApp()
 
-  const [activeTab, setActiveTab] = useState<'submission' | 'complaint' | 'review_dev' | 'team_complaints'>('submission')
+  const [activeTab, setActiveTab] = useState<
+    'submission' | 'complaint' | 'review_dev' | 'team_complaints'
+  >('submission')
 
   // Form State: New Project Idea Submission (Same as Dev)
   const [projectTitle, setProjectTitle] = useState('')
@@ -53,35 +50,42 @@ export function PmReportsPage() {
   const [responseStatus, setResponseStatus] = useState<string>('under_investigation')
   const [responseComment, setResponseComment] = useState<string>('')
 
+  const pmId = pm?.id || ''
+
   // Filter current PM's personal submissions & complaints
-  const pmUserReports = data.reports.filter((r) => r.userId === pm.id)
+  const pmUserReports = data.reports.filter((r) => r.userId === pmId)
   const pmProjectSubmissions = pmUserReports.filter((r) => r.type === 'project_submission')
   const pmComplaints = pmUserReports.filter((r) => r.type === 'complaint')
 
   // Developer project submissions from PM's team
-  const teamMemberIds = (team?.memberIds || [])
+  const teamMemberIds = team?.memberIds || []
   const teamDevSubmissions = data.reports.filter(
-    (r) => r.type === 'project_submission' && (teamMemberIds.includes(r.userId) || r.teamId === team?.id) && r.userId !== pm.id
+    (r) =>
+      r.type === 'project_submission' &&
+      (teamMemberIds.includes(r.userId) || r.teamId === team?.id) &&
+      r.userId !== pmId,
   )
 
-  // Developer complaints routed to PM or from PM's team
+  // Developer complaints routed to PM or from PM's team (excluding confidential CHRO/CEO grievances)
   const devComplaintsToPm = data.reports.filter(
     (r) =>
       r.type === 'complaint' &&
+      !r.isConfidential &&
+      !r.confidentialTo &&
       (r.complainTo?.toLowerCase().includes('pm') ||
         r.complainTo?.toLowerCase().includes('project manager') ||
         teamMemberIds.includes(r.userId)) &&
-      r.userId !== pm.id
+      r.userId !== pmId,
   )
 
   // Submit New Project Idea
   const handleProjectSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!projectTitle.trim() || !docsUrl.trim() || !projectDesc.trim()) return
+    if (!pmId || !projectTitle.trim() || !docsUrl.trim() || !projectDesc.trim()) return
 
     const newReport: Report = {
       id: `pm_prop_${Date.now()}`,
-      userId: pm.id,
+      userId: pmId,
       teamId: team?.id || 'team_01',
       type: 'project_submission',
       title: projectTitle.trim(),
@@ -102,11 +106,11 @@ export function PmReportsPage() {
   // Submit General Complaint
   const handleComplaintSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!complaintTitle.trim() || !complaintDesc.trim() || !complainTo.trim()) return
+    if (!pmId || !complaintTitle.trim() || !complaintDesc.trim() || !complainTo.trim()) return
 
     const newComplaint: Report = {
       id: `pm_cmp_${Date.now()}`,
-      userId: pm.id,
+      userId: pmId,
       teamId: team?.id || 'team_01',
       type: 'complaint',
       complainTo: complainTo.trim(),
@@ -221,10 +225,7 @@ export function PmReportsPage() {
         <div className="lg:col-span-7 space-y-6">
           {activeTab === 'submission' && (
             /* New Project Idea Form - Exactly same as Dev */
-            <Card
-              title="Submit New Project Idea"
-              icon={Lightbulb}
-            >
+            <Card title="Submit New Project Idea" icon={Lightbulb}>
               <form onSubmit={handleProjectSubmit} className="space-y-4 text-xs">
                 <div>
                   <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1.5">
@@ -284,10 +285,7 @@ export function PmReportsPage() {
 
           {activeTab === 'complaint' && (
             /* General Complaint Form - Exactly same as Dev */
-            <Card
-              title="File General Complaint"
-              icon={AlertTriangle}
-            >
+            <Card title="File General Complaint" icon={AlertTriangle}>
               <form onSubmit={handleComplaintSubmit} className="space-y-4 text-xs">
                 <div>
                   <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1.5">
@@ -302,10 +300,18 @@ export function PmReportsPage() {
                       onChange={(e) => setComplainTo(e.target.value)}
                       className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400 cursor-pointer font-medium"
                     >
-                      <option value="Chief Technology Officer (CTO)">Chief Technology Officer (CTO)</option>
-                      <option value="Chief Financial Officer (CFO)">Chief Financial Officer (CFO)</option>
-                      <option value="Chief People Officer (CPO)">Chief People Officer (CPO / HR)</option>
-                      <option value="Chief Executive Officer (CEO)">Chief Executive Officer (CEO)</option>
+                      <option value="Chief Technology Officer (CTO)">
+                        Chief Technology Officer (CTO)
+                      </option>
+                      <option value="Chief Financial Officer (CFO)">
+                        Chief Financial Officer (CFO)
+                      </option>
+                      <option value="Chief People Officer (CPO)">
+                        Chief People Officer (CPO / HR)
+                      </option>
+                      <option value="Chief Executive Officer (CEO)">
+                        Chief Executive Officer (CEO)
+                      </option>
                       <option value="Executive Management">Executive Management Committee</option>
                     </select>
                   </div>
@@ -350,10 +356,7 @@ export function PmReportsPage() {
 
           {activeTab === 'review_dev' && (
             /* Review Developer Submissions & Option to Forward to C-Level */
-            <Card
-              title="Review Developer Submissions & Forward to C-Level"
-              icon={Sparkles}
-            >
+            <Card title="Review Developer Submissions & Forward to C-Level" icon={Sparkles}>
               <div className="space-y-4">
                 {teamDevSubmissions.length === 0 ? (
                   <div className="py-8 text-center text-slate-400 text-xs">
@@ -380,7 +383,11 @@ export function PmReportsPage() {
                                 {sub.title}
                               </div>
                               <div className="text-[11px] text-slate-400">
-                                Submitted by <span className="font-semibold text-slate-700 dark:text-slate-300">{author?.name || 'Developer'}</span> · {formatDate(sub.date, 'short')}
+                                Submitted by{' '}
+                                <span className="font-semibold text-slate-700 dark:text-slate-300">
+                                  {author?.name || 'Developer'}
+                                </span>{' '}
+                                · {formatDate(sub.date, 'short')}
                               </div>
                             </div>
                           </div>
@@ -437,7 +444,9 @@ export function PmReportsPage() {
                                 icon={ArrowUpRight}
                                 onClick={() => {
                                   setForwardingId(sub.id)
-                                  setForwardEndorsement(`Endorsed by ${pm.name} (${pm.title}). Reviewed architecture documentation and recommend greenlighting as an R&D prototype.`)
+                                  setForwardEndorsement(
+                                    `Endorsed by ${pm?.name || 'Project Manager'} (${pm?.title || 'PM'}). Reviewed architecture documentation and recommend greenlighting as an R&D prototype.`,
+                                  )
                                 }}
                               >
                                 Forward to C-Level
@@ -457,10 +466,18 @@ export function PmReportsPage() {
                                     onChange={(e) => setForwardRecipient(e.target.value)}
                                     className="w-full p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 focus:outline-none"
                                   >
-                                    <option value="Chief Technology Officer (CTO)">Chief Technology Officer (CTO)</option>
-                                    <option value="Chief Executive Officer (CEO)">Chief Executive Officer (CEO)</option>
-                                    <option value="Chief Financial Officer (CFO)">Chief Financial Officer (CFO)</option>
-                                    <option value="Chief People Officer (CPO)">Chief People Officer (CPO)</option>
+                                    <option value="Chief Technology Officer (CTO)">
+                                      Chief Technology Officer (CTO)
+                                    </option>
+                                    <option value="Chief Executive Officer (CEO)">
+                                      Chief Executive Officer (CEO)
+                                    </option>
+                                    <option value="Chief Financial Officer (CFO)">
+                                      Chief Financial Officer (CFO)
+                                    </option>
+                                    <option value="Chief People Officer (CPO)">
+                                      Chief People Officer (CPO)
+                                    </option>
                                   </select>
                                 </div>
 
@@ -508,10 +525,7 @@ export function PmReportsPage() {
 
           {activeTab === 'team_complaints' && (
             /* Developer Complaints to PM: PM can Comment & Change Status */
-            <Card
-              title="Manage Developer Complaints"
-              icon={MessageSquare}
-            >
+            <Card title="Manage Developer Complaints" icon={MessageSquare}>
               <div className="space-y-4">
                 {devComplaintsToPm.length === 0 ? (
                   <div className="py-8 text-center text-slate-400 text-xs">
@@ -533,7 +547,11 @@ export function PmReportsPage() {
                               {cmp.title}
                             </div>
                             <div className="text-[11px] text-slate-400">
-                              Filed by <span className="font-semibold text-slate-700 dark:text-slate-300">{devUser?.name || 'Developer'}</span> ({devUser?.title}) · {formatDate(cmp.date, 'short')}
+                              Filed by{' '}
+                              <span className="font-semibold text-slate-700 dark:text-slate-300">
+                                {devUser?.name || 'Developer'}
+                              </span>{' '}
+                              ({devUser?.title}) · {formatDate(cmp.date, 'short')}
                             </div>
                           </div>
 
@@ -641,16 +659,16 @@ export function PmReportsPage() {
               activeTab === 'team_complaints'
                 ? 'Grievance Resolution Summary'
                 : activeTab === 'review_dev'
-                ? 'Squad Proposal Pipeline'
-                : activeTab === 'submission'
-                ? 'Your Project Submissions'
-                : 'Your Complaints Log'
+                  ? 'Squad Proposal Pipeline'
+                  : activeTab === 'submission'
+                    ? 'Your Project Submissions'
+                    : 'Your Complaints Log'
             }
             icon={FileText}
           >
             <div className="space-y-3 text-xs">
-              {activeTab === 'submission' && (
-                pmProjectSubmissions.length === 0 ? (
+              {activeTab === 'submission' &&
+                (pmProjectSubmissions.length === 0 ? (
                   <p className="text-slate-400 text-center py-6">No project ideas submitted yet.</p>
                 ) : (
                   pmProjectSubmissions.map((r) => (
@@ -674,11 +692,10 @@ export function PmReportsPage() {
                       )}
                     </div>
                   ))
-                )
-              )}
+                ))}
 
-              {activeTab === 'complaint' && (
-                pmComplaints.length === 0 ? (
+              {activeTab === 'complaint' &&
+                (pmComplaints.length === 0 ? (
                   <p className="text-slate-400 text-center py-6">No complaints logged.</p>
                 ) : (
                   pmComplaints.map((r) => (
@@ -693,15 +710,17 @@ export function PmReportsPage() {
                         <StatusPill status={r.status} size="sm" />
                       </div>
                       <div className="text-[10px] text-slate-400">
-                        Routed to: <strong className="text-slate-600 dark:text-slate-300">{r.complainTo}</strong>
+                        Routed to:{' '}
+                        <strong className="text-slate-600 dark:text-slate-300">
+                          {r.complainTo}
+                        </strong>
                       </div>
                       <p className="text-slate-500 dark:text-slate-400 text-[11px] line-clamp-2">
                         {r.description}
                       </p>
                     </div>
                   ))
-                )
-              )}
+                ))}
 
               {activeTab === 'review_dev' && (
                 <div className="space-y-3">
@@ -710,13 +729,17 @@ export function PmReportsPage() {
                       Executive Review Protocol
                     </span>
                     <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                      As PM, you act as the gatekeeper for team innovation proposals. Reviewing and forwarding developer proposals ensures leadership visibility for high-impact architecture initiatives.
+                      As PM, you act as the gatekeeper for team innovation proposals. Reviewing and
+                      forwarding developer proposals ensures leadership visibility for high-impact
+                      architecture initiatives.
                     </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-center text-xs pt-1">
                     <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-800">
-                      <span className="text-[10px] text-slate-400 block">Total Squad Proposals</span>
+                      <span className="text-[10px] text-slate-400 block">
+                        Total Squad Proposals
+                      </span>
                       <span className="font-bold text-slate-900 dark:text-white text-base">
                         {teamDevSubmissions.length}
                       </span>
@@ -724,7 +747,10 @@ export function PmReportsPage() {
                     <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-800">
                       <span className="text-[10px] text-slate-400 block">Forwarded to C-Level</span>
                       <span className="font-bold text-emerald-600 dark:text-emerald-400 text-base">
-                        {teamDevSubmissions.filter((s) => s.status === 'forwarded_to_c_level').length}
+                        {
+                          teamDevSubmissions.filter((s) => s.status === 'forwarded_to_c_level')
+                            .length
+                        }
                       </span>
                     </div>
                   </div>
@@ -738,7 +764,9 @@ export function PmReportsPage() {
                       Team Morale & Dispute Handling
                     </span>
                     <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                      Developer complaints routed to PM represent sprint friction points such as PR turnaround delays, scope creeps, or workload imbalances. Updating statuses keeps engineers informed.
+                      Developer complaints routed to PM represent sprint friction points such as PR
+                      turnaround delays, scope creeps, or workload imbalances. Updating statuses
+                      keeps engineers informed.
                     </p>
                   </div>
 

@@ -6,12 +6,7 @@ import { useCtoData } from '../../hooks/useCtoData'
 import { useApp } from '../../context/AppContext'
 import { formatDate } from '../../utils/formatters'
 import type { TaskStatus, TaskPriority } from '../../types'
-import {
-  Clock,
-  Search,
-  Plus,
-  CheckCircle2,
-} from 'lucide-react'
+import { Clock, Search, Plus, CheckCircle2 } from 'lucide-react'
 
 interface ColumnDef {
   id: TaskStatus
@@ -29,12 +24,8 @@ const COLUMNS: ColumnDef[] = [
 
 export function CtoTasksPage() {
   const { ctoPersonalTasks, projects } = useCtoData()
-  const {
-    createCtoPersonalTask,
-    updateCtoPersonalTaskStatus,
-    setSelectedTaskModal,
-    showToast,
-  } = useApp()
+  const { createCtoPersonalTask, updateCtoPersonalTaskStatus, setSelectedTaskModal, showToast } =
+    useApp()
 
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [priorityFilter, setPriorityFilter] = useState<string>('all')
@@ -150,12 +141,7 @@ export function CtoTasksPage() {
           <Badge variant="emerald" size="sm">
             {completedCount} / {ctoPersonalTasks.length} Completed
           </Badge>
-          <Button
-            variant="lime"
-            size="sm"
-            icon={Plus}
-            onClick={() => setIsCreateModalOpen(true)}
-          >
+          <Button variant="lime" size="sm" icon={Plus} onClick={() => setIsCreateModalOpen(true)}>
             Add Task
           </Button>
         </div>
@@ -281,8 +267,8 @@ export function CtoTasksPage() {
                                 task.priority === 'urgent'
                                   ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
                                   : task.priority === 'high'
-                                  ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
-                                  : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+                                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
+                                    : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
                               }`}
                             >
                               {task.priority}
@@ -458,12 +444,7 @@ export function CtoTasksPage() {
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                variant="lime"
-                size="sm"
-                icon={Plus}
-              >
+              <Button type="submit" variant="lime" size="sm" icon={Plus}>
                 Add Task
               </Button>
             </div>

@@ -147,13 +147,14 @@ export function useCtoData(): CtoData {
   // 5. Executive / CTO Personal Tasks (assigned by CEO or with assigneeId matching current user)
   const ctoPersonalTasks = useMemo(() => {
     const targetId = currentUser?.id || cto.id
+    const ceoId = data.users.find((u) => u.role === 'ceo')?.id || 'emp_ceo_01'
     return tasks.filter(
       (t) =>
         t.assigneeId === targetId ||
         t.assignedTo === targetId ||
-        (t.creatorId === 'user_ceo_01' && (t.assigneeId === targetId || t.assignedTo === targetId))
+        (t.creatorId === ceoId && (t.assigneeId === targetId || t.assignedTo === targetId)),
     )
-  }, [tasks, currentUser?.id, cto.id])
+  }, [tasks, currentUser?.id, cto.id, data.users])
 
   // 6. CTO Engineering Tasks (created by CTO and assigned to PMs)
   const ctoEngineeringTasks = useMemo(() => {
@@ -210,7 +211,7 @@ export function useCtoData(): CtoData {
         r.recipient?.toLowerCase().includes('cto') ||
         r.recipient?.toLowerCase().includes('technology') ||
         r.forwardedTo?.toLowerCase().includes('cto') ||
-        r.type === 'project_submission'
+        r.type === 'project_submission',
     )
   }, [data.reports])
 
@@ -220,30 +221,38 @@ export function useCtoData(): CtoData {
 
   // 10. Audit Logs
   const auditLogs = useMemo<ActivityLog[]>(() => {
-    return [...data.activityLogs].sort(
-      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    )
+    return [...data.activityLogs].sort((a, b) => {
+      const ta =
+        a.timestamp === 'Just now' ? Number.MAX_SAFE_INTEGER : new Date(a.timestamp).getTime()
+      const tb =
+        b.timestamp === 'Just now' ? Number.MAX_SAFE_INTEGER : new Date(b.timestamp).getTime()
+      return (Number.isNaN(tb) ? 0 : tb) - (Number.isNaN(ta) ? 0 : ta)
+    })
   }, [data.activityLogs])
 
   // 11. Company-wide Engineering Statistics
   const companyStats = useMemo(() => {
     const totalTasks = tasks.length
-    const activeTasks = tasks.filter((t) => t.status === 'in_progress' || t.status === 'todo').length
+    const activeTasks = tasks.filter(
+      (t) => t.status === 'in_progress' || t.status === 'todo',
+    ).length
     const inReviewTasks = tasks.filter((t) => t.status === 'in_review').length
     const completedTasks = tasks.filter((t) => t.status === 'completed').length
     const blockedTasks = tasks.filter((t) => t.status === 'blocked').length
-    const openPRs = data.pullRequests.filter((pr) => pr.status === 'open' || pr.status === 'in_review').length
+    const openPRs = data.pullRequests.filter(
+      (pr) => pr.status === 'open' || pr.status === 'in_review',
+    ).length
     const securityAlerts = data.securityAlerts.filter((s) => s.status !== 'resolved')
     const criticalSecurity = securityAlerts.filter((s) => s.severity === 'critical')
     const pendingConsultancies = data.consultancyRequests.filter(
-      (c) => c.status === 'submitted' || c.status === 'under_review' || c.status === 'assigned'
+      (c) => c.status === 'submitted' || c.status === 'under_review' || c.status === 'assigned',
     ).length
 
     const avgQuality =
       data.codeQualityGates.length > 0
         ? Math.round(
             data.codeQualityGates.reduce((sum, g) => sum + g.complianceScore, 0) /
-              data.codeQualityGates.length
+              data.codeQualityGates.length,
           )
         : 95
 
@@ -251,7 +260,7 @@ export function useCtoData(): CtoData {
       data.codeQualityGates.length > 0
         ? Math.round(
             data.codeQualityGates.reduce((sum, g) => sum + g.testCoverage, 0) /
-              data.codeQualityGates.length
+              data.codeQualityGates.length,
           )
         : 88
 
@@ -313,4 +322,3 @@ export function useCtoData(): CtoData {
     companyStats,
   }
 }
-

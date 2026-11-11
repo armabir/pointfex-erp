@@ -66,9 +66,10 @@ export function PmBudgetFinancePage() {
         allocated: financials.totalAllocated,
         released: financials.totalReleased,
         remaining: financials.remainingBudget,
-        utilization: financials.totalApprovedBudget > 0
-          ? Math.round((financials.totalAllocated / financials.totalApprovedBudget) * 100)
-          : 0,
+        utilization:
+          financials.totalApprovedBudget > 0
+            ? Math.round((financials.totalAllocated / financials.totalApprovedBudget) * 100)
+            : 0,
         transactions: financials.teamTransactions,
         projects: teamProjects,
       }
@@ -76,14 +77,17 @@ export function PmBudgetFinancePage() {
 
     // Filtered by selected project
     const projBudget = Number(currentProject.budget) || 0
-    const projTransactions = financials.teamTransactions.filter((tx) => tx.projectId === currentProject.id)
+    const projTransactions = financials.teamTransactions.filter(
+      (tx) => tx.projectId === currentProject.id,
+    )
     const projTxAllocated = projTransactions
       .filter((tx) => tx.type === 'budget_allocation')
       .reduce((sum, tx) => sum + (tx.amount || 0), 0)
     const projAllocated = Math.max(projTxAllocated, currentProject.allocatedBudget || 0)
-    const projReleased = projTransactions
-      .filter((tx) => tx.amount > 0 && tx.status === 'completed')
-      .reduce((sum, tx) => sum + tx.amount, 0) || Math.round(projAllocated * 0.7)
+    const projReleased =
+      projTransactions
+        .filter((tx) => tx.amount > 0 && tx.status === 'completed')
+        .reduce((sum, tx) => sum + tx.amount, 0) || Math.round(projAllocated * 0.7)
     const projRemaining = Math.max(0, projBudget - projAllocated)
     const projUtilization = projBudget > 0 ? Math.round((projAllocated / projBudget) * 100) : 0
 
@@ -106,7 +110,8 @@ export function PmBudgetFinancePage() {
       .reduce((s, tx) => s + (tx.amount || 0), 0)
     return sum + Math.max(pTxAlloc, p.allocatedBudget || 0)
   }, 0)
-  const overallUtilization = totalApproved > 0 ? Math.round((totalAllocatedAll / totalApproved) * 100) : 0
+  const overallUtilization =
+    totalApproved > 0 ? Math.round((totalAllocatedAll / totalApproved) * 100) : 0
 
   const handleAllocateSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -147,7 +152,10 @@ export function PmBudgetFinancePage() {
             Project Budgets & Resource Allocations
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            CFO-authorized budgets, developer allocations, and escrow releases for <span className="font-semibold text-slate-700 dark:text-slate-300">{team?.name || 'Squad'}</span>
+            CFO-authorized budgets, developer allocations, and escrow releases for{' '}
+            <span className="font-semibold text-slate-700 dark:text-slate-300">
+              {team?.name || 'Squad'}
+            </span>
           </p>
         </div>
 
@@ -186,9 +194,7 @@ export function PmBudgetFinancePage() {
               <FolderGit2 className="w-3.5 h-3.5 text-slate-400" />
               Project Filter
             </span>
-            <span className="text-[11px] text-slate-400">
-              {teamProjects.length + 1} options
-            </span>
+            <span className="text-[11px] text-slate-400">{teamProjects.length + 1} options</span>
           </div>
 
           {/* "All Projects" Card */}
@@ -216,9 +222,7 @@ export function PmBudgetFinancePage() {
                   <span className="font-bold text-xs text-slate-900 dark:text-white block">
                     All Projects
                   </span>
-                  <span className="text-[10px] text-slate-400">
-                    Aggregated Squad Total
-                  </span>
+                  <span className="text-[10px] text-slate-400">Aggregated Squad Total</span>
                 </div>
               </div>
               <Badge variant="lime" size="xs">
@@ -272,9 +276,7 @@ export function PmBudgetFinancePage() {
                     <span className="font-bold text-xs text-slate-900 dark:text-white truncate block">
                       {proj.name}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-mono">
-                      {proj.code}
-                    </span>
+                    <span className="text-[10px] text-slate-400 font-mono">{proj.code}</span>
                   </div>
                   <StatusPill status={proj.status} size="sm" />
                 </div>
@@ -309,7 +311,9 @@ export function PmBudgetFinancePage() {
             <div className="flex items-center gap-2">
               <span className="text-slate-400">Active Financial Scope:</span>
               <strong className="text-slate-900 dark:text-white">
-                {currentProject ? currentProject.name : `All Projects (${teamProjects.length} Managed)`}
+                {currentProject
+                  ? currentProject.name
+                  : `All Projects (${teamProjects.length} Managed)`}
               </strong>
             </div>
             {currentProject && (
@@ -424,10 +428,7 @@ export function PmBudgetFinancePage() {
                         >
                           {formatCurrency(tx.amount)}
                         </span>
-                        <Badge
-                          variant={tx.status === 'completed' ? 'emerald' : 'amber'}
-                          size="xs"
-                        >
+                        <Badge variant={tx.status === 'completed' ? 'emerald' : 'amber'} size="xs">
                           {tx.status}
                         </Badge>
                       </div>
@@ -616,4 +617,3 @@ export function PmBudgetFinancePage() {
 }
 
 export default PmBudgetFinancePage
-

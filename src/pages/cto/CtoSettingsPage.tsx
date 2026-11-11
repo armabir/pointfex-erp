@@ -2,25 +2,16 @@ import React, { useState } from 'react'
 import { Card } from '../../components/common/Card'
 import { Badge } from '../../components/common/Badge'
 import { Button } from '../../components/common/Button'
+import { Avatar } from '../../components/common/Avatar'
 import { AvatarPickerModal } from '../../components/common/AvatarPickerModal'
+import { AdditionalGrantedAccessCard } from '../../components/common/AdditionalGrantedAccessCard'
 import { useCtoData } from '../../hooks/useCtoData'
 import { useApp } from '../../context/AppContext'
-import {
-  User,
-  RotateCcw,
-  Mail,
-  Globe,
-  Tag,
-  X,
-  Plus,
-  ShieldCheck,
-  Crown,
-  Camera,
-} from 'lucide-react'
+import { User, Mail, Globe, Tag, X, Plus, ShieldCheck, Crown, Camera } from 'lucide-react'
 
 export function CtoSettingsPage() {
   const { cto } = useCtoData()
-  const { currentRole, currentUser, resetDemoData, updateCtoProfile, updateExecutiveProfile, showToast } = useApp()
+  const { currentRole, currentUser, updateCtoProfile, updateExecutiveProfile, showToast } = useApp()
 
   const [newSkillInput, setNewSkillInput] = useState('')
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false)
@@ -93,12 +84,13 @@ export function CtoSettingsPage() {
             onClick={() => setIsAvatarModalOpen(true)}
             title="Click to change profile picture"
           >
-            <img
-              src={activeUser?.avatarUrl || activeUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200'}
-              alt={activeUser?.name || 'Executive'}
-              className="w-20 h-20 rounded-3xl object-cover border-2 border-slate-200 dark:border-slate-700 shadow-sm group-hover:opacity-80 transition-opacity"
+            <Avatar
+              src={activeUser?.avatarUrl || activeUser?.avatar}
+              name={activeUser?.name || 'Executive'}
+              initials={activeUser?.initials}
+              className="w-20 h-20 text-2xl border-2 border-slate-200 dark:border-slate-700 shadow-sm group-hover:opacity-80 transition-opacity"
             />
-            <div className="absolute inset-0 bg-black/40 rounded-3xl opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+            <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
               <Camera className="w-5 h-5 text-white" />
             </div>
             <span
@@ -149,10 +141,7 @@ export function CtoSettingsPage() {
       </Card>
 
       {/* Skills & Competencies (Editable - Add / Remove tags only, matching Dev & PM) */}
-      <Card
-        title="Technical Competencies & Domains"
-        icon={Tag}
-      >
+      <Card title="Technical Competencies & Domains" icon={Tag}>
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2">
             {currentSkills.map((skill) => (
@@ -195,10 +184,7 @@ export function CtoSettingsPage() {
       </Card>
 
       {/* System & Workspace Preferences */}
-      <Card
-        title="Engineering Workspace Preferences"
-        icon={ShieldCheck}
-      >
+      <Card title="Engineering Workspace Preferences" icon={ShieldCheck}>
         <div className="space-y-4 text-xs">
           <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
             <div>
@@ -206,7 +192,8 @@ export function CtoSettingsPage() {
                 Default Production Branch Policy
               </div>
               <div className="text-[11px] text-slate-400">
-                Enforces strict branch protection and PR reviews on <code className="font-mono text-lime-600 dark:text-lime-400">main</code>
+                Enforces strict branch protection and PR reviews on{' '}
+                <code className="font-mono text-lime-600 dark:text-lime-400">main</code>
               </div>
             </div>
             <Badge variant="emerald" size="xs">
@@ -227,37 +214,15 @@ export function CtoSettingsPage() {
               Active
             </Badge>
           </div>
-
-          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-            <div>
-              <div className="font-semibold text-slate-900 dark:text-slate-100">
-                Reset Demo Data
-              </div>
-              <div className="text-[11px] text-slate-400">
-                Restore all projects, tasks, pull requests, and security alerts to initial state
-              </div>
-            </div>
-            <Button
-              variant="danger"
-              size="xs"
-              icon={RotateCcw}
-              onClick={() => {
-                if (window.confirm('Reset all demo data across Developer, PM, and CTO workspaces?')) {
-                  resetDemoData()
-                  showToast('Demo data reset to initial seed values.', 'info')
-                }
-              }}
-            >
-              Reset Data
-            </Button>
-          </div>
         </div>
       </Card>
+
+      <AdditionalGrantedAccessCard />
 
       <AvatarPickerModal
         isOpen={isAvatarModalOpen}
         onClose={() => setIsAvatarModalOpen(false)}
-        currentAvatar={activeUser?.avatarUrl || activeUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200'}
+        currentAvatar={activeUser?.avatarUrl || activeUser?.avatar || ''}
         onSave={(avatar) => handleUpdateProfile({ avatar, avatarUrl: avatar })}
         userName={activeUser?.name || 'Executive'}
       />

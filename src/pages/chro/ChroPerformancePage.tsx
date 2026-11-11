@@ -13,6 +13,7 @@ import { useExecutiveData } from '../../hooks/useExecutiveData'
 import { useApp } from '../../context/AppContext'
 import { Modal } from '../../components/common/Modal'
 import { Button } from '../../components/common/Button'
+import { Avatar } from '../../components/common/Avatar'
 
 export function ChroPerformancePage() {
   const {
@@ -45,10 +46,14 @@ export function ChroPerformancePage() {
   const [evalTierInput, setEvalTierInput] = useState<string>('top_performer')
   const [evalNotesInput, setEvalNotesInput] = useState('')
   const [evalStrengthsInput, setEvalStrengthsInput] = useState('High velocity, team player')
-  const [evalImprovementsInput, setEvalImprovementsInput] = useState('Cross-squad architecture sharing')
+  const [evalImprovementsInput, setEvalImprovementsInput] = useState(
+    'Cross-squad architecture sharing',
+  )
 
   const [selectedStaffAction, setSelectedStaffAction] = useState<any>(null)
-  const [actionCategory, setActionCategory] = useState<'recognition' | 'disciplinary'>('recognition')
+  const [actionCategory, setActionCategory] = useState<'recognition' | 'disciplinary'>(
+    'recognition',
+  )
   const [actionTitleInput, setActionTitleInput] = useState('')
   const [actionDescInput, setActionDescInput] = useState('')
   const [actionBonusPenaltyInput, setActionBonusPenaltyInput] = useState<number>(0)
@@ -120,8 +125,14 @@ export function ChroPerformancePage() {
       score: Number(evalScoreInput),
       tier: evalTierInput,
       notes: evalNotesInput,
-      strengths: evalStrengthsInput.split(',').map((s) => s.trim()).filter(Boolean),
-      improvementAreas: evalImprovementsInput.split(',').map((s) => s.trim()).filter(Boolean),
+      strengths: evalStrengthsInput
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
+      improvementAreas: evalImprovementsInput
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
     })
     setSelectedStaffEval(null)
   }
@@ -133,12 +144,12 @@ export function ChroPerformancePage() {
     setActionTitleInput(
       initialType === 'recognition'
         ? 'Excellence in Sprint Execution'
-        : 'Notice of Code Review SLA Breach'
+        : 'Notice of Code Review SLA Breach',
     )
     setActionDescInput(
       initialType === 'recognition'
         ? 'Consistently delivered flawless milestones with exceptional proactive collaboration.'
-        : 'Repeated delays exceeding the 48-hour SLA for mandatory PR reviews.'
+        : 'Repeated delays exceeding the 48-hour SLA for mandatory PR reviews.',
     )
     setActionBonusPenaltyInput(initialType === 'recognition' ? 300 : 150)
   }
@@ -151,14 +162,14 @@ export function ChroPerformancePage() {
         selectedStaffAction.user.id,
         actionTitleInput,
         actionDescInput,
-        actionBonusPenaltyInput > 0 ? Number(actionBonusPenaltyInput) : undefined
+        actionBonusPenaltyInput > 0 ? Number(actionBonusPenaltyInput) : undefined,
       )
     } else {
       issueDisciplinaryAction(
         selectedStaffAction.user.id,
         actionTitleInput,
         actionDescInput,
-        actionBonusPenaltyInput > 0 ? Number(actionBonusPenaltyInput) : undefined
+        actionBonusPenaltyInput > 0 ? Number(actionBonusPenaltyInput) : undefined,
       )
     }
     setSelectedStaffAction(null)
@@ -177,7 +188,7 @@ export function ChroPerformancePage() {
     updateConfidentialComplaintStatus(
       selectedComplaint.id,
       complaintStatusInput,
-      complaintMediationInput
+      complaintMediationInput,
     )
     setSelectedComplaint(null)
   }
@@ -199,7 +210,9 @@ export function ChroPerformancePage() {
           <div className="text-2xl font-bold text-slate-900 dark:text-white">
             {hrStats.avgPerformanceScore}%
           </div>
-          <p className="text-[11px] text-sky-600 dark:text-sky-400 mt-1 font-medium">30 Monitored Staff</p>
+          <p className="text-[11px] text-sky-600 dark:text-sky-400 mt-1 font-medium">
+            30 Monitored Staff
+          </p>
         </div>
 
         {/* Attendance Rate */}
@@ -215,7 +228,9 @@ export function ChroPerformancePage() {
           <div className="text-2xl font-bold text-slate-900 dark:text-white">
             {hrStats.avgAttendanceRate}%
           </div>
-          <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-medium">Daily Standup Compliance</p>
+          <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-medium">
+            Daily Standup Compliance
+          </p>
         </div>
 
         {/* Squad Morale Index */}
@@ -247,7 +262,9 @@ export function ChroPerformancePage() {
           <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
             {hrStats.onTimeDeliveryRate}%
           </div>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Sprint Milestone Cadence</p>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+            Sprint Milestone Cadence
+          </p>
         </div>
 
         {/* Confidential Grievances */}
@@ -263,7 +280,9 @@ export function ChroPerformancePage() {
           <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
             {confidentialComplaints.length}
           </div>
-          <p className="text-[11px] text-purple-600 dark:text-purple-400 mt-1 font-medium">CHRO / CEO Restricted</p>
+          <p className="text-[11px] text-purple-600 dark:text-purple-400 mt-1 font-medium">
+            CHRO / CEO Restricted
+          </p>
         </div>
       </div>
 
@@ -348,7 +367,11 @@ export function ChroPerformancePage() {
               </div>
 
               <div className="text-xs text-slate-500 dark:text-slate-400">
-                Showing <span className="font-semibold text-slate-900 dark:text-white">{filteredRoster.length}</span> staff members
+                Showing{' '}
+                <span className="font-semibold text-slate-900 dark:text-white">
+                  {filteredRoster.length}
+                </span>{' '}
+                staff members
               </div>
             </div>
 
@@ -369,13 +392,18 @@ export function ChroPerformancePage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {filteredRoster.map(({ user, perf, team }) => (
-                    <tr key={user.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+                    <tr
+                      key={user.id}
+                      className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors"
+                    >
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
-                          <img
-                            src={user.avatarUrl || user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}
-                            alt={user.name}
-                            className="w-9 h-9 rounded-xl object-cover border border-slate-200 dark:border-slate-700"
+                          <Avatar
+                            src={user.avatarUrl || user.avatar}
+                            name={user.name}
+                            initials={user.initials}
+                            size="md"
+                            className="border border-slate-200 dark:border-slate-700"
                           />
                           <div>
                             <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
@@ -392,7 +420,9 @@ export function ChroPerformancePage() {
                         <div className="text-slate-800 dark:text-slate-200 font-medium">
                           {team?.name || 'Assigned Squad'}
                         </div>
-                        <div className="text-xs text-slate-400 font-mono">{team?.code || 'SQ-01'}</div>
+                        <div className="text-xs text-slate-400 font-mono">
+                          {team?.code || 'SQ-01'}
+                        </div>
                       </td>
                       <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white">
                         <span
@@ -400,16 +430,20 @@ export function ChroPerformancePage() {
                             perf.overallScore >= 92
                               ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
                               : perf.overallScore >= 80
-                              ? 'bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-400'
-                              : 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400'
+                                ? 'bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-400'
+                                : 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400'
                           }`}
                         >
                           {perf.overallScore}%
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-xs text-slate-600 dark:text-slate-300">
-                        <div>Speed: <span className="font-semibold">{perf.deliverySpeed}%</span></div>
-                        <div>Quality: <span className="font-semibold">{perf.codeQuality}%</span></div>
+                        <div>
+                          Speed: <span className="font-semibold">{perf.deliverySpeed}%</span>
+                        </div>
+                        <div>
+                          Quality: <span className="font-semibold">{perf.codeQuality}%</span>
+                        </div>
                       </td>
                       <td className="py-3.5 px-4 font-medium text-slate-800 dark:text-slate-200">
                         {perf.attendanceRate || 96}%
@@ -423,8 +457,8 @@ export function ChroPerformancePage() {
                             perf.performanceTier === 'top_performer'
                               ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
                               : perf.performanceTier === 'needs_support'
-                              ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200 dark:border-rose-800'
-                              : 'bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-400 border border-sky-200 dark:border-sky-800'
+                                ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200 dark:border-rose-800'
+                                : 'bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-400 border border-sky-200 dark:border-sky-800'
                           }`}
                         >
                           {(perf.performanceTier || 'strong_contributor').replace('_', ' ')}
@@ -459,6 +493,13 @@ export function ChroPerformancePage() {
                       </td>
                     </tr>
                   ))}
+                  {filteredRoster.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="py-10 text-center text-xs text-slate-400">
+                        No personnel performance records match the current filter.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -469,18 +510,20 @@ export function ChroPerformancePage() {
         {activeTab === 'squads' && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {teams.map((team) => {
-              const squadDevs = staffRoster.filter((s) => s.user.teamId === team.id && s.user.role === 'developer')
+              const squadDevs = staffRoster.filter(
+                (s) => s.user.teamId === team.id && s.user.role === 'developer',
+              )
               const avgScore =
                 squadDevs.length > 0
                   ? Math.round(
-                      squadDevs.reduce((sum, s) => sum + s.perf.overallScore, 0) / squadDevs.length
+                      squadDevs.reduce((sum, s) => sum + s.perf.overallScore, 0) / squadDevs.length,
                     )
                   : 90
               const avgAttendance =
                 squadDevs.length > 0
                   ? Math.round(
                       squadDevs.reduce((sum, s) => sum + (s.perf.attendanceRate || 95), 0) /
-                        squadDevs.length
+                        squadDevs.length,
                     )
                   : 96
               const avgMorale =
@@ -499,7 +542,9 @@ export function ChroPerformancePage() {
                   <div>
                     <div className="flex items-center justify-between mb-3">
                       <div>
-                        <h4 className="text-base font-bold text-slate-900 dark:text-white">{team.name}</h4>
+                        <h4 className="text-base font-bold text-slate-900 dark:text-white">
+                          {team.name}
+                        </h4>
                         <p className="text-xs text-slate-400 font-mono">{team.code}</p>
                       </div>
                       <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
@@ -508,23 +553,50 @@ export function ChroPerformancePage() {
                     </div>
 
                     <div className="text-xs text-slate-600 dark:text-slate-300 mb-4 space-y-1">
-                      <div>Squad PM: <span className="font-semibold text-slate-900 dark:text-white">{team.pm?.name || 'Alex Rivera'}</span></div>
-                      <div>Lead Dev: <span className="font-semibold text-slate-900 dark:text-white">{team.leadDev?.name || 'Marcus Brody'}</span></div>
-                      <div>Staff Count: <span className="font-semibold text-slate-900 dark:text-white">{squadDevs.length + 1} members</span></div>
+                      <div>
+                        Squad PM:{' '}
+                        <span className="font-semibold text-slate-900 dark:text-white">
+                          {team.pm?.name || 'Alex Rivera'}
+                        </span>
+                      </div>
+                      <div>
+                        Lead Dev:{' '}
+                        <span className="font-semibold text-slate-900 dark:text-white">
+                          {team.leadDev?.name || 'Marcus Brody'}
+                        </span>
+                      </div>
+                      <div>
+                        Staff Count:{' '}
+                        <span className="font-semibold text-slate-900 dark:text-white">
+                          {squadDevs.length + 1} members
+                        </span>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-3 gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/60 mb-4 text-center">
                       <div>
-                        <div className="text-[10px] uppercase font-semibold text-slate-400">Perf Score</div>
-                        <div className="text-base font-bold text-slate-900 dark:text-white mt-0.5">{avgScore}%</div>
+                        <div className="text-[10px] uppercase font-semibold text-slate-400">
+                          Perf Score
+                        </div>
+                        <div className="text-base font-bold text-slate-900 dark:text-white mt-0.5">
+                          {avgScore}%
+                        </div>
                       </div>
                       <div>
-                        <div className="text-[10px] uppercase font-semibold text-slate-400">Attendance</div>
-                        <div className="text-base font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{avgAttendance}%</div>
+                        <div className="text-[10px] uppercase font-semibold text-slate-400">
+                          Attendance
+                        </div>
+                        <div className="text-base font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                          {avgAttendance}%
+                        </div>
                       </div>
                       <div>
-                        <div className="text-[10px] uppercase font-semibold text-slate-400">Morale</div>
-                        <div className="text-base font-bold text-rose-600 dark:text-rose-400 mt-0.5">{avgMorale} / 5</div>
+                        <div className="text-[10px] uppercase font-semibold text-slate-400">
+                          Morale
+                        </div>
+                        <div className="text-base font-bold text-rose-600 dark:text-rose-400 mt-0.5">
+                          {avgMorale} / 5
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -557,7 +629,8 @@ export function ChroPerformancePage() {
                   Privileged C-Suite Whistleblower & Grievance Repository
                 </h4>
                 <p className="text-xs text-purple-700/80 dark:text-purple-400/80 mt-0.5">
-                  Restricted strictly to the Chief Human Resources Officer and Chief Executive Officer. Invisible to PMs and CTO.
+                  Restricted strictly to the Chief Human Resources Officer and Chief Executive
+                  Officer. Invisible to PMs and CTO.
                 </p>
               </div>
             </div>
@@ -565,7 +638,9 @@ export function ChroPerformancePage() {
             {confidentialComplaints.length === 0 ? (
               <div className="text-center py-12 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
                 <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-2 opacity-80" />
-                <h4 className="text-base font-semibold text-slate-900 dark:text-white">Grievance Desk Clear</h4>
+                <h4 className="text-base font-semibold text-slate-900 dark:text-white">
+                  Grievance Desk Clear
+                </h4>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                   No open confidential complaints or whistleblower filings requiring adjudication.
                 </p>
@@ -594,13 +669,17 @@ export function ChroPerformancePage() {
                           {c.status.toUpperCase()}
                         </span>
                       </div>
-                      <h4 className="text-base font-bold text-slate-900 dark:text-white mb-1">{c.title}</h4>
+                      <h4 className="text-base font-bold text-slate-900 dark:text-white mb-1">
+                        {c.title}
+                      </h4>
                       <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-2">
                         {c.description}
                       </p>
                       {c.mediationNotes && (
                         <div className="text-xs p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-100 dark:border-slate-700">
-                          <span className="font-semibold text-purple-600 dark:text-purple-400">HR Mediation Notes: </span>
+                          <span className="font-semibold text-purple-600 dark:text-purple-400">
+                            HR Mediation Notes:{' '}
+                          </span>
                           {c.mediationNotes}
                         </div>
                       )}
@@ -633,14 +712,19 @@ export function ChroPerformancePage() {
         >
           <form onSubmit={handleSaveEvaluation} className="space-y-4">
             <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800">
-              <img
-                src={selectedStaffEval.user.avatarUrl || selectedStaffEval.user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}
-                alt=""
-                className="w-10 h-10 rounded-xl object-cover"
+              <Avatar
+                src={selectedStaffEval.user.avatarUrl || selectedStaffEval.user.avatar}
+                name={selectedStaffEval.user.name}
+                initials={selectedStaffEval.user.initials}
+                className="w-10 h-10 text-sm"
               />
               <div>
-                <div className="font-bold text-slate-900 dark:text-white">{selectedStaffEval.user.name}</div>
-                <div className="text-xs text-slate-500">{selectedStaffEval.user.title} — {selectedStaffEval.team?.name}</div>
+                <div className="font-bold text-slate-900 dark:text-white">
+                  {selectedStaffEval.user.name}
+                </div>
+                <div className="text-xs text-slate-500">
+                  {selectedStaffEval.user.title} — {selectedStaffEval.team?.name}
+                </div>
               </div>
             </div>
 
@@ -791,7 +875,9 @@ export function ChroPerformancePage() {
 
             <div>
               <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">
-                {actionCategory === 'recognition' ? 'Discretionary Bonus (USD, Optional)' : 'Financial Penalty (USD, Optional)'}
+                {actionCategory === 'recognition'
+                  ? 'Discretionary Bonus (USD, Optional)'
+                  : 'Financial Penalty (USD, Optional)'}
               </label>
               <input
                 type="number"
@@ -801,7 +887,8 @@ export function ChroPerformancePage() {
                 className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
               />
               <p className="text-xs text-slate-500 mt-1">
-                Leave as 0 for non-monetary citation. Non-zero amounts will immediately adjust the employee&apos;s wallet.
+                Leave as 0 for non-monetary citation. Non-zero amounts will immediately adjust the
+                employee&apos;s wallet.
               </p>
             </div>
 
@@ -812,9 +899,15 @@ export function ChroPerformancePage() {
               <Button
                 variant={actionCategory === 'recognition' ? 'primary' : 'danger'}
                 type="submit"
-                className={actionCategory === 'recognition' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}
+                className={
+                  actionCategory === 'recognition'
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    : ''
+                }
               >
-                {actionCategory === 'recognition' ? 'Award Recognition' : 'Record Disciplinary Action'}
+                {actionCategory === 'recognition'
+                  ? 'Award Recognition'
+                  : 'Record Disciplinary Action'}
               </Button>
             </div>
           </form>
@@ -872,7 +965,11 @@ export function ChroPerformancePage() {
               <Button variant="secondary" onClick={() => setSelectedComplaint(null)}>
                 Cancel
               </Button>
-              <Button variant="primary" type="submit" className="bg-purple-600 hover:bg-purple-700 text-white">
+              <Button
+                variant="primary"
+                type="submit"
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
                 Save HR Resolution
               </Button>
             </div>

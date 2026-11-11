@@ -1,5 +1,8 @@
 import { AppProvider, useApp } from './context/AppContext'
 import { Shell } from './components/layout/Shell'
+import { LoginPage } from './pages/auth/LoginPage'
+import { DesktopNoticeModal } from './components/common/DesktopNoticeModal'
+import { ErrorBoundary } from './components/common/ErrorBoundary'
 import { DeveloperDashboard } from './pages/developer/DeveloperDashboard'
 import { DeveloperTasksPage } from './pages/developer/DeveloperTasksPage'
 import { DeveloperProjectsPage } from './pages/developer/DeveloperProjectsPage'
@@ -38,11 +41,158 @@ import { CfoBudgetPage } from './pages/cfo/CfoBudgetPage'
 import { ChroDashboard } from './pages/chro/ChroDashboard'
 import { ChroPerformancePage } from './pages/chro/ChroPerformancePage'
 import { CeoDashboard } from './pages/ceo/CeoDashboard'
+import { CeoRoleMatrixPage } from './pages/ceo/CeoRoleMatrixPage'
 
 import { RolePlaceholderPage } from './pages/placeholders/RolePlaceholderPage'
 
 function MainContentRouter() {
-  const { currentRole, currentRoute } = useApp()
+  const { currentRole, currentRoute, hasPermission, hasAnyPermission } = useApp()
+
+  // Universal permission-driven modules (accessible dynamically to any role holding effective permissions,
+  // including temporary DAC grants launched directly from Profile & Settings)
+  if (
+    currentRoute === 'people' &&
+    hasAnyPermission(
+      'employees:read_directory',
+      'employees:create',
+      'employees:update_any',
+      'employees:suspend',
+      'positions:read',
+      'positions:assign',
+      'users:assign_role',
+    )
+  ) {
+    return <CtoPeoplePage />
+  }
+  if (
+    currentRoute === 'task-management' &&
+    hasAnyPermission(
+      'tasks:create_assign',
+      'tasks:approve',
+      'tasks:reject',
+      'tasks:reassign',
+      'directives:read',
+      'directives:dispatch',
+    )
+  ) {
+    return currentRole === 'pm' ? <PmTaskManagementPage /> : <CtoTaskManagementPage />
+  }
+  if (
+    currentRoute === 'access-control' &&
+    hasAnyPermission(
+      'roles:read',
+      'roles:create',
+      'roles:update',
+      'roles:delete',
+      'users:assign_role',
+      'permissions:read',
+      'permissions:delegate',
+      'decisions:read',
+      'decisions:ratify',
+    )
+  ) {
+    return <CeoRoleMatrixPage />
+  }
+  if (
+    currentRoute === 'budget' &&
+    hasAnyPermission(
+      'treasury:read',
+      'wallets:read_all',
+      'transactions:read_all',
+      'budgets:approve_request',
+      'budgets:reject_request',
+      'budgets:allocate_project',
+      'finance:issue_adjustment',
+      'revenue_share:process',
+    )
+  ) {
+    return <CfoBudgetPage />
+  }
+  if (
+    currentRoute === 'budget-finance' &&
+    hasAnyPermission(
+      'budgets:read_requests',
+      'budgets:request_increase',
+      'budgets:allocate_developer',
+    )
+  ) {
+    return <PmBudgetFinancePage />
+  }
+  if (
+    currentRoute === 'performance' &&
+    hasAnyPermission(
+      'performance:read_all',
+      'performance:evaluate',
+      'performance:recognize',
+      'performance:discipline',
+      'grievances:create',
+      'grievances:read_confidential',
+      'grievances:adjudicate_confidential',
+    )
+  ) {
+    return <ChroPerformancePage />
+  }
+  if (
+    currentRoute === 'reports' &&
+    hasAnyPermission(
+      'reports:triage',
+      'reports:forward',
+      'reports:read_standard',
+      'grievances:read_confidential',
+      'grievances:adjudicate_confidential',
+      'directives:dispatch',
+    )
+  ) {
+    return currentRole === 'pm' ? <PmReportsPage /> : <CtoReportsPage />
+  }
+  if (currentRoute === 'code-quality' && hasPermission('quality_gates:read')) {
+    return <CtoCodeQualityPage />
+  }
+  if (
+    currentRoute === 'security-testing' &&
+    hasAnyPermission(
+      'security_alerts:read',
+      'security_alerts:create',
+      'security_alerts:update_status',
+      'test_runs:read',
+    )
+  ) {
+    return <CtoSecurityTestingPage />
+  }
+  if (currentRoute === 'consultancy' && hasPermission('consultancy:manage')) {
+    return <CtoConsultancyPage />
+  }
+  if (
+    currentRoute === 'audit-log' &&
+    hasAnyPermission('audit_logs:read', 'audit_logs:read_confidential')
+  ) {
+    return <CtoAuditLogPage />
+  }
+  if (
+    currentRoute === 'team-management' &&
+    hasAnyPermission('teams:create', 'teams:update', 'teams:manage_members', 'teams:read_all')
+  ) {
+    return currentRole === 'pm' ? <PmTeamManagementPage /> : <CtoTeamManagementPage />
+  }
+  if (
+    currentRoute === 'projects-repos' &&
+    hasAnyPermission(
+      'projects:read_all',
+      'projects:create',
+      'projects:update',
+      'projects:assign_team',
+      'milestones:create',
+      'milestones:update',
+    )
+  ) {
+    return <CtoProjectsReposPage />
+  }
+  if (currentRoute === 'earnings' && hasAnyPermission('wallets:read_own', 'wallets:read_all')) {
+    if (currentRole === 'cfo') return <CfoBudgetPage />
+    if (currentRole === 'pm') return <PmEarningsPage />
+    if (currentRole === 'developer') return <DeveloperEarningsPage />
+    return <CtoEarningsPage />
+  }
 
   // 1. Developer workspace route switcher
   if (currentRole === 'developer') {
@@ -205,6 +355,8 @@ function MainContentRouter() {
         return <CtoEarningsPage />
       case 'people':
         return <CtoPeoplePage />
+      case 'access-control':
+        return <CeoRoleMatrixPage />
       case 'reports':
         return <CtoReportsPage />
       case 'settings':
@@ -220,12 +372,48 @@ function MainContentRouter() {
   return <RolePlaceholderPage />
 }
 
-export default function App() {
+function AppRoot() {
+  const { isAuthenticated, isAuthChecking } = useApp()
+
+  if (isAuthChecking) {
+    return (
+      <>
+        <DesktopNoticeModal />
+        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-3 text-slate-300">
+          <img src="/Logo.png" alt="Pointfex" className="w-11 h-11 object-contain animate-pulse" />
+          <p className="text-xs font-medium tracking-wide text-slate-400">
+            Verifying secure session...
+          </p>
+        </div>
+      </>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <>
+        <DesktopNoticeModal />
+        <LoginPage />
+      </>
+    )
+  }
+
   return (
-    <AppProvider>
+    <>
+      <DesktopNoticeModal />
       <Shell>
         <MainContentRouter />
       </Shell>
-    </AppProvider>
+    </>
+  )
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <AppProvider>
+        <AppRoot />
+      </AppProvider>
+    </ErrorBoundary>
   )
 }

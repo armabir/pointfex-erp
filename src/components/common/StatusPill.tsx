@@ -21,4 +21,3 @@ export function StatusPill({ status, size = 'sm', className = '' }: StatusPillPr
     </span>
   )
 }
-

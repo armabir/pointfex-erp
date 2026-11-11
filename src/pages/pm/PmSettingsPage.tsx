@@ -2,24 +2,16 @@ import React, { useState } from 'react'
 import { Card } from '../../components/common/Card'
 import { Badge } from '../../components/common/Badge'
 import { Button } from '../../components/common/Button'
+import { Avatar } from '../../components/common/Avatar'
 import { AvatarPickerModal } from '../../components/common/AvatarPickerModal'
+import { AdditionalGrantedAccessCard } from '../../components/common/AdditionalGrantedAccessCard'
 import { usePmData } from '../../hooks/usePmData'
 import { useApp } from '../../context/AppContext'
-import {
-  User,
-  RotateCcw,
-  Mail,
-  Globe,
-  Tag,
-  X,
-  Plus,
-  Users,
-  Camera,
-} from 'lucide-react'
+import { User, Mail, Globe, Tag, X, Plus, Users, Camera } from 'lucide-react'
 
 export function PmSettingsPage() {
   const { pm, team } = usePmData()
-  const { resetDemoData, updatePmProfile, showToast } = useApp()
+  const { updatePmProfile, showToast } = useApp()
 
   const [newSkillInput, setNewSkillInput] = useState('')
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false)
@@ -86,18 +78,14 @@ export function PmSettingsPage() {
             onClick={() => setIsAvatarModalOpen(true)}
             title="Click to change profile picture"
           >
-            {pm?.avatar ? (
-              <img
-                src={pm.avatar}
-                alt={pm?.name || 'Project Manager'}
-                className="w-16 h-16 rounded-2xl object-cover border-2 border-slate-200 dark:border-slate-700 shadow-sm group-hover:opacity-80 transition-opacity"
-              />
-            ) : (
-              <div className="w-16 h-16 rounded-2xl bg-slate-900 text-white dark:bg-lime-400 dark:text-slate-950 flex items-center justify-center font-bold text-xl shadow-sm">
-                {pm?.initials || 'SJ'}
-              </div>
-            )}
-            <div className="absolute inset-0 bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+            <Avatar
+              src={pm?.avatarUrl || pm?.avatar}
+              name={pm?.name || 'Project Manager'}
+              initials={pm?.initials}
+              size="xl"
+              className="border-2 border-slate-200 dark:border-slate-700 shadow-sm group-hover:opacity-80 transition-opacity"
+            />
+            <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
               <Camera className="w-5 h-5 text-white" />
             </div>
             <span
@@ -108,9 +96,7 @@ export function PmSettingsPage() {
 
           <div className="space-y-1.5 min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <span className="text-base font-bold text-slate-900 dark:text-white">
-                {pm?.name}
-              </span>
+              <span className="text-base font-bold text-slate-900 dark:text-white">{pm?.name}</span>
               <Badge variant="lime" size="xs">
                 {pm?.title || 'Senior Project Manager'}
               </Badge>
@@ -134,16 +120,13 @@ export function PmSettingsPage() {
       <AvatarPickerModal
         isOpen={isAvatarModalOpen}
         onClose={() => setIsAvatarModalOpen(false)}
-        currentAvatar={pm?.avatar || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200'}
-        onSave={(avatar) => updatePmProfile({ avatar })}
+        currentAvatar={pm?.avatarUrl || pm?.avatar || ''}
+        onSave={(avatar) => updatePmProfile({ avatar, avatarUrl: avatar })}
         userName={pm?.name || 'Project Manager'}
       />
 
       {/* Skills & Expertise - Skills can be added or removed */}
-      <Card
-        title="Management Skills & Competencies"
-        icon={Tag}
-      >
+      <Card title="Management Skills & Competencies" icon={Tag}>
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2 text-xs">
             {currentSkills.map((skill) => (
@@ -173,43 +156,16 @@ export function PmSettingsPage() {
               onChange={(e) => setNewSkillInput(e.target.value)}
               className="flex-1 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-slate-400"
             />
-            <Button
-              type="submit"
-              variant="secondary"
-              size="xs"
-              icon={Plus}
-            >
+            <Button type="submit" variant="secondary" size="xs" icon={Plus}>
               Add Skill
             </Button>
           </form>
         </div>
       </Card>
 
-      {/* Demo Controls */}
-      <Card title="Prototype Controls" icon={RotateCcw}>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
-          <div>
-            <span className="font-semibold text-slate-800 dark:text-slate-200 block">
-              Reset Simulated Data
-            </span>
-            <p className="text-slate-500 dark:text-slate-400 mt-0.5">
-              Restore mock database, projects, tasks, earnings, and user preferences back to initial state.
-            </p>
-          </div>
-
-          <Button
-            variant="danger"
-            size="xs"
-            icon={RotateCcw}
-            onClick={resetDemoData}
-          >
-            Reset Demo Data
-          </Button>
-        </div>
-      </Card>
+      <AdditionalGrantedAccessCard />
     </div>
   )
 }
 
 export default PmSettingsPage
-

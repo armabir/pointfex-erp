@@ -25,12 +25,7 @@ interface StatCardItem {
 }
 
 export function CfoDashboard() {
-  const {
-    treasury,
-    projectBudgets,
-    pendingBudgetRequests,
-    executiveTasks,
-  } = useExecutiveData()
+  const { treasury, projectBudgets, pendingBudgetRequests, executiveTasks } = useExecutiveData()
 
   const { setRoute } = useApp()
 
@@ -97,7 +92,9 @@ export function CfoDashboard() {
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
                   {card.label}
                 </span>
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${card.iconBg}`}>
+                <div
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center ${card.iconBg}`}
+                >
                   <Icon className="w-4 h-4" />
                 </div>
               </div>
@@ -149,7 +146,9 @@ export function CfoDashboard() {
                       <span className="font-semibold text-slate-900 dark:text-white text-sm">
                         {pb.project.name}
                       </span>
-                      <span className="text-xs text-slate-400 ml-2 font-mono">({pb.project.code})</span>
+                      <span className="text-xs text-slate-400 ml-2 font-mono">
+                        ({pb.project.code})
+                      </span>
                     </div>
                     <span className="text-xs font-bold text-slate-900 dark:text-white">
                       {formatCurrency(pb.distributedToDevs)} / {formatCurrency(pb.approvedBudget)}
@@ -160,9 +159,7 @@ export function CfoDashboard() {
                   <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden mb-2">
                     <div
                       className={`h-full rounded-full ${
-                        pb.utilizationRate > 85
-                          ? 'bg-amber-500'
-                          : 'bg-emerald-500'
+                        pb.utilizationRate > 85 ? 'bg-amber-500' : 'bg-emerald-500'
                       }`}
                       style={{ width: `${Math.min(100, pb.utilizationRate)}%` }}
                     />
@@ -222,11 +219,7 @@ export function CfoDashboard() {
                         {req.description}
                       </div>
                     </div>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => setRoute('budget')}
-                    >
+                    <Button variant="primary" size="sm" onClick={() => setRoute('budget')}>
                       Adjudicate
                     </Button>
                   </div>
@@ -250,15 +243,23 @@ export function CfoDashboard() {
             <div className="space-y-3">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-slate-600 dark:text-slate-400">Total Seed Capital</span>
-                <span className="font-bold text-slate-900 dark:text-white">{formatCurrency(treasury?.initialCapital || 500000)}</span>
+                <span className="font-bold text-slate-900 dark:text-white">
+                  {formatCurrency(treasury?.initialCapital || 500000)}
+                </span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-slate-600 dark:text-slate-400">Allocated to Squads</span>
-                <span className="font-bold text-sky-600 dark:text-sky-400">-{formatCurrency(treasury?.totalApprovedBudgets || 380000)}</span>
+                <span className="font-bold text-sky-600 dark:text-sky-400">
+                  -{formatCurrency(treasury?.totalApprovedBudgets || 380000)}
+                </span>
               </div>
               <div className="flex items-center justify-between text-sm pt-2 border-t border-slate-100 dark:border-slate-800">
-                <span className="font-semibold text-slate-900 dark:text-white">Unallocated Buffer</span>
-                <span className="font-bold text-amber-600 dark:text-amber-400">{formatCurrency(treasury?.unallocatedReserves || 120000)}</span>
+                <span className="font-semibold text-slate-900 dark:text-white">
+                  Unallocated Buffer
+                </span>
+                <span className="font-bold text-amber-600 dark:text-amber-400">
+                  {formatCurrency(treasury?.unallocatedReserves || 120000)}
+                </span>
               </div>
             </div>
 

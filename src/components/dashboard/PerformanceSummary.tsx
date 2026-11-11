@@ -26,7 +26,7 @@ export function PerformanceSummary({ performance }: PerformanceSummaryProps) {
   const circumference = 2 * Math.PI * radius // ~263.89
   const completedPct = 0.72
   const inProgressPct = 0.18
-  const reviewPct = 0.10
+  const reviewPct = 0.1
 
   const dashCompleted = completedPct * circumference
   const dashInProgress = inProgressPct * circumference
@@ -37,19 +37,13 @@ export function PerformanceSummary({ performance }: PerformanceSummaryProps) {
   const offsetReview = -(dashCompleted + dashInProgress)
 
   return (
-    <Card
-      title="Performance Analytics"
-      icon={Award}
-    >
+    <Card title="Performance Analytics" icon={Award}>
       <div className="space-y-4">
         {/* Top: Donut Ring & Metrics (Starline Analytics style) */}
         <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-5">
           {/* Donut Chart */}
           <div className="relative w-28 h-28 shrink-0 flex items-center justify-center">
-            <svg
-              className="w-full h-full -rotate-90 transform"
-              viewBox="0 0 110 110"
-            >
+            <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 110 110">
               {/* Background Track */}
               <circle
                 cx="55"
@@ -183,4 +177,3 @@ export function PerformanceSummary({ performance }: PerformanceSummaryProps) {
     </Card>
   )
 }
-

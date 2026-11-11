@@ -3,13 +3,7 @@ import { Badge } from './Badge'
 import { Button } from './Button'
 import { StatusPill } from './StatusPill'
 import { formatDate, getRelativeDeadline } from '../../utils/formatters'
-import {
-  Calendar,
-  FileCode,
-  ExternalLink,
-  Clock,
-  GitBranch,
-} from 'lucide-react'
+import { Calendar, FileCode, ExternalLink, Clock, GitBranch } from 'lucide-react'
 import type { Project, EnrichedProject } from '../../types'
 
 export interface ProjectDetailModalProps {
@@ -28,7 +22,8 @@ export function ProjectDetailModal({ project, isOpen, onClose }: ProjectDetailMo
     documentUrl: `https://docs.pointfex.internal/srs/${project.code}-SRS.pdf`,
     version: 'v1.0 (Draft)',
     lastUpdated: project.startDate || '2026-10-12',
-    overview: 'System requirements specification defining functional architecture, data pipeline thresholds, and API specifications.',
+    overview:
+      'System requirements specification defining functional architecture, data pipeline thresholds, and API specifications.',
     requirementsCount: 20,
   }
 
@@ -75,9 +70,7 @@ export function ProjectDetailModal({ project, isOpen, onClose }: ProjectDetailMo
 
         {/* 2. Title & Description */}
         <div className="p-4 bg-slate-50/70 dark:bg-[#131a2b] rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1.5">
-          <h4 className="font-bold text-slate-900 dark:text-white text-xs">
-            {project.name}
-          </h4>
+          <h4 className="font-bold text-slate-900 dark:text-white text-xs">{project.name}</h4>
           <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-xs">
             {project.description}
           </p>
@@ -86,7 +79,9 @@ export function ProjectDetailModal({ project, isOpen, onClose }: ProjectDetailMo
         {/* 3. Deadlines Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 bg-slate-50 dark:bg-[#131a2b] rounded-2xl border border-slate-100 dark:border-slate-800">
           <div>
-            <span className="text-slate-400 dark:text-slate-500 block text-[11px]">Sprint Start</span>
+            <span className="text-slate-400 dark:text-slate-500 block text-[11px]">
+              Sprint Start
+            </span>
             <span className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5 flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-slate-400" />
               {formatDate(project.startDate, 'medium')}
@@ -94,7 +89,9 @@ export function ProjectDetailModal({ project, isOpen, onClose }: ProjectDetailMo
           </div>
 
           <div>
-            <span className="text-slate-400 dark:text-slate-500 block text-[11px]">Final Deadline</span>
+            <span className="text-slate-400 dark:text-slate-500 block text-[11px]">
+              Final Deadline
+            </span>
             <span className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5 flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-amber-500" />
               {formatDate(project.deadline, 'medium')}
@@ -102,7 +99,9 @@ export function ProjectDetailModal({ project, isOpen, onClose }: ProjectDetailMo
           </div>
 
           <div>
-            <span className="text-slate-400 dark:text-slate-500 block text-[11px]">Time Remaining</span>
+            <span className="text-slate-400 dark:text-slate-500 block text-[11px]">
+              Time Remaining
+            </span>
             <span className="font-semibold text-sky-600 dark:text-sky-400 mt-0.5 block">
               {deadlineInfo.label}
             </span>
@@ -146,13 +145,18 @@ export function ProjectDetailModal({ project, isOpen, onClose }: ProjectDetailMo
         {(project.repositoryUrl || project.repo) && (
           <div className="p-3 bg-slate-50 dark:bg-[#131a2b] rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between text-slate-600 dark:text-slate-400 font-mono text-[11px]">
             <a
-              href={project.repositoryUrl || `https://github.com/pointfex/${project.code.toLowerCase()}-core`}
+              href={
+                project.repositoryUrl ||
+                `https://github.com/pointfex/${project.code.toLowerCase()}-core`
+              }
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-2 text-sky-600 dark:text-sky-400 hover:underline"
             >
               <GitBranch className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>{project.repositoryUrl || `github.com/pointfex/${project.code.toLowerCase()}-core`}</span>
+              <span>
+                {project.repositoryUrl || `github.com/pointfex/${project.code.toLowerCase()}-core`}
+              </span>
               <ExternalLink className="w-3 h-3 ml-0.5 opacity-70" />
             </a>
             <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">
@@ -164,4 +168,3 @@ export function ProjectDetailModal({ project, isOpen, onClose }: ProjectDetailMo
     </Modal>
   )
 }
-

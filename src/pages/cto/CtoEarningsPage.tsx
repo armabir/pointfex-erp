@@ -52,7 +52,7 @@ export function CtoEarningsPage() {
             </div>
           </div>
           <div className="text-3xl font-bold font-display text-slate-900 dark:text-white">
-            {formatCurrency(ctoWallet.balance)}
+            {formatCurrency(ctoWallet?.balance ?? 0)}
           </div>
           <div className="mt-2 text-[11px] text-amber-700 dark:text-amber-400 font-medium flex items-center gap-1">
             <ArrowUpRight className="w-3 h-3" />
@@ -69,7 +69,7 @@ export function CtoEarningsPage() {
             </div>
           </div>
           <div className="text-3xl font-bold font-display text-slate-900 dark:text-white">
-            {formatCurrency(ctoWallet.totalEarnedToDate)}
+            {formatCurrency(ctoWallet?.totalEarnedToDate ?? 0)}
           </div>
           <div className="mt-2 text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
             Cumulative executive earnings
@@ -206,7 +206,9 @@ export function CtoEarningsPage() {
                             : 'text-emerald-600 dark:text-emerald-400'
                         }`}
                       >
-                        {isPenalty ? `-${formatCurrency(Math.abs(tx.amount))}` : `+${formatCurrency(tx.amount)}`}
+                        {isPenalty
+                          ? `-${formatCurrency(Math.abs(tx.amount))}`
+                          : `+${formatCurrency(tx.amount)}`}
                       </td>
                     </tr>
                   )
@@ -218,10 +220,7 @@ export function CtoEarningsPage() {
       </Card>
 
       {/* Performance Section below table */}
-      <Card
-        title="Performance & Engineering Oversight Metrics"
-        icon={Award}
-      >
+      <Card title="Performance & Engineering Oversight Metrics" icon={Award}>
         <div className="space-y-4">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
             {/* Metric 1: Quality Score */}

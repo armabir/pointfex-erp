@@ -1,7 +1,6 @@
 import { Search, Menu, Sun, Moon } from 'lucide-react'
 import { useApp } from '../../context/AppContext'
 import { Breadcrumbs, type BreadcrumbItem } from '../common/Breadcrumbs'
-import { RoleSwitcher } from './RoleSwitcher'
 import { NotificationDropdown } from './NotificationDropdown'
 import { UserMenu } from './UserMenu'
 
@@ -10,97 +9,53 @@ export function Header() {
     currentRole,
     currentRoute,
     setRoute,
-    toggleSidebar,
+    setMobileSidebarOpen,
     setIsSearchOpen,
     theme,
     toggleTheme,
-    backendStatus,
-    backendHealth,
   } = useApp()
 
   const getPageInfo = (): { title: string; breadcrumbs: BreadcrumbItem[] } => {
-    if (currentRole === 'developer') {
-      const routeMap: Record<string, { title: string; crumb: string }> = {
-        dashboard: { title: 'Dashboard', crumb: 'Dashboard' },
-        tasks: { title: 'My Tasks', crumb: 'My Tasks' },
-        projects: { title: 'My Projects', crumb: 'My Projects' },
-        team: { title: 'My Team', crumb: 'My Team' },
-        earnings: { title: 'Earnings', crumb: 'Earnings' },
-        report: { title: 'Submissions & Complaints', crumb: 'Submissions & Complaints' },
-        settings: { title: 'Settings', crumb: 'Settings' },
-      }
-      const curr = routeMap[currentRoute] || { title: 'Dashboard', crumb: 'Dashboard' }
-      return {
-        title: curr.title,
-        breadcrumbs: [
-          { label: 'Developer', onClick: () => setRoute('dashboard') },
-          { label: curr.crumb },
-        ],
-      }
+    const roleLabelMap: Record<string, string> = {
+      developer: 'Engineering',
+      pm: 'Project Delivery',
+      cto: 'CTO Command',
+      cfo: 'CFO Desk',
+      cpo: 'CHRO Hub',
+      chro: 'CHRO Hub',
+      ceo: 'CEO Executive Suite',
     }
-
-    if (currentRole === 'pm') {
-      const pmRouteMap: Record<string, { title: string; crumb: string }> = {
-        dashboard: { title: 'Dashboard', crumb: 'Dashboard' },
-        tasks: { title: 'My Tasks', crumb: 'My Tasks' },
-        'task-management': { title: 'Task Management', crumb: 'Task Management' },
-        projects: { title: 'My Projects', crumb: 'My Projects' },
-        'team-management': { title: 'Team Management', crumb: 'Team Management' },
-        'budget-finance': { title: 'Budget & Finance', crumb: 'Budget & Finance' },
-        earnings: { title: 'Earnings & Performance', crumb: 'Earnings & Performance' },
-        report: { title: 'Submissions & Complaints', crumb: 'Submissions & Complaints' },
-        settings: { title: 'Profile & Settings', crumb: 'Profile & Settings' },
-      }
-      const curr = pmRouteMap[currentRoute] || { title: 'Dashboard', crumb: 'Dashboard' }
-      return {
-        title: curr.title,
-        breadcrumbs: [
-          { label: 'Project Manager', onClick: () => setRoute('dashboard') },
-          { label: curr.crumb },
-        ],
-      }
+    const routeMap: Record<string, { title: string; crumb: string }> = {
+      dashboard: { title: 'Dashboard', crumb: 'Dashboard' },
+      tasks: { title: 'My Tasks', crumb: 'My Tasks' },
+      'task-management': { title: 'Task Management', crumb: 'Task Management' },
+      projects: { title: 'My Projects', crumb: 'My Projects' },
+      'projects-repos': { title: 'Projects & Repositories', crumb: 'Projects & Repositories' },
+      team: { title: 'My Team', crumb: 'My Team' },
+      'team-management': { title: 'Team Management', crumb: 'Team Management' },
+      people: { title: 'People Directory', crumb: 'People Directory' },
+      budget: { title: 'Financial Operations', crumb: 'Financial Operations' },
+      'budget-finance': { title: 'Financial Operations', crumb: 'Financial Operations' },
+      performance: { title: 'Performance & Culture', crumb: 'Performance & Culture' },
+      'code-quality': { title: 'Code Review & Quality', crumb: 'Code Review & Quality' },
+      'security-testing': { title: 'Security & Testing', crumb: 'Security & Testing' },
+      consultancy: { title: 'Advisory & Consultancy', crumb: 'Advisory & Consultancy' },
+      earnings: { title: 'Compensation & Earnings', crumb: 'Compensation & Earnings' },
+      'access-control': { title: 'Roles & Access Control', crumb: 'Roles & Access Control' },
+      reports: { title: 'Executive Reports', crumb: 'Executive Reports' },
+      report: { title: 'Submissions & Complaints', crumb: 'Submissions & Complaints' },
+      'audit-log': { title: 'Governance Audit Trail', crumb: 'Governance Audit Trail' },
+      settings: { title: 'Profile & Settings', crumb: 'Profile & Settings' },
     }
-
-    if (currentRole === 'cto' || currentRole === 'cfo' || currentRole === 'cpo' || currentRole === 'chro' || currentRole === 'ceo') {
-      const executiveRoleLabels: Record<string, string> = {
-        cto: 'CTO Command',
-        cfo: 'CFO Desk',
-        cpo: 'CHRO Hub',
-        chro: 'CHRO Hub',
-        ceo: 'CEO Executive Suite',
-      }
-      const execRouteMap: Record<string, { title: string; crumb: string }> = {
-        dashboard: { title: 'Executive Radar & Dashboard', crumb: 'Dashboard' },
-        tasks: { title: 'My Executive Tasks', crumb: 'My Tasks' },
-        'task-management': { title: 'Directives & Task Management', crumb: 'Task Management' },
-        'team-management': { title: 'Squad Engineering Oversight', crumb: 'Team Management' },
-        'audit-log': { title: 'System & Executive Audit Trail', crumb: 'Audit Log' },
-        people: { title: 'People & Engineering Directory', crumb: 'People' },
-        budget: { title: 'Treasury & Budget Management', crumb: 'Budget' },
-        performance: { title: 'Employee Performance & Culture', crumb: 'Performance' },
-        'projects-repos': { title: 'Projects & Repositories', crumb: 'Projects & Repos' },
-        'code-quality': { title: 'Code Review & Quality Gates', crumb: 'Code Review & Quality' },
-        'security-testing': { title: 'Security Posture & Testing', crumb: 'Security & Testing' },
-        consultancy: { title: 'Technical Consultancy Hub', crumb: 'Consultancy' },
-        earnings: { title: 'Earnings & Performance', crumb: 'Earnings & Performance' },
-        reports: { title: 'Executive Reports & Governance', crumb: 'Reports' },
-        settings: { title: 'Profile & Executive Settings', crumb: 'Profile & Settings' },
-      }
-      const curr = execRouteMap[currentRoute] || { title: 'Executive Dashboard', crumb: 'Dashboard' }
-      return {
-        title: curr.title,
-        breadcrumbs: [
-          { label: executiveRoleLabels[currentRole] || 'Executive', onClick: () => setRoute('dashboard') },
-          { label: curr.crumb },
-        ],
-      }
-    }
-
+    const curr = routeMap[currentRoute] || { title: 'Workspace', crumb: 'Dashboard' }
     return {
-      title: 'Workspace',
+      title: curr.title,
       breadcrumbs: [
-        { label: 'Pointfex' },
-        { label: currentRole },
+        {
+          label: roleLabelMap[currentRole] || 'Pointfex ERP',
+          onClick: () => setRoute('dashboard'),
+        },
+        { label: curr.crumb },
       ],
     }
   }
@@ -108,12 +63,13 @@ export function Header() {
   const { breadcrumbs } = getPageInfo()
 
   return (
-    <header className="sticky top-0 z-20 h-20 bg-[#eaeef2]/90 dark:bg-[#090c14]/90 backdrop-blur-md flex items-center justify-between px-6 sm:px-8 border-b border-transparent dark:border-slate-800/60 transition-colors">
-      {/* Left: Mobile Toggle + Breadcrumbs */}
+    <header className="sticky top-0 z-20 h-16 sm:h-20 bg-slate-50/90 dark:bg-[#090d16]/90 backdrop-blur-md flex items-center justify-between px-4 sm:px-6 lg:px-8 border-b border-slate-200 dark:border-slate-800 transition-colors">
+      {/* Left: Mobile Hamburger + Breadcrumbs */}
       <div className="flex items-center gap-3 min-w-0">
         <button
-          onClick={toggleSidebar}
-          className="p-2 rounded-xl text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer lg:hidden shadow-xs"
+          type="button"
+          onClick={() => setMobileSidebarOpen((prev) => !prev)}
+          className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer lg:hidden shadow-sm"
           aria-label="Toggle navigation menu"
         >
           <Menu className="w-4 h-4" />
@@ -126,41 +82,7 @@ export function Header() {
 
       {/* Right: Starline-style Floating Pill Capsule for Search, Theme Toggle, and Notifications */}
       <div className="flex items-center gap-2.5 sm:gap-3">
-        {/* Backend Connectivity Status Indicator */}
-        <div
-          title={
-            backendStatus === 'connected'
-              ? `Backend Connected (DB: ${backendHealth?.database.status || 'healthy'}, Latency: ${backendHealth?.database.latencyMs || 0}ms)`
-              : backendStatus === 'connecting'
-              ? 'Connecting to Pointfex Backend API...'
-              : 'Backend Offline — Operating in Local Mock Mode'
-          }
-          className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors shadow-2xs ${
-            backendStatus === 'connected'
-              ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60'
-              : backendStatus === 'connecting'
-              ? 'bg-amber-50 text-amber-700 border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60'
-              : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
-          }`}
-        >
-          <span
-            className={`w-2 h-2 rounded-full ${
-              backendStatus === 'connected'
-                ? 'bg-emerald-500 animate-pulse'
-                : backendStatus === 'connecting'
-                ? 'bg-amber-500 animate-ping'
-                : 'bg-slate-400'
-            }`}
-          />
-          <span className="font-semibold">
-            {backendStatus === 'connected' ? 'API Live' : backendStatus === 'connecting' ? 'Connecting...' : 'API Offline'}
-          </span>
-        </div>
-
-        {/* Temporary Role Switcher */}
-        <RoleSwitcher />
-
-        {/* Floating Capsule Bar (Search, Theme, Notifications) - Matching reference UI */}
+        {/* Floating Capsule Bar (Search, Theme, Notifications) */}
         <div className="flex items-center bg-white dark:bg-[#131722] border border-slate-200/70 dark:border-slate-800 rounded-full px-1.5 py-1 shadow-2xs">
           {/* Search trigger button */}
           <button
@@ -200,4 +122,3 @@ export function Header() {
     </header>
   )
 }
-

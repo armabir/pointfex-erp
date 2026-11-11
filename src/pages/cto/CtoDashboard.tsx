@@ -32,15 +32,8 @@ interface StatCardItem {
 }
 
 export function CtoDashboard() {
-  const {
-    cto,
-    projects,
-    teams,
-    pullRequests,
-    securityAlerts,
-    auditLogs,
-    companyStats,
-  } = useCtoData()
+  const { cto, projects, teams, pullRequests, securityAlerts, auditLogs, companyStats } =
+    useCtoData()
 
   const { setRoute, setSelectedProjectModal } = useApp()
 
@@ -83,7 +76,10 @@ export function CtoDashboard() {
       id: 'security',
       label: 'Active Vulnerabilities',
       value: companyStats.securityAlertsCount,
-      trend: companyStats.criticalSecurityAlertsCount > 0 ? `${companyStats.criticalSecurityAlertsCount} Critical` : '0 Critical',
+      trend:
+        companyStats.criticalSecurityAlertsCount > 0
+          ? `${companyStats.criticalSecurityAlertsCount} Critical`
+          : '0 Critical',
       trendSub: `${companyStats.openPullRequests} PRs in Review`,
       icon: ShieldAlert,
       cardBg: 'bg-[#fff1f2] dark:bg-rose-950/20 border-rose-100/80 dark:border-rose-900/40',
@@ -105,7 +101,8 @@ export function CtoDashboard() {
       {/* 1. Executive Welcome Header */}
       <div className="py-1">
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white font-display tracking-tight flex items-center gap-2">
-          Welcome, {cto?.name?.split(' ')[0] || 'Arthur'} <span className="inline-block animate-wiggle">👋</span>
+          Welcome, {cto?.name?.split(' ')[0] || 'Arthur'}{' '}
+          <span className="inline-block animate-wiggle">👋</span>
         </h2>
       </div>
 
@@ -120,7 +117,9 @@ export function CtoDashboard() {
               className={`border rounded-3xl p-5 transition-all duration-200 cursor-pointer shadow-[0_4px_20px_-2px_rgba(15,23,42,0.03)] hover:shadow-[0_8px_24px_-4px_rgba(15,23,42,0.06)] hover:-translate-y-0.5 group ${card.cardBg}`}
             >
               <div className="flex items-center gap-3.5 mb-3.5">
-                <div className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 shadow-2xs ${card.iconBg}`}>
+                <div
+                  className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 shadow-2xs ${card.iconBg}`}
+                >
                   <Icon className="w-5 h-5" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -347,7 +346,16 @@ export function CtoDashboard() {
                 >
                   <div className="min-w-0 flex-1 space-y-1">
                     <div className="flex items-center gap-2">
-                      <Badge variant={pr.status === 'approved' ? 'emerald' : pr.status === 'in_review' ? 'purple' : 'sky'} size="xs">
+                      <Badge
+                        variant={
+                          pr.status === 'approved'
+                            ? 'emerald'
+                            : pr.status === 'in_review'
+                              ? 'purple'
+                              : 'sky'
+                        }
+                        size="xs"
+                      >
                         {pr.status.replace('_', ' ')}
                       </Badge>
                       <span className="font-semibold text-slate-900 dark:text-white truncate">
@@ -357,19 +365,19 @@ export function CtoDashboard() {
                     <div className="flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400">
                       <span className="font-mono">{pr.branch}</span>
                       <span>•</span>
-                      <span className="text-emerald-600 dark:text-emerald-400 font-mono">+{pr.additions}</span>
-                      <span className="text-rose-600 dark:text-rose-400 font-mono">-{pr.deletions}</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-mono">
+                        +{pr.additions}
+                      </span>
+                      <span className="text-rose-600 dark:text-rose-400 font-mono">
+                        -{pr.deletions}
+                      </span>
                       <span>•</span>
                       <span>{pr.reviewCommentsCount} comments</span>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
-                    <Button
-                      variant="secondary"
-                      size="xs"
-                      onClick={() => setRoute('code-quality')}
-                    >
+                    <Button variant="secondary" size="xs" onClick={() => setRoute('code-quality')}>
                       Inspect Code
                     </Button>
                   </div>
@@ -404,8 +412,8 @@ export function CtoDashboard() {
                     alert.severity === 'critical'
                       ? 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/50'
                       : alert.severity === 'high'
-                      ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/50'
-                      : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700'
+                        ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/50'
+                        : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-1">
@@ -414,13 +422,15 @@ export function CtoDashboard() {
                         alert.severity === 'critical'
                           ? 'bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300'
                           : alert.severity === 'high'
-                          ? 'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300'
-                          : 'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300'
+                            ? 'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300'
+                            : 'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300'
                       }`}
                     >
                       {alert.severity}
                     </span>
-                    <span className="text-[10px] text-slate-400 capitalize">{alert.status.replace('_', ' ')}</span>
+                    <span className="text-[10px] text-slate-400 capitalize">
+                      {alert.status.replace('_', ' ')}
+                    </span>
                   </div>
 
                   <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-xs">
@@ -521,4 +531,3 @@ export function CtoDashboard() {
 }
 
 export default CtoDashboard
-

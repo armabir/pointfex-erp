@@ -29,7 +29,9 @@ export function PmProjectsPage() {
   const [targetProjectId, setTargetProjectId] = useState(teamProjects[0]?.id || '')
   const [milestoneTitle, setMilestoneTitle] = useState('')
   const [milestoneDueDate, setMilestoneDueDate] = useState('')
-  const [milestoneStatus, setMilestoneStatus] = useState<'pending' | 'in_progress' | 'completed'>('pending')
+  const [milestoneStatus, setMilestoneStatus] = useState<'pending' | 'in_progress' | 'completed'>(
+    'pending',
+  )
 
   const handleOpenAddModal = (projId: string) => {
     setTargetProjectId(projId)
@@ -59,8 +61,8 @@ export function PmProjectsPage() {
       currentStatus === 'pending'
         ? 'in_progress'
         : currentStatus === 'in_progress'
-        ? 'completed'
-        : 'pending'
+          ? 'completed'
+          : 'pending'
     updateMilestoneStatus(projId, msId, nextStatus)
   }
 
@@ -73,7 +75,11 @@ export function PmProjectsPage() {
             Project Management & Milestones
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Active projects assigned to <span className="font-semibold text-slate-700 dark:text-slate-300">{team?.name || 'Squad'}</span> · Sprint Week {team?.currentSprintWeek || 3} of 5
+            Active projects assigned to{' '}
+            <span className="font-semibold text-slate-700 dark:text-slate-300">
+              {team?.name || 'Squad'}
+            </span>{' '}
+            · Sprint Week {team?.currentSprintWeek || 3} of 5
           </p>
         </div>
 
@@ -97,7 +103,9 @@ export function PmProjectsPage() {
             <Card
               key={project.id}
               title={project.name}
-              subtitle={project.client ? `Client: ${project.client}` : `Project Code: ${project.code}`}
+              subtitle={
+                project.client ? `Client: ${project.client}` : `Project Code: ${project.code}`
+              }
               icon={FolderGit2}
             >
               <div className="space-y-4 text-xs">
@@ -109,7 +117,9 @@ export function PmProjectsPage() {
                 {/* Progress Bar */}
                 <div className="space-y-1.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-medium text-slate-500 dark:text-slate-400">Sprint Delivery Progress</span>
+                    <span className="font-medium text-slate-500 dark:text-slate-400">
+                      Sprint Delivery Progress
+                    </span>
                     <span className="font-bold text-slate-900 dark:text-white font-display">
                       {project.progress}% Complete
                     </span>
@@ -201,7 +211,9 @@ export function PmProjectsPage() {
 
                   {srs?.overview && (
                     <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                      <strong className="text-slate-700 dark:text-slate-300 block mb-0.5">SRS Overview:</strong>
+                      <strong className="text-slate-700 dark:text-slate-300 block mb-0.5">
+                        SRS Overview:
+                      </strong>
                       {srs.overview}
                     </div>
                   )}
@@ -245,7 +257,8 @@ export function PmProjectsPage() {
                   <div className="space-y-1.5">
                     {milestones.length === 0 ? (
                       <div className="p-3 text-center text-slate-400 text-xs">
-                        No milestones added yet. Click "+ Add Milestone" to define sprint deliverables.
+                        No milestones added yet. Click "+ Add Milestone" to define sprint
+                        deliverables.
                       </div>
                     ) : (
                       milestones.map((ms) => {
@@ -371,7 +384,9 @@ export function PmProjectsPage() {
               </label>
               <select
                 value={milestoneStatus}
-                onChange={(e) => setMilestoneStatus(e.target.value as 'pending' | 'in_progress' | 'completed')}
+                onChange={(e) =>
+                  setMilestoneStatus(e.target.value as 'pending' | 'in_progress' | 'completed')
+                }
                 className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none cursor-pointer"
               >
                 <option value="pending">Pending</option>

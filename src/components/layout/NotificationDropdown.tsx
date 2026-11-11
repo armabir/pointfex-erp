@@ -1,5 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
-import { Bell, CheckCheck, MessageSquare, GitPullRequest, DollarSign, AlertCircle, Clock } from 'lucide-react'
+import {
+  Bell,
+  CheckCheck,
+  MessageSquare,
+  GitPullRequest,
+  DollarSign,
+  AlertCircle,
+  Clock,
+} from 'lucide-react'
 import { useApp } from '../../context/AppContext'
 import type { Notification } from '../../types'
 
@@ -61,9 +69,11 @@ export function NotificationDropdown() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-[#131722] border border-slate-100 dark:border-slate-800 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in duration-100">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
-            <span className="text-xs font-semibold text-slate-900 dark:text-white">Notifications</span>
+        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-[#0f1422] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-lg z-50 overflow-hidden animate-in fade-in duration-100">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40">
+            <span className="text-xs font-semibold text-slate-900 dark:text-white">
+              Notifications
+            </span>
             {unreadCount > 0 && (
               <button
                 onClick={markAllNotificationsRead}
@@ -94,7 +104,9 @@ export function NotificationDropdown() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-1">
-                      <span className={`font-medium truncate ${!n.read ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300'}`}>
+                      <span
+                        className={`font-medium truncate ${!n.read ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300'}`}
+                      >
                         {n.title}
                       </span>
                       <span className="text-[10px] text-slate-400 shrink-0">{n.timestamp}</span>
@@ -112,4 +124,3 @@ export function NotificationDropdown() {
     </div>
   )
 }
-

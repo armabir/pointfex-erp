@@ -30,7 +30,10 @@ export function CtoConsultancyPage() {
             </h3>
 
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              The external technical advisory portal, client billing schedules, and cross-organization consulting requests are currently under active development. This module will allow the CTO office to schedule architectural reviews and track advisory revenues.
+              The external technical advisory portal, client billing schedules, and
+              cross-organization consulting requests are currently under active development. This
+              module will allow the CTO office to schedule architectural reviews and track advisory
+              revenues.
             </p>
           </div>
 

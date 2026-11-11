@@ -1,11 +1,4 @@
-import {
-  Users,
-  Award,
-  Heart,
-  ShieldAlert,
-  ArrowRight,
-  type LucideIcon,
-} from 'lucide-react'
+import { Users, Award, Heart, ShieldAlert, ArrowRight, type LucideIcon } from 'lucide-react'
 import { useExecutiveData } from '../../hooks/useExecutiveData'
 import { useApp } from '../../context/AppContext'
 import { Button } from '../../components/common/Button'
@@ -23,12 +16,7 @@ interface StatCardItem {
 }
 
 export function ChroDashboard() {
-  const {
-    hrStats,
-    teams,
-    confidentialComplaints,
-    executiveTasks,
-  } = useExecutiveData()
+  const { hrStats, teams, confidentialComplaints, executiveTasks } = useExecutiveData()
 
   const { setRoute } = useApp()
 
@@ -95,7 +83,9 @@ export function ChroDashboard() {
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
                   {card.label}
                 </span>
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${card.iconBg}`}>
+                <div
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center ${card.iconBg}`}
+                >
                   <Icon className="w-4 h-4" />
                 </div>
               </div>
@@ -188,9 +178,7 @@ export function ChroDashboard() {
                 <div className="text-xs font-semibold text-sky-700 dark:text-sky-400 uppercase">
                   Strong Contributors
                 </div>
-                <div className="text-2xl font-bold text-sky-800 dark:text-sky-300 mt-1">
-                  10
-                </div>
+                <div className="text-2xl font-bold text-sky-800 dark:text-sky-300 mt-1">10</div>
                 <p className="text-[11px] text-slate-500 mt-0.5">80% - 89% Cadence</p>
               </div>
 

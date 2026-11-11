@@ -63,10 +63,12 @@ export function usePmData(): PmData {
 
   return useMemo(() => {
     // 1. Current PM User
-    const pm: User = resolvers.getUser(currentPmId) || data.users.find((u) => u.role === 'pm') || data.users[0]
+    const pm: User =
+      resolvers.getUser(currentPmId) || data.users.find((u) => u.role === 'pm') || data.users[0]
 
     // 2. PM's Squad / Team
-    const team: Team = data.teams.find((t) => t.pmId === pm.id || t.id === pm.teamId) || data.teams[0]
+    const team: Team =
+      data.teams.find((t) => t.pmId === pm.id || t.id === pm.teamId) || data.teams[0]
 
     // 3. Squad Developers (4 Members)
     const teamMembers: User[] = team
@@ -81,7 +83,9 @@ export function usePmData(): PmData {
         const projTasks = data.tasks.filter((t) => t.projectId === proj.id)
         const completedTasks = projTasks.filter((t) => t.status === 'completed')
         const inReviewTasks = projTasks.filter((t) => t.status === 'in_review')
-        const assignedDevs = (proj.assignedDevIds || []).map((id) => resolvers.getUser(id)).filter(Boolean) as User[]
+        const assignedDevs = (proj.assignedDevIds || [])
+          .map((id) => resolvers.getUser(id))
+          .filter(Boolean) as User[]
 
         return {
           ...proj,
@@ -141,7 +145,9 @@ export function usePmData(): PmData {
 
     // Developer allocations (from transactions with type 'budget_allocation' or estimated sprint share)
     const teamTransactions = data.transactions.filter(
-      (tx) => (tx.projectId && teamProjectIds.includes(tx.projectId)) || teamMemberIds.includes(tx.userId)
+      (tx) =>
+        (tx.projectId && teamProjectIds.includes(tx.projectId)) ||
+        teamMemberIds.includes(tx.userId),
     )
 
     const totalReleased = teamTransactions
@@ -154,15 +160,17 @@ export function usePmData(): PmData {
     const projectAllocated = teamProjects.reduce((sum, p) => sum + (p.allocatedBudget || 0), 0)
     const totalAllocated = Math.max(txAllocated, projectAllocated)
     const remainingBudget = Math.max(0, totalApprovedBudget - totalAllocated)
-    const pendingEscrow = teamTransactions
-      .filter((tx) => tx.type === 'escrow_hold' || tx.status === 'pending')
-      .reduce((sum, tx) => sum + Math.abs(tx.amount), 0) || 3500
+    const pendingEscrow =
+      teamTransactions
+        .filter((tx) => tx.type === 'escrow_hold' || tx.status === 'pending')
+        .reduce((sum, tx) => sum + Math.abs(tx.amount), 0) || 3500
 
     // 10. PM Personal Wallet & Transactions
     const pmWallet: Wallet = resolvers.getDeveloperWallet(pm.id) || {
       userId: pm.id,
       balance: 5400,
-      currency: 'USD',
+      currency: 'BDT',
+      currencySymbol: '৳',
       pendingEscrow: 2200,
       totalEarnedToDate: 14200,
       totalPenalties: 0,
@@ -176,7 +184,9 @@ export function usePmData(): PmData {
     const developerWorkloads: DeveloperWorkload[] = teamMembers.map((member) => {
       const devTasks = teamTasks.filter((t) => t.assigneeId === member.id)
       const devCompleted = devTasks.filter((t) => t.status === 'completed').length
-      const devActive = devTasks.filter((t) => t.status === 'in_progress' || t.status === 'in_review').length
+      const devActive = devTasks.filter(
+        (t) => t.status === 'in_progress' || t.status === 'in_review',
+      ).length
       const devTodo = devTasks.filter((t) => t.status === 'todo').length
       const devBlocked = devTasks.filter((t) => t.status === 'blocked').length
       const devPerf = resolvers.getDeveloperPerformance(member.id) || {
@@ -207,7 +217,9 @@ export function usePmData(): PmData {
     const teamVelocity = team?.weeklyVelocity || 42
 
     // 13. PM Reports (Submitted to C-Level)
-    const pmReports = data.reports.filter((r) => r.type === 'pm_report' && (r.userId === pm.id || r.teamId === team?.id))
+    const pmReports = data.reports.filter(
+      (r) => r.type === 'pm_report' && (r.userId === pm.id || r.teamId === team?.id),
+    )
 
     // 14. Activity Logs (Team filtered)
     const recentActivities = data.activityLogs.slice(0, 8)

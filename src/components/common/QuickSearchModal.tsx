@@ -38,19 +38,15 @@ export function QuickSearchModal({ isOpen, onClose }: QuickSearchModalProps) {
       (t) =>
         t.title.toLowerCase().includes(q) ||
         t.description.toLowerCase().includes(q) ||
-        t.tags?.some((tag) => tag.toLowerCase().includes(q))
+        t.tags?.some((tag) => tag.toLowerCase().includes(q)),
     )
 
     const projects = data.projects.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.code.toLowerCase().includes(q)
+      (p) => p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q),
     )
 
     const members = data.users.filter(
-      (u) =>
-        u.name.toLowerCase().includes(q) ||
-        u.title.toLowerCase().includes(q)
+      (u) => u.name.toLowerCase().includes(q) || u.title.toLowerCase().includes(q),
     )
 
     return { tasks, projects, members }
@@ -63,7 +59,10 @@ export function QuickSearchModal({ isOpen, onClose }: QuickSearchModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4 sm:p-6 pt-20">
-      <div className="fixed inset-0 bg-slate-900/40 dark:bg-black/75 backdrop-blur-xs" onClick={handleClose} />
+      <div
+        className="fixed inset-0 bg-slate-900/40 dark:bg-black/75 backdrop-blur-xs"
+        onClick={handleClose}
+      />
 
       <div className="relative w-full max-w-xl bg-white dark:bg-[#0f1422] border border-slate-200/80 dark:border-slate-800 rounded-3xl shadow-2xl z-10 overflow-hidden">
         {/* Search Input Bar */}
@@ -78,7 +77,10 @@ export function QuickSearchModal({ isOpen, onClose }: QuickSearchModalProps) {
             className="w-full bg-transparent text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
           />
           {query && (
-            <button onClick={() => setQuery('')} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1">
+            <button
+              onClick={() => setQuery('')}
+              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"
+            >
               <X className="w-4 h-4" />
             </button>
           )}
@@ -188,7 +190,9 @@ export function QuickSearchModal({ isOpen, onClose }: QuickSearchModalProps) {
                         <div className="text-xs font-medium text-slate-900 dark:text-white truncate">
                           {member.name}
                         </div>
-                        <div className="text-[11px] text-slate-400 dark:text-slate-500">{member.title}</div>
+                        <div className="text-[11px] text-slate-400 dark:text-slate-500">
+                          {member.title}
+                        </div>
                       </div>
                     </div>
                     <ArrowRight className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-slate-600 dark:group-hover:text-slate-300" />
@@ -201,4 +205,3 @@ export function QuickSearchModal({ isOpen, onClose }: QuickSearchModalProps) {
     </div>
   )
 }
-

@@ -4,13 +4,9 @@ import { Badge } from './Badge'
 import { StatusPill } from './StatusPill'
 import { Button } from './Button'
 import { useApp } from '../../context/AppContext'
+import { usePermissions } from '../../hooks/usePermissions'
 import { formatDate } from '../../utils/formatters'
-import {
-  Calendar,
-  Clock,
-  CheckCircle2,
-  Send,
-} from 'lucide-react'
+import { Calendar, Clock, CheckCircle2, Send } from 'lucide-react'
 import type { Task, EnrichedTask, TaskStatus } from '../../types'
 
 export interface TaskDetailModalProps {
@@ -20,7 +16,9 @@ export interface TaskDetailModalProps {
 }
 
 export function TaskDetailModal({ task, isOpen, onClose }: TaskDetailModalProps) {
-  const { data, updateTaskStatus, resolvers, showToast, currentRole } = useApp()
+  const { data, updateTaskStatus, addTaskComment, resolvers, showToast } = useApp()
+  const { hasPermission } = usePermissions()
+  const canApproveTasks = hasPermission('tasks:approve')
   const [newComment, setNewComment] = useState('')
 
   if (!task) return null
@@ -32,8 +30,11 @@ export function TaskDetailModal({ task, isOpen, onClose }: TaskDetailModalProps)
   const comments = data.comments.filter((c) => c.taskId === currentTask.id)
 
   const handleStatusChange = (newStatus: string) => {
-    if (currentRole === 'developer' && newStatus === 'completed') {
-      showToast('Permission denied: Only Project Managers (PM) can mark tasks as Completed', 'error')
+    if (!canApproveTasks && newStatus === 'completed') {
+      showToast(
+        'Permission denied: Deliverable completion approval (`tasks:approve`) is required',
+        'error',
+      )
       return
     }
     updateTaskStatus(currentTask.id, newStatus as TaskStatus)
@@ -43,18 +44,11 @@ export function TaskDetailModal({ task, isOpen, onClose }: TaskDetailModalProps)
     e.preventDefault()
     if (!newComment.trim()) return
 
-    data.comments.push({
-      id: `comm_${Date.now()}`,
-      taskId: currentTask.id,
-      authorId: 'user_dev_01',
-      content: newComment.trim(),
-      createdAt: new Date().toISOString(),
-    })
+    addTaskComment(currentTask.id, newComment.trim())
     setNewComment('')
-    showToast('Comment posted', 'success')
   }
 
-  const isDev = currentRole === 'developer'
+  const isDev = !canApproveTasks
 
   return (
     <Modal
@@ -94,29 +88,23 @@ export function TaskDetailModal({ task, isOpen, onClose }: TaskDetailModalProps)
                 Submit for Review
               </Button>
             )
+          ) : // PM / Executive action button
+          currentTask.status !== 'completed' ? (
+            <Button
+              variant="lime"
+              size="sm"
+              icon={CheckCircle2}
+              onClick={() => {
+                handleStatusChange('completed')
+                onClose()
+              }}
+            >
+              Approve & Complete
+            </Button>
           ) : (
-            // PM / Executive action button
-            currentTask.status !== 'completed' ? (
-              <Button
-                variant="lime"
-                size="sm"
-                icon={CheckCircle2}
-                onClick={() => {
-                  handleStatusChange('completed')
-                  onClose()
-                }}
-              >
-                Approve & Complete
-              </Button>
-            ) : (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => handleStatusChange('in_progress')}
-              >
-                Reopen Task
-              </Button>
-            )
+            <Button variant="secondary" size="sm" onClick={() => handleStatusChange('in_progress')}>
+              Reopen Task
+            </Button>
           )}
         </>
       }
@@ -149,8 +137,8 @@ export function TaskDetailModal({ task, isOpen, onClose }: TaskDetailModalProps)
                 currentTask.priority === 'urgent'
                   ? 'rose'
                   : currentTask.priority === 'high'
-                  ? 'amber'
-                  : 'slate'
+                    ? 'amber'
+                    : 'slate'
               }
               size="xs"
             >
@@ -195,7 +183,9 @@ export function TaskDetailModal({ task, isOpen, onClose }: TaskDetailModalProps)
 
         {/* Comments Section */}
         <div>
-          <h4 className="font-semibold text-slate-700 dark:text-slate-300 mb-2">Activity & Comments</h4>
+          <h4 className="font-semibold text-slate-700 dark:text-slate-300 mb-2">
+            Activity & Comments
+          </h4>
 
           <div className="space-y-2 max-h-36 overflow-y-auto mb-3 pr-1">
             {comments.length === 0 ? (
@@ -243,4 +233,3 @@ export function TaskDetailModal({ task, isOpen, onClose }: TaskDetailModalProps)
     </Modal>
   )
 }
-

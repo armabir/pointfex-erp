@@ -7,16 +7,7 @@ import { usePmData } from '../../hooks/usePmData'
 import { useApp } from '../../context/AppContext'
 import { formatDate } from '../../utils/formatters'
 import type { Task, TaskPriority, TaskStatus } from '../../types'
-import {
-  Plus,
-  Search,
-  CheckCircle2,
-  XCircle,
-  FolderGit2,
-  Layers,
-  Clock,
-  Users,
-} from 'lucide-react'
+import { Plus, Search, CheckCircle2, XCircle, FolderGit2, Layers, Clock, Users } from 'lucide-react'
 
 interface ColumnDef {
   id: TaskStatus
@@ -28,13 +19,7 @@ interface ColumnDef {
 
 export function PmTaskManagementPage() {
   const { teamTasks, teamProjects, teamMembers, team } = usePmData()
-  const {
-    createTask,
-    approveTask,
-    rejectTask,
-    updateTaskStatus,
-    setSelectedTaskModal,
-  } = useApp()
+  const { createTask, approveTask, rejectTask, updateTaskStatus, setSelectedTaskModal } = useApp()
 
   // Filters (Left Column Project Selection + Right Column Dev & Search Filter)
   const [selectedProjectId, setSelectedProjectId] = useState<string>('all')
@@ -88,7 +73,8 @@ export function PmTaskManagementPage() {
   const totalTasksCount = teamTasks.length
   const totalCompletedCount = teamTasks.filter((t) => t.status === 'completed').length
   const totalActiveCount = totalTasksCount - totalCompletedCount
-  const overallProgress = totalTasksCount > 0 ? Math.round((totalCompletedCount / totalTasksCount) * 100) : 0
+  const overallProgress =
+    totalTasksCount > 0 ? Math.round((totalCompletedCount / totalTasksCount) * 100) : 0
 
   // Drag handlers
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, taskId: string) => {
@@ -166,7 +152,10 @@ export function PmTaskManagementPage() {
             Team Task Management
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            5-Column Kanban Board · Manage, assign, and approve deliverables for <span className="font-semibold text-slate-700 dark:text-slate-300">{team?.name || 'Squad'}</span>
+            5-Column Kanban Board · Manage, assign, and approve deliverables for{' '}
+            <span className="font-semibold text-slate-700 dark:text-slate-300">
+              {team?.name || 'Squad'}
+            </span>
           </p>
         </div>
 
@@ -194,9 +183,7 @@ export function PmTaskManagementPage() {
               <FolderGit2 className="w-3.5 h-3.5 text-slate-400" />
               Project Filter
             </span>
-            <span className="text-[11px] text-slate-400">
-              {teamProjects.length + 1} views
-            </span>
+            <span className="text-[11px] text-slate-400">{teamProjects.length + 1} views</span>
           </div>
 
           {/* "All Projects" Card */}
@@ -224,9 +211,7 @@ export function PmTaskManagementPage() {
                   <span className="font-bold text-xs text-slate-900 dark:text-white block">
                     All Projects
                   </span>
-                  <span className="text-[10px] text-slate-400">
-                    Squad Overview
-                  </span>
+                  <span className="text-[10px] text-slate-400">Squad Overview</span>
                 </div>
               </div>
               <Badge variant="lime" size="xs">
@@ -261,7 +246,8 @@ export function PmTaskManagementPage() {
             const pTotal = pTasks.length
             const pCompleted = pTasks.filter((t) => t.status === 'completed').length
             const pActive = pTotal - pCompleted
-            const pProgress = pTotal > 0 ? Math.round((pCompleted / pTotal) * 100) : project.progress || 0
+            const pProgress =
+              pTotal > 0 ? Math.round((pCompleted / pTotal) * 100) : project.progress || 0
 
             return (
               <button
@@ -279,9 +265,7 @@ export function PmTaskManagementPage() {
                     <span className="font-bold text-xs text-slate-900 dark:text-white truncate block">
                       {project.name}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-mono">
-                      {project.code}
-                    </span>
+                    <span className="text-[10px] text-slate-400 font-mono">{project.code}</span>
                   </div>
                   <StatusPill status={project.status} size="sm" />
                 </div>
@@ -390,7 +374,9 @@ export function PmTaskManagementPage() {
                     </div>
                     <div className="flex items-center justify-between text-[10px] text-slate-400 px-0.5">
                       <span>{devActive} active</span>
-                      <span className="text-emerald-600 dark:text-emerald-400 font-medium">{devDone} done</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                        {devDone} done
+                      </span>
                     </div>
                   </button>
                 )
@@ -410,9 +396,7 @@ export function PmTaskManagementPage() {
                 className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
               />
             </div>
-            <span className="text-xs text-slate-400 shrink-0">
-              {filteredTasks.length} tasks
-            </span>
+            <span className="text-xs text-slate-400 shrink-0">{filteredTasks.length} tasks</span>
           </div>
 
           {/* 5-Column Kanban Board */}
@@ -433,113 +417,117 @@ export function PmTaskManagementPage() {
                         : 'bg-slate-50/80 dark:bg-slate-900/40 border-slate-200/60 dark:border-slate-800/60'
                     }`}
                   >
-                  {/* Column Header */}
-                  <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-200/60 dark:border-slate-800/80">
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${col.dot}`} />
-                      <span className="font-bold text-xs text-slate-800 dark:text-slate-200">
-                        {col.label}
+                    {/* Column Header */}
+                    <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-200/60 dark:border-slate-800/80">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${col.dot}`} />
+                        <span className="font-bold text-xs text-slate-800 dark:text-slate-200">
+                          {col.label}
+                        </span>
+                      </div>
+                      <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-white dark:bg-slate-800 text-slate-500 shadow-2xs">
+                        {colTasks.length}
                       </span>
                     </div>
-                    <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-white dark:bg-slate-800 text-slate-500 shadow-2xs">
-                      {colTasks.length}
-                    </span>
-                  </div>
 
-                  {/* Tasks List */}
-                  <div className="space-y-2.5 flex-1">
-                    {colTasks.length === 0 ? (
-                      <div className="py-10 text-center text-[11px] text-slate-400/80">
-                        Drop task here
-                      </div>
-                    ) : (
-                      colTasks.map((task) => {
-                        const isDragging = draggedTaskId === task.id
-                        const assignee = task.assignee
+                    {/* Tasks List */}
+                    <div className="space-y-2.5 flex-1">
+                      {colTasks.length === 0 ? (
+                        <div className="py-10 text-center text-[11px] text-slate-400/80">
+                          Drop task here
+                        </div>
+                      ) : (
+                        colTasks.map((task) => {
+                          const isDragging = draggedTaskId === task.id
+                          const assignee = task.assignee
 
-                        return (
-                          <div
-                            key={task.id}
-                            draggable
-                            onDragStart={(e) => handleDragStart(e, task.id)}
-                            onClick={() => setSelectedTaskModal(task)}
-                            className={`p-3 rounded-xl bg-white dark:bg-slate-850 border border-slate-200/70 dark:border-slate-750 shadow-2xs hover:shadow-xs transition-all cursor-pointer group space-y-2.5 ${
-                              isDragging ? 'opacity-40 scale-95' : ''
-                            }`}
-                          >
-                            {/* Card Top: Project Code & Priority */}
-                            <div className="flex items-center justify-between gap-1 text-[10px]">
-                              <span className="font-mono text-slate-400">
-                                {task.project?.code || 'SQUAD'}
-                              </span>
-                              <Badge
-                                variant={
-                                  task.priority === 'urgent'
-                                    ? 'rose'
-                                    : task.priority === 'high'
-                                    ? 'amber'
-                                    : 'slate'
-                                }
-                                size="xs"
-                              >
-                                {task.priority}
-                              </Badge>
-                            </div>
-
-                            {/* Task Title */}
-                            <div className="font-semibold text-xs text-slate-900 dark:text-white leading-snug line-clamp-2">
-                              {task.title}
-                            </div>
-
-                            {/* Assignee & Due Date */}
-                            <div className="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400">
-                              <span className="flex items-center gap-1 truncate font-medium text-slate-700 dark:text-slate-300">
-                                <span className="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-[9px] font-bold">
-                                  {assignee?.initials || 'D'}
+                          return (
+                            <div
+                              key={task.id}
+                              draggable
+                              onDragStart={(e) => handleDragStart(e, task.id)}
+                              onClick={() => setSelectedTaskModal(task)}
+                              className={`p-3 rounded-xl bg-white dark:bg-slate-850 border border-slate-200/70 dark:border-slate-750 shadow-2xs hover:shadow-xs transition-all cursor-pointer group space-y-2.5 ${
+                                isDragging ? 'opacity-40 scale-95' : ''
+                              }`}
+                            >
+                              {/* Card Top: Project Code & Priority */}
+                              <div className="flex items-center justify-between gap-1 text-[10px]">
+                                <span className="font-mono text-slate-400">
+                                  {task.project?.code || 'SQUAD'}
                                 </span>
-                                <span className="truncate">{assignee?.name?.split(' ')[0] || 'Dev'}</span>
-                              </span>
-                              <span className="flex items-center gap-1 shrink-0">
-                                <Clock className="w-3 h-3 text-slate-400" />
-                                {formatDate(task.dueDate, 'short')}
-                              </span>
-                            </div>
-
-                            {/* In-Review PM Action Buttons */}
-                            {col.id === 'in_review' && (
-                              <div
-                                className="flex items-center gap-1.5 pt-1.5 border-t border-slate-100 dark:border-slate-800"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <button
-                                  type="button"
-                                  onClick={() => approveTask(task.id, 'Approved via PM Kanban board')}
-                                  className="flex-1 py-1.5 px-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] font-semibold flex items-center justify-center gap-1 cursor-pointer transition-colors whitespace-nowrap shadow-2xs"
+                                <Badge
+                                  variant={
+                                    task.priority === 'urgent'
+                                      ? 'rose'
+                                      : task.priority === 'high'
+                                        ? 'amber'
+                                        : 'slate'
+                                  }
+                                  size="xs"
                                 >
-                                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                                  <span>Approve</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setRejectingTask(task)
-                                    setRejectFeedback('')
-                                  }}
-                                  className="flex-1 py-1.5 px-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/40 text-[11px] font-semibold flex items-center justify-center gap-1 cursor-pointer transition-colors whitespace-nowrap shadow-2xs"
-                                >
-                                  <XCircle className="w-3.5 h-3.5 shrink-0" />
-                                  <span>Reject</span>
-                                </button>
+                                  {task.priority}
+                                </Badge>
                               </div>
-                            )}
-                          </div>
-                        )
-                      })
-                    )}
+
+                              {/* Task Title */}
+                              <div className="font-semibold text-xs text-slate-900 dark:text-white leading-snug line-clamp-2">
+                                {task.title}
+                              </div>
+
+                              {/* Assignee & Due Date */}
+                              <div className="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400">
+                                <span className="flex items-center gap-1 truncate font-medium text-slate-700 dark:text-slate-300">
+                                  <span className="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-[9px] font-bold">
+                                    {assignee?.initials || 'D'}
+                                  </span>
+                                  <span className="truncate">
+                                    {assignee?.name?.split(' ')[0] || 'Dev'}
+                                  </span>
+                                </span>
+                                <span className="flex items-center gap-1 shrink-0">
+                                  <Clock className="w-3 h-3 text-slate-400" />
+                                  {formatDate(task.dueDate, 'short')}
+                                </span>
+                              </div>
+
+                              {/* In-Review PM Action Buttons */}
+                              {col.id === 'in_review' && (
+                                <div
+                                  className="flex items-center gap-1.5 pt-1.5 border-t border-slate-100 dark:border-slate-800"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      approveTask(task.id, 'Approved via PM Kanban board')
+                                    }
+                                    className="flex-1 py-1.5 px-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] font-semibold flex items-center justify-center gap-1 cursor-pointer transition-colors whitespace-nowrap shadow-2xs"
+                                  >
+                                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                                    <span>Approve</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setRejectingTask(task)
+                                      setRejectFeedback('')
+                                    }}
+                                    className="flex-1 py-1.5 px-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/40 text-[11px] font-semibold flex items-center justify-center gap-1 cursor-pointer transition-colors whitespace-nowrap shadow-2xs"
+                                  >
+                                    <XCircle className="w-3.5 h-3.5 shrink-0" />
+                                    <span>Reject</span>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })
+                      )}
+                    </div>
                   </div>
-                </div>
-              )
-            })}
+                )
+              })}
             </div>
           </div>
         </div>
@@ -682,7 +670,8 @@ export function PmTaskManagementPage() {
       >
         <form onSubmit={handleConfirmReject} className="space-y-4 text-xs">
           <p className="text-slate-600 dark:text-slate-400">
-            This task will be returned to <strong>In Progress</strong> for developer revision. Please provide specific technical feedback or missing acceptance criteria.
+            This task will be returned to <strong>In Progress</strong> for developer revision.
+            Please provide specific technical feedback or missing acceptance criteria.
           </p>
 
           <div>
@@ -719,4 +708,3 @@ export function PmTaskManagementPage() {
 }
 
 export default PmTaskManagementPage
-

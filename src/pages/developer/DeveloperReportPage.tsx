@@ -5,18 +5,13 @@ import { Button } from '../../components/common/Button'
 import { StatusPill } from '../../components/common/StatusPill'
 import { useApp } from '../../context/AppContext'
 import { formatDate } from '../../utils/formatters'
-import {
-  Send,
-  Lightbulb,
-  AlertTriangle,
-  ExternalLink,
-  FileText,
-  UserCheck,
-} from 'lucide-react'
+import { Send, Lightbulb, AlertTriangle, ExternalLink, FileText, UserCheck } from 'lucide-react'
 import type { Report } from '../../types'
 
 export function DeveloperReportPage() {
-  const { data, addSubmission, addComplaint } = useApp()
+  const { data, addSubmission, addComplaint, currentDevId, currentUser, currentTeam } = useApp()
+  const activeDevId = currentUser?.id || currentDevId
+  const activeTeamId = currentUser?.teamId || currentTeam?.id || 'team_01'
 
   const [activeTab, setActiveTab] = useState<'submission' | 'complaint'>('submission')
 
@@ -31,7 +26,7 @@ export function DeveloperReportPage() {
   const [complaintDesc, setComplaintDesc] = useState('')
 
   // Filter current developer's items
-  const userReports = data.reports.filter((r) => r.userId === 'user_dev_01')
+  const userReports = data.reports.filter((r) => r.userId === activeDevId)
   const projectSubmissions = userReports.filter((r) => r.type === 'project_submission')
   const complaints = userReports.filter((r) => r.type === 'complaint')
 
@@ -42,8 +37,8 @@ export function DeveloperReportPage() {
 
     const submission: Report = {
       id: `prop_${Date.now()}`,
-      userId: 'user_dev_01',
-      teamId: 'team_01',
+      userId: activeDevId,
+      teamId: activeTeamId,
       type: 'project_submission',
       title: projectTitle.trim(),
       docsUrl: docsUrl.trim(),
@@ -68,8 +63,8 @@ export function DeveloperReportPage() {
 
     const complaint: Report = {
       id: `cmp_${Date.now()}`,
-      userId: 'user_dev_01',
-      teamId: 'team_01',
+      userId: activeDevId,
+      teamId: activeTeamId,
       type: 'complaint',
       complainTo: complainTo.trim(),
       title: complaintTitle.trim(),
@@ -137,10 +132,7 @@ export function DeveloperReportPage() {
         <div className="lg:col-span-7 space-y-6">
           {activeTab === 'submission' ? (
             /* New Project Idea Form */
-            <Card
-              title="Submit New Project Idea"
-              icon={Lightbulb}
-            >
+            <Card title="Submit New Project Idea" icon={Lightbulb}>
               <form onSubmit={handleProjectSubmit} className="space-y-4 text-xs">
                 {/* Project Title */}
                 <div>
@@ -201,10 +193,7 @@ export function DeveloperReportPage() {
             </Card>
           ) : (
             /* General Complaint Form: complain to | title | desc */
-            <Card
-              title="File General Complaint"
-              icon={AlertTriangle}
-            >
+            <Card title="File General Complaint" icon={AlertTriangle}>
               <form onSubmit={handleComplaintSubmit} className="space-y-4 text-xs">
                 {/* Complain To */}
                 <div>
@@ -224,7 +213,9 @@ export function DeveloperReportPage() {
                       <option value="Team Lead">Team Lead</option>
                       <option value="CTO">Chief Technology Officer (CTO)</option>
                       <option value="People Operations (CPO)">People Operations (CPO / HR)</option>
-                      <option value="Team Member (Peer Conflict)">Team Member (Peer Conflict)</option>
+                      <option value="Team Member (Peer Conflict)">
+                        Team Member (Peer Conflict)
+                      </option>
                       <option value="Executive Management">Executive Management</option>
                     </select>
                   </div>
@@ -273,7 +264,9 @@ export function DeveloperReportPage() {
         {/* Right Column: Trackers & History (5 cols) */}
         <div className="lg:col-span-5 space-y-4">
           <Card
-            title={activeTab === 'submission' ? 'Submitted Project Proposals' : 'Submitted Complaints'}
+            title={
+              activeTab === 'submission' ? 'Submitted Project Proposals' : 'Submitted Complaints'
+            }
             icon={activeTab === 'submission' ? Lightbulb : AlertTriangle}
           >
             {activeTab === 'submission' ? (
@@ -318,7 +311,9 @@ export function DeveloperReportPage() {
 
                       {prop.feedback && (
                         <div className="p-2 rounded-xl bg-slate-100/80 dark:bg-slate-800 text-[11px] text-slate-600 dark:text-slate-300">
-                          <span className="font-medium text-slate-800 dark:text-slate-200">Feedback:</span>{' '}
+                          <span className="font-medium text-slate-800 dark:text-slate-200">
+                            Feedback:
+                          </span>{' '}
                           {prop.feedback}
                         </div>
                       )}
@@ -363,7 +358,9 @@ export function DeveloperReportPage() {
 
                       {comp.feedback && (
                         <div className="p-2 rounded-xl bg-slate-100/80 dark:bg-slate-800 text-[11px] text-slate-600 dark:text-slate-300">
-                          <span className="font-medium text-slate-800 dark:text-slate-200">Response:</span>{' '}
+                          <span className="font-medium text-slate-800 dark:text-slate-200">
+                            Response:
+                          </span>{' '}
                           {comp.feedback}
                         </div>
                       )}
@@ -378,4 +375,3 @@ export function DeveloperReportPage() {
     </div>
   )
 }
-

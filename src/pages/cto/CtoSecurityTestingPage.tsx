@@ -30,7 +30,9 @@ export function CtoSecurityTestingPage() {
             </h3>
 
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              Automated CVE vulnerability triaging, real-time SAST code analysis hooks, bug bounty payout pipelines, and SOC2 compliance monitoring will be available in the upcoming security suite integration.
+              Automated CVE vulnerability triaging, real-time SAST code analysis hooks, bug bounty
+              payout pipelines, and SOC2 compliance monitoring will be available in the upcoming
+              security suite integration.
             </p>
           </div>
 
